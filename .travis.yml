@@ -5,9 +5,3 @@ jdk: oraclejdk8
 
 before_install:
 - unset _JAVA_OPTIONS
-
-jobs:
-  include:
-  - stage: build
-    name: "Build JUnit Platform Maven Plugin"
-    script: mvn verify install
