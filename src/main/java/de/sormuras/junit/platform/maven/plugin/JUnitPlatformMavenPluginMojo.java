@@ -1,31 +1,42 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package de.sormuras.junit.platform.maven.plugin;
 
-import static org.junit.platform.engine.discovery.ClassNameFilter.includeClassNamePatterns;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.nio.file.Path;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Paths;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.function.IntSupplier;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.junit.platform.engine.discovery.DiscoverySelectors;
-import org.junit.platform.launcher.Launcher;
-import org.junit.platform.launcher.LauncherDiscoveryRequest;
-import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
-import org.junit.platform.launcher.core.LauncherFactory;
-import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
-import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
-/** Goal which touches a timestamp file. */
+/** Launch JUnit Platform Mojo. */
 @Mojo(
     name = "launch-junit-platform",
     defaultPhase = LifecyclePhase.TEST,
@@ -36,45 +47,62 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo {
   @Parameter(defaultValue = "${project}", readonly = true, required = true)
   private MavenProject project;
 
+  MavenProject getProject() {
+    return project;
+  }
+
   public void execute() throws MojoExecutionException {
-    Log log = getLog();
-    log.info("Launching JUnit Platform...");
-    log.info("");
-    log.info("project: " + project);
-    log.info("   main: " + project.getBuild().getOutputDirectory());
-    log.info("   test: " + project.getBuild().getTestOutputDirectory());
+    URL[] urls;
     try {
-      log.debug("");
-      log.debug("test class-path elements:");
-      project.getTestClasspathElements().forEach(log::debug);
+      List<String> elements = project.getTestClasspathElements();
+      urls = new URL[project.getTestClasspathElements().size()];
+      for (int i = 0; i < elements.size(); i++) {
+        urls[i] = Paths.get(elements.get(i)).toAbsolutePath().normalize().toUri().toURL();
+      }
     } catch (DependencyResolutionRequiredException e) {
       throw new MojoExecutionException("Resolving test class-path elements failed", e);
+    } catch (MalformedURLException e) {
+      throw new MojoExecutionException("Malformed URL caught: ", e);
     }
-    log.info("");
 
-    Set<Path> roots = new HashSet<>();
-    roots.add(Paths.get(project.getBuild().getTestOutputDirectory()));
+    URLClassLoader loader = URLClassLoader.newInstance(urls, getClass().getClassLoader());
 
-    LauncherDiscoveryRequest request =
-        LauncherDiscoveryRequestBuilder.request()
-            .selectors(DiscoverySelectors.selectClasspathRoots(roots))
-            .filters(includeClassNamePatterns(".*Tests"))
-            .build();
+    Class<?> taskClass = load(loader, JUnitPlatformTask.class);
+    Class<?>[] taskTypes = new Class<?>[] {ClassLoader.class, JUnitPlatformMavenPluginMojo.class};
+    IntSupplier runner = (IntSupplier) create(taskClass, taskTypes, loader, this);
 
-    Launcher launcher = LauncherFactory.create();
+    int result = runner.getAsInt();
+    if (result != 0) {
+      throw new MojoExecutionException("RED ALERT!");
+    }
+  }
 
-    // Register a listener of your choice
-    SummaryGeneratingListener listener = new SummaryGeneratingListener();
-    launcher.registerTestExecutionListeners(listener);
+  private static Class<?> load(ClassLoader loader, Class<?> type) {
+    String name = type.getName();
+    try {
+      return loader.loadClass(name);
+    } catch (ClassNotFoundException e) {
+      throw new AssertionError(e);
+    }
+  }
 
-    launcher.execute(request);
+  private static Object create(Class<?> type, Class<?>[] parameterTypes, Object... args) {
+    try {
+      return type.getConstructor(parameterTypes).newInstance(args);
+    } catch (IllegalAccessException | NoSuchMethodException | InstantiationException e) {
+      throw new AssertionError(e);
+    } catch (InvocationTargetException e) {
+      throw rethrow(e.getCause());
+    }
+  }
 
-    TestExecutionSummary summary = listener.getSummary();
-    StringWriter message = new StringWriter();
-    PrintWriter writer = new PrintWriter(message);
-    summary.printTo(writer);
-    summary.printFailuresTo(writer);
-
-    log.info(message.toString());
+  private static UndeclaredThrowableException rethrow(Throwable cause) {
+    if (cause instanceof RuntimeException) {
+      throw (RuntimeException) cause;
+    }
+    if (cause instanceof Error) {
+      throw (Error) cause;
+    }
+    return new UndeclaredThrowableException(cause);
   }
 }
