@@ -5,3 +5,6 @@ jdk: oraclejdk8
 
 before_install:
 - unset _JAVA_OPTIONS
+
+script:
+- mvn -Prun-its verify
