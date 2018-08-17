@@ -32,6 +32,7 @@ import java.util.function.IntSupplier;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -71,6 +72,10 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   }
 
   public void execute() throws MojoExecutionException {
+    Log log = getLog();
+    log.debug("Executing " + getClass().getTypeName() + "...");
+    log.debug("");
+
     ClassLoader loader = createClassLoader();
 
     Class<?> taskClass = load(loader, Task.class);
@@ -84,6 +89,8 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   }
 
   private ClassLoader createClassLoader() throws MojoExecutionException {
+    Log log = getLog();
+    log.debug("  Creating classloader using the following elements:");
     ClassLoader parent = getClass().getClassLoader();
     URL[] urls;
     try {
@@ -91,12 +98,14 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
       urls = new URL[project.getTestClasspathElements().size()];
       for (int i = 0; i < elements.size(); i++) {
         urls[i] = Paths.get(elements.get(i)).toAbsolutePath().normalize().toUri().toURL();
+        log.debug("  -> " + urls[i]);
       }
     } catch (DependencyResolutionRequiredException e) {
       throw new MojoExecutionException("Resolving test class-path elements failed", e);
     } catch (MalformedURLException e) {
       throw new MojoExecutionException("Malformed URL caught: ", e);
     }
+    log.debug("");
     return URLClassLoader.newInstance(urls, parent);
   }
 
