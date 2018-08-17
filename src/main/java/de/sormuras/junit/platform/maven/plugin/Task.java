@@ -36,14 +36,14 @@ import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
 import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
-class JUnitPlatformTask implements IntSupplier {
+class Task implements IntSupplier {
 
   private final ClassLoader classLoader;
-  private final JUnitPlatformMavenPluginMojo mojo;
+  private final Configuration configuration;
 
-  public JUnitPlatformTask(ClassLoader classLoader, JUnitPlatformMavenPluginMojo mojo) {
+  public Task(ClassLoader classLoader, Configuration configuration) {
     this.classLoader = classLoader;
-    this.mojo = mojo;
+    this.configuration = configuration;
   }
 
   @Override
@@ -51,31 +51,28 @@ class JUnitPlatformTask implements IntSupplier {
     ClassLoader oldContext = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(classLoader);
     try {
-      return launchJUnitPlatform(mojo);
+      return launchJUnitPlatform(configuration);
     } finally {
       Thread.currentThread().setContextClassLoader(oldContext);
     }
   }
 
-  private static int launchJUnitPlatform(JUnitPlatformMavenPluginMojo mojo) {
-    Log log = mojo.getLog();
+  private static int launchJUnitPlatform(Configuration configuration) {
+    Log log = configuration.getLog();
     log.info("Launching JUnit Platform...");
     log.info("");
-    log.debug("project: " + mojo.getProject());
+    log.debug("project: " + configuration.getMavenProject());
+    log.debug("timeout: " + configuration.getTimeout().getSeconds());
     log.debug("");
 
     Set<Path> roots = new HashSet<>();
-    roots.add(Paths.get(mojo.getProject().getBuild().getTestOutputDirectory()));
+    roots.add(Paths.get(configuration.getMavenProject().getBuild().getTestOutputDirectory()));
 
     LauncherDiscoveryRequest request =
-        LauncherDiscoveryRequestBuilder.request()
-            .selectors(selectClasspathRoots(roots))
-            // .filters(includeClassNamePatterns(".*Tests"))
-            .build();
+        LauncherDiscoveryRequestBuilder.request().selectors(selectClasspathRoots(roots)).build();
 
     Launcher launcher = LauncherFactory.create();
 
-    // Register a listener of your choice
     SummaryGeneratingListener listener = new SummaryGeneratingListener();
     launcher.registerTestExecutionListeners(listener);
 
@@ -85,7 +82,12 @@ class JUnitPlatformTask implements IntSupplier {
 
     TestExecutionSummary summary = listener.getSummary();
 
-    boolean success = summary.getTestsFailedCount() == 0 && summary.getContainersFailedCount() == 0;
+    boolean success =
+        summary.getTestsFailedCount() == 0
+            && summary.getTestsAbortedCount() == 0
+            && summary.getContainersFailedCount() == 0
+            && summary.getContainersAbortedCount() == 0;
+
     if (success) {
       long succeeded = summary.getTestsSucceededCount();
       log.info(String.format("Successfully executed: %d test(s) in %d ms", succeeded, duration));
@@ -98,6 +100,7 @@ class JUnitPlatformTask implements IntSupplier {
         log.error(line);
       }
     }
+
     return success ? 0 : 1;
   }
 }

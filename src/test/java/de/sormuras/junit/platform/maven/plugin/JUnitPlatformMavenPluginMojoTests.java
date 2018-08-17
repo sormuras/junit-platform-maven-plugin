@@ -19,33 +19,33 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.testing.MojoExtension;
-import org.apache.maven.plugin.testing.WithoutMojo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class JUnitPlatformMavenPluginMojoTests {
 
-  @RegisterExtension MojoExtension mojo = new MojoExtension();
+  @RegisterExtension MojoExtension extension = new MojoExtension();
 
   @Test
-  void testSomething() throws Exception {
-    File pom = new File("target/test-classes/project-to-test/");
-    assertNotNull(pom);
-    assertTrue(pom.exists());
+  void timeout99() throws Exception {
+    Path base = Paths.get("target", "test-classes", "project", "timeout-99");
+    assertTrue(Files.isDirectory(base));
 
-    JUnitPlatformMavenPluginMojo platformMavenPluginMojo =
-        (JUnitPlatformMavenPluginMojo) mojo.lookupConfiguredMojo(pom, "launch-junit-platform");
-    assertNotNull(platformMavenPluginMojo);
-    assertNotNull(platformMavenPluginMojo.getProject());
-  }
+    Mojo mojo = extension.lookupConfiguredMojo(base.toFile(), "launch-junit-platform");
+    assertNotNull(mojo);
+    assertTrue(mojo instanceof JUnitPlatformMavenPluginMojo);
 
-  @WithoutMojo
-  @Test
-  void testSomethingWhichDoesNotNeedTheMojoAndProbablyShouldBeExtractedIntoANewClassOfItsOwn() {
-    assertTrue(true);
+    Configuration configuration = (Configuration) mojo;
+    assertNotNull(configuration.getMavenProject());
+    assertEquals(99L, configuration.getTimeout().getSeconds());
   }
 }

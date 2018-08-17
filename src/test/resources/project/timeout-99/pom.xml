@@ -4,19 +4,17 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>de.sormuras</groupId>
-  <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
-  <name>Test JUnitPlatformMavenPluginMojo</name>
+  <groupId>project</groupId>
+  <artifactId>timeout-99</artifactId>
+  <version>version</version>
 
   <build>
     <plugins>
       <plugin>
+        <groupId>de.sormuras</groupId>
         <artifactId>junit-platform-maven-plugin</artifactId>
         <configuration>
-          <!-- Specify the JUnitPlatformMavenPluginMojo parameter -->
-          <outputDir>target/test-harness/project-to-test</outputDir>
+          <timeout>99</timeout>
         </configuration>
       </plugin>
     </plugins>

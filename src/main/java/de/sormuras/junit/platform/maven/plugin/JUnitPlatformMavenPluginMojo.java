@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.List;
 import java.util.function.IntSupplier;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -42,16 +43,39 @@ import org.apache.maven.project.MavenProject;
     defaultPhase = LifecyclePhase.TEST,
     threadSafe = true,
     requiresDependencyResolution = ResolutionScope.TEST)
-public class JUnitPlatformMavenPluginMojo extends AbstractMojo {
+public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Configuration {
 
   @Parameter(defaultValue = "${project}", readonly = true, required = true)
   private MavenProject project;
 
-  MavenProject getProject() {
+  @Parameter(defaultValue = "100", readonly = true, required = true)
+  private long timeout;
+
+  @Override
+  public MavenProject getMavenProject() {
     return project;
   }
 
+  @Override
+  public Duration getTimeout() {
+    return Duration.ofSeconds(timeout);
+  }
+
   public void execute() throws MojoExecutionException {
+    ClassLoader loader = createClassLoader();
+
+    Class<?> taskClass = load(loader, Task.class);
+    Class<?>[] taskTypes = new Class<?>[] {ClassLoader.class, Configuration.class};
+    IntSupplier task = (IntSupplier) create(taskClass, taskTypes, loader, this);
+
+    int result = task.getAsInt();
+    if (result != 0) {
+      throw new MojoExecutionException("RED ALERT!");
+    }
+  }
+
+  private ClassLoader createClassLoader() throws MojoExecutionException {
+    ClassLoader parent = getClass().getClassLoader();
     URL[] urls;
     try {
       List<String> elements = project.getTestClasspathElements();
@@ -64,17 +88,7 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo {
     } catch (MalformedURLException e) {
       throw new MojoExecutionException("Malformed URL caught: ", e);
     }
-
-    URLClassLoader loader = URLClassLoader.newInstance(urls, getClass().getClassLoader());
-
-    Class<?> taskClass = load(loader, JUnitPlatformTask.class);
-    Class<?>[] taskTypes = new Class<?>[] {ClassLoader.class, JUnitPlatformMavenPluginMojo.class};
-    IntSupplier runner = (IntSupplier) create(taskClass, taskTypes, loader, this);
-
-    int result = runner.getAsInt();
-    if (result != 0) {
-      throw new MojoExecutionException("RED ALERT!");
-    }
+    return URLClassLoader.newInstance(urls, parent);
   }
 
   private static Class<?> load(ClassLoader loader, Class<?> type) {
