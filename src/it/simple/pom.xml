@@ -39,8 +39,6 @@
 
         <executions>
           <execution>
-            <id>launch</id>
-            <phase>test</phase>
             <goals>
               <goal>launch-junit-platform</goal>
             </goals>
