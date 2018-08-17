@@ -37,6 +37,15 @@
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
 
+        <configuration>
+          <parameters>
+            <property>
+              <name>junit.jupiter.execution.parallel.enabled</name>
+              <value>true</value>
+            </property>
+          </parameters>
+        </configuration>
+
         <executions>
           <execution>
             <goals>

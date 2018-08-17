@@ -27,6 +27,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
+import java.util.Properties;
 import java.util.function.IntSupplier;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
@@ -51,6 +52,9 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   @Parameter(defaultValue = "100", readonly = true, required = true)
   private long timeout;
 
+  @Parameter(readonly = true)
+  private Properties parameters = new Properties();
+
   @Override
   public MavenProject getMavenProject() {
     return project;
@@ -59,6 +63,11 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   @Override
   public Duration getTimeout() {
     return Duration.ofSeconds(timeout);
+  }
+
+  @Override
+  public Properties getParameters() {
+    return parameters;
   }
 
   public void execute() throws MojoExecutionException {

@@ -25,7 +25,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.IntSupplier;
 import org.apache.maven.plugin.logging.Log;
@@ -63,13 +65,22 @@ class Task implements IntSupplier {
     log.info("");
     log.debug("project: " + configuration.getMavenProject());
     log.debug("timeout: " + configuration.getTimeout().getSeconds());
+    log.debug("parameters: " + configuration.getParameters());
     log.debug("");
 
     Set<Path> roots = new HashSet<>();
     roots.add(Paths.get(configuration.getMavenProject().getBuild().getTestOutputDirectory()));
 
+    Map<String, String> parameters = new HashMap<>();
+    for (Map.Entry<Object, Object> entry : configuration.getParameters().entrySet()) {
+      parameters.put((String) entry.getKey(), (String) entry.getValue());
+    }
+
     LauncherDiscoveryRequest request =
-        LauncherDiscoveryRequestBuilder.request().selectors(selectClasspathRoots(roots)).build();
+        LauncherDiscoveryRequestBuilder.request()
+            .selectors(selectClasspathRoots(roots))
+            .configurationParameters(parameters)
+            .build();
 
     Launcher launcher = LauncherFactory.create();
 

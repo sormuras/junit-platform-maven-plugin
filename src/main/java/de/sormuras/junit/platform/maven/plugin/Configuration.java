@@ -20,6 +20,7 @@
 package de.sormuras.junit.platform.maven.plugin;
 
 import java.time.Duration;
+import java.util.Properties;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
@@ -30,4 +31,6 @@ interface Configuration {
   Log getLog();
 
   Duration getTimeout();
+
+  Properties getParameters();
 }
