@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>de.sormuras</groupId>
+  <artifactId>junit-platform-maven-plugin-it-multiple-engines</artifactId>
+  <version>it</version>
+
+  <description>A simple IT verifying the basic use case.</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+  </properties>
+
+  <dependencies>
+
+    <!-- Jupiter API-->
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.3.0-RC1</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- JUnit 3 and 4 API -->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+
+
+    <!-- JQwik API (and TestEngine implementation)-->
+
+    <dependency>
+      <groupId>net.jqwik</groupId>
+      <artifactId>jqwik</artifactId>
+      <version>0.8.14</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <plugin>
+
+        <groupId>@project.groupId@</groupId>
+        <artifactId>@project.artifactId@</artifactId>
+        <version>@project.version@</version>
+
+        <executions>
+          <execution>
+            <goals>
+              <goal>launch-junit-platform</goal>
+            </goals>
+          </execution>
+        </executions>
+
+        <dependencies>
+
+          <!-- Jupiter Engine -->
+
+          <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.3.0-RC1</version>
+          </dependency>
+
+          <!-- Vintage Engine for JUnit 3 and 4 -->
+
+          <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>5.3.0-RC1</version>
+          </dependency>
+
+          <!-- Brahms executes Java programs -->
+
+          <dependency>
+            <groupId>de.sormuras</groupId>
+            <artifactId>brahms</artifactId>
+            <version>0.0.11</version>
+          </dependency>
+
+        </dependencies>
+
+
+      </plugin>
+
+      <!-- Prevent Surefire from executing tests... how to prevent Maven to load Surefire at all?! -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <skipTests>true</skipTests>
+        </configuration>
+      </plugin>
+
+    </plugins>
+  </build>
+</project>
