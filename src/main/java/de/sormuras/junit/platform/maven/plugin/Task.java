@@ -93,11 +93,7 @@ class Task implements IntSupplier {
 
     TestExecutionSummary summary = listener.getSummary();
 
-    boolean success =
-        summary.getTestsFailedCount() == 0
-            && summary.getTestsAbortedCount() == 0
-            && summary.getContainersFailedCount() == 0
-            && summary.getContainersAbortedCount() == 0;
+    boolean success = summary.getTestsFailedCount() == 0 && summary.getContainersFailedCount() == 0;
 
     if (success) {
       long succeeded = summary.getTestsSucceededCount();
