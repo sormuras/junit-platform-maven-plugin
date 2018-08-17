@@ -1,8 +1,8 @@
 # JUnit Platform Maven Plugin
  
 [![jdk11](https://img.shields.io/badge/jdk-11-blue.svg)](http://jdk.java.net/11/)
-[![travis](https://travis-ci.com/sormuras/junit-platform-maven-plugin.svg?branch=master)](https://travis-ci.org/sormuras/bach)
-![experimental](https://img.shields.io/badge/api-experimental-yellow.svg)
+[![travis](https://travis-ci.com/sormuras/junit-platform-maven-plugin.svg?branch=master)](https://travis-ci.com/sormuras/junit-platform-maven-plugin)
+[![experimental](https://img.shields.io/badge/api-experimental-yellow.svg)](https://github.com/sormuras/junit-platform-maven-plugin/blob/master/src/main/java/de/sormuras/junit/platform/maven/plugin/Configuration.java)
 
 Maven Plugin launching the JUnit Platform
 
