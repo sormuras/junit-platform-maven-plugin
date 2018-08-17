@@ -7,7 +7,7 @@
 
   <groupId>de.sormuras</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3</version>
   <packaging>maven-plugin</packaging>
 
   <name>JUnit Platform Maven Plugin</name>
@@ -27,6 +27,17 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <maven.version>3.3.9</maven.version>
   </properties>
+
+  <developers>
+    <developer>
+      <name>Christian Stein</name>
+      <id>sormuras</id>
+    </developer>
+    <developer>
+      <name>Benedikt Ritter</name>
+      <id>britter</id>
+    </developer>
+  </developers>
 
   <licenses>
     <license>
