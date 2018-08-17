@@ -1,0 +1,34 @@
+import java.io.*;
+import java.util.*;
+import java.nio.file.*;
+
+String[] expectedFiles = new String[] {
+  "target/test-classes/brahms/MaingineTest.class",
+  "target/test-classes/jqwik/JQwikTest.class",
+  "target/test-classes/junit/jupiter/JUnit5Tests.class",
+  "target/test-classes/junit/vintage/JUnit3Test.class",
+  "target/test-classes/junit/vintage/JUnit4Test.class",
+  "target/test-classes/SingleFileSourceCodeProgram.java"
+};
+
+for (String name : expectedFiles) {
+  if (!new File(basedir, name).isFile()) {
+    System.err.println("Expected file not found: " + name);
+    return false;
+  }
+}
+
+String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
+String[] expectedSnippets = new String[] {
+  "[INFO] Launching JUnit Platform...",
+  "[INFO] Successfully executed: 6 test(s)"
+};
+
+for (String snippet : expectedSnippets) {
+  if (!log.contains(snippet)) {
+    System.err.println("Expected snippet in log not found: " + snippet);
+    return false;
+  }
+}
+
+return true;
