@@ -7,11 +7,14 @@
 
   <groupId>de.sormuras</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>0.0.2-SNAPSHOT</version>
+  <version>0.0.2</version>
   <packaging>maven-plugin</packaging>
 
   <name>JUnit Platform Maven Plugin</name>
   <url>https://github.com/sormuras/junit-platform-maven-plugin</url>
+  <scm>
+    <url>https://github.com/sormuras/junit-platform-maven-plugin.git</url>
+  </scm>
   <description>Launches the JUnit Platform</description>
 
   <prerequisites>
