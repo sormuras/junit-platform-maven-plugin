@@ -26,8 +26,10 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Properties;
+import java.util.Map;
 import java.util.function.IntSupplier;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
@@ -54,13 +56,16 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   private long timeout;
 
   @Parameter(readonly = true)
-  private Properties parameters = new Properties();
+  private Map<String, String> parameters = new HashMap<>();
 
   @Parameter(defaultValue = "true", required = true, readonly = true)
   private boolean strict;
 
   @Parameter(defaultValue = "junit-platform-reports", required = true, readonly = true)
   private String reports;
+
+  @Parameter(readonly = true)
+  private List<String> tags = new ArrayList<>();
 
   @Override
   public MavenProject getMavenProject() {
@@ -83,8 +88,13 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   }
 
   @Override
-  public Properties getParameters() {
+  public Map<String, String> getParameters() {
     return parameters;
+  }
+
+  @Override
+  public List<String> getTags() {
+    return tags;
   }
 
   public void execute() throws MojoExecutionException {
@@ -94,11 +104,11 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
 
     ClassLoader loader = createClassLoader();
 
-    Class<?> taskClass = load(loader, Task.class);
-    Class<?>[] taskTypes = new Class<?>[] {ClassLoader.class, Configuration.class};
-    IntSupplier task = (IntSupplier) create(taskClass, taskTypes, loader, this);
+    Class<?> callerClass = load(loader, JUnitPlatformCaller.class);
+    Class<?>[] callerTypes = new Class<?>[] {ClassLoader.class, Configuration.class};
+    IntSupplier caller = (IntSupplier) create(callerClass, callerTypes, loader, this);
 
-    int result = task.getAsInt();
+    int result = caller.getAsInt();
     if (result != 0) {
       throw new MojoExecutionException("RED ALERT!");
     }

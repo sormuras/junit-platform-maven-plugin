@@ -19,6 +19,7 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -47,8 +48,16 @@ class JUnitPlatformMavenPluginMojoTests {
 
     Configuration configuration = (Configuration) mojo;
     assertNotNull(configuration.getMavenProject());
+    assertNotNull(configuration.getLog());
     assertEquals(99L, configuration.getTimeout().getSeconds());
     assertEquals(Paths.get("reports", "99"), Paths.get(configuration.getReports()));
     assertFalse(configuration.isStrict());
+    assertAll(
+        () -> assertEquals("!98", configuration.getTags().get(0)),
+        () -> assertEquals("99", configuration.getTags().get(1)),
+        () -> assertEquals(2, configuration.getTags().size()));
+    assertAll(
+        () -> assertEquals("99", configuration.getParameters().get("ninety.nine")),
+        () -> assertEquals(1, configuration.getParameters().size()));
   }
 }

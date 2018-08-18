@@ -20,19 +20,20 @@
 package de.sormuras.junit.platform.maven.plugin;
 
 import java.time.Duration;
-import java.util.Properties;
+import java.util.List;
+import java.util.Map;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
 interface Configuration {
 
-  /** The underlying Maven project. */
+  /** @return underlying Maven project */
   MavenProject getMavenProject();
 
-  /** Log instance. */
+  /** @return log instance usable be plugins */
   Log getLog();
 
-  /** Global timeout duration in seconds. */
+  /** @return global timeout duration in seconds */
   Duration getTimeout();
 
   /**
@@ -53,7 +54,9 @@ interface Configuration {
    *
    * <h3>Console Launcher equivalent</h3>
    *
-   * {@code --reports-dir}
+   * {@code --reports-dir <String>}
+   *
+   * @return path to reports directory, may be empty
    */
   String getReports();
 
@@ -70,5 +73,23 @@ interface Configuration {
    *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-config-params">Configuration
    *     Parameters</a>
    */
-  Properties getParameters();
+  Map<String, String> getParameters();
+
+  /**
+   * Tags or tag expressions to include only tests whose tags match.
+   *
+   * <p>All tags and expressions will be combined using {@code OR} semantics.
+   *
+   * <h3>Console Launcher equivalent</h3>
+   *
+   * {@code --include-tag <String>}
+   *
+   * @see <a
+   *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-tag-expressions">Tag
+   *     Expressions</a>
+   * @see <a
+   *     href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering">Tagging
+   *     and Filtering</a>
+   */
+  List<String> getTags();
 }

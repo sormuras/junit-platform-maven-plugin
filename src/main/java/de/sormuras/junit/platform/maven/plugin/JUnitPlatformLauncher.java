@@ -5,21 +5,21 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClass
 import de.sormuras.junit.platform.maven.plugin.shadow.XmlReportsWritingListener;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
+import org.junit.platform.launcher.TagFilter;
 import org.junit.platform.launcher.TestPlan;
 import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
 import org.junit.platform.launcher.core.LauncherFactory;
 import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
 import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
+/** Creates, configures and starts the JUnit Platform via its Launcher API. */
 class JUnitPlatformLauncher implements Callable<TestExecutionSummary> {
 
   private final Configuration configuration;
@@ -40,23 +40,24 @@ class JUnitPlatformLauncher implements Callable<TestExecutionSummary> {
     Set<Path> roots = new HashSet<>();
     roots.add(Paths.get(build.getTestOutputDirectory()));
 
-    Map<String, String> parameters = new HashMap<>();
-    for (Map.Entry<Object, Object> entry : configuration.getParameters().entrySet()) {
-      parameters.put((String) entry.getKey(), (String) entry.getValue());
+    LauncherDiscoveryRequestBuilder builder = LauncherDiscoveryRequestBuilder.request();
+    builder.selectors(selectClasspathRoots(roots));
+    if (!configuration.getTags().isEmpty()) {
+      builder.filters(TagFilter.includeTags(configuration.getTags()));
     }
-
-    return LauncherDiscoveryRequestBuilder.request()
-        .selectors(selectClasspathRoots(roots))
-        .configurationParameters(parameters)
-        .build();
+    builder.configurationParameters(configuration.getParameters());
+    return builder.build();
   }
 
   @Override
   public TestExecutionSummary call() {
     log.info("Launching JUnit Platform...");
     log.info("");
-    log.debug("project: " + configuration.getMavenProject());
-    log.debug("timeout: " + configuration.getTimeout().getSeconds());
+    log.debug("   project: " + configuration.getMavenProject());
+    log.debug("   reports: " + configuration.getReports());
+    log.debug("   timeout: " + configuration.getTimeout().getSeconds());
+    log.debug("    strict: " + configuration.isStrict());
+    log.debug("      tags: " + configuration.getTags());
     log.debug("parameters: " + configuration.getParameters());
     log.debug("");
     discover();

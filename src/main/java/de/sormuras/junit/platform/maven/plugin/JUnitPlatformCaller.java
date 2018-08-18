@@ -25,13 +25,13 @@ import java.util.function.IntSupplier;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
-class Task implements IntSupplier {
+class JUnitPlatformCaller implements IntSupplier {
 
   private final ClassLoader classLoader;
   private final JUnitPlatformLauncher launcher;
   private final Log log;
 
-  public Task(ClassLoader classLoader, Configuration configuration) {
+  public JUnitPlatformCaller(ClassLoader classLoader, Configuration configuration) {
     this.classLoader = classLoader;
     this.launcher = new JUnitPlatformLauncher(configuration);
     this.log = configuration.getLog();
