@@ -18,7 +18,6 @@
   <dependencies>
 
     <!-- Jupiter API-->
-
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
@@ -27,7 +26,6 @@
     </dependency>
 
     <!-- JUnit 3 and 4 API -->
-
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
@@ -35,9 +33,7 @@
       <scope>test</scope>
     </dependency>
 
-
-    <!-- JQwik API (and TestEngine implementation)-->
-
+    <!-- JQwik API -->
     <dependency>
       <groupId>net.jqwik</groupId>
       <artifactId>jqwik</artifactId>
@@ -67,7 +63,6 @@
         <dependencies>
 
           <!-- Jupiter Engine -->
-
           <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -75,7 +70,6 @@
           </dependency>
 
           <!-- Vintage Engine for JUnit 3 and 4 -->
-
           <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
@@ -83,11 +77,17 @@
           </dependency>
 
           <!-- Brahms executes Java programs -->
-
           <dependency>
             <groupId>de.sormuras</groupId>
             <artifactId>brahms</artifactId>
             <version>0.0.12</version>
+          </dependency>
+
+          <!-- JQwik Engine -->
+          <dependency>
+            <groupId>net.jqwik</groupId>
+            <artifactId>jqwik</artifactId>
+            <version>0.8.14</version>
           </dependency>
 
         </dependencies>
