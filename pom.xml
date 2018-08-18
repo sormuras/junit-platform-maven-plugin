@@ -25,7 +25,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <maven.version>3.5.4</maven.version>
+    <maven.version>3.5.2</maven.version> <!-- Travis CI supports 3.5.2 out of the box -->
   </properties>
 
   <developers>
