@@ -13,7 +13,9 @@ Maven Plugin launching the JUnit Platform
 
 ## Usage with Jupiter
 
-In your `pom.xml`, just add the test compile dependency, like this:
+Add test compile dependencies into the `pom.xml`.
+For example, if you want to write tests using the Jupiter API, you'll need the `junit-jupiter-api` artifact.
+And perhaps `junit-jupiter-params` as well:
 
 ```xml
 <dependencies>
@@ -32,14 +34,14 @@ In your `pom.xml`, just add the test compile dependency, like this:
 </dependencies>
 ```
 
-And configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-section:
+Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-section:
 
 ```xml
 <plugin>
 
   <groupId>de.sormuras</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>0.0.4</version>
+  <version>0.0.5</version>
   
   <!-- Configure the plugin. -->
   <configuration>
@@ -49,7 +51,7 @@ And configure the `junit-platform-maven-plugin` like this in the `<build><plugin
     <tags>
       <tag>foo</tag>
       <tag>bar</tag>
-      <tag>(micro | integration) &#038; (foo | baz)</tag> <!-- Really?! &#038; works as '&'? -->
+      <tag>(a | b) &#038; (c | !d)</tag> <!-- '&' is escaped in XML via &#038; -->
     </tags>
     <parameters>
       <ninety.nine>99</ninety.nine>

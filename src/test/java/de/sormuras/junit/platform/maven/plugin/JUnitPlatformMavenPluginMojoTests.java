@@ -55,7 +55,8 @@ class JUnitPlatformMavenPluginMojoTests {
     assertAll(
         () -> assertEquals("!98", configuration.getTags().get(0)),
         () -> assertEquals("99", configuration.getTags().get(1)),
-        () -> assertEquals(2, configuration.getTags().size()));
+        () -> assertEquals("(a | b) & (c | !d)", configuration.getTags().get(2)),
+        () -> assertEquals(3, configuration.getTags().size()));
     assertAll(
         () -> assertEquals("99", configuration.getParameters().get("ninety.nine")),
         () -> assertEquals(1, configuration.getParameters().size()));
