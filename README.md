@@ -3,6 +3,7 @@
 [![jdk11](https://img.shields.io/badge/jdk-11-blue.svg)](http://jdk.java.net/11/)
 [![travis](https://travis-ci.com/sormuras/junit-platform-maven-plugin.svg?branch=master)](https://travis-ci.com/sormuras/junit-platform-maven-plugin)
 [![experimental](https://img.shields.io/badge/api-experimental-yellow.svg)](https://javadoc.io/doc/de.sormuras/junit-platform-maven-plugin)
+[![central](https://img.shields.io/maven-central/v/de.sormuras/junit-platform-maven-plugin.svg)](https://search.maven.org/artifact/de.sormuras/junit-platform-maven-plugin)
 
 Maven Plugin launching the JUnit Platform
 
@@ -41,7 +42,7 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
 
   <groupId>de.sormuras</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>0.0.5</version>
+  <version>${version}</version>
   
   <!-- Configure the plugin. -->
   <configuration>
