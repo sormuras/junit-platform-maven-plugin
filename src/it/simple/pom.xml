@@ -2,47 +2,37 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <!--<parent>-->
+    <!--<groupId>it</groupId>-->
+    <!--<artifactId>pom</artifactId>-->
+    <!--<version>0</version>-->
+    <!--<relativePath>../../../src/it</relativePath>-->
+  <!--</parent>-->
 
-  <groupId>de.sormuras</groupId>
-  <artifactId>junit-platform-maven-plugin-it-simple</artifactId>
-  <version>it</version>
-
-  <description>A simple IT verifying the basic use case.</description>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
+  <groupId>it</groupId>
+  <artifactId>simple</artifactId>
+  <version>0</version>
 
   <dependencies>
-
-    <!-- Add test compile dependencies here. -->
-
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.3.0-RC1</version>
+      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
 
   <build>
     <plugins>
 
       <plugin>
-
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
 
         <configuration>
           <parameters>
-            <property>
-              <name>junit.jupiter.execution.parallel.enabled</name>
-              <value>true</value>
-            </property>
+            <junit.jupiter.execution.parallel.enabled>true</junit.jupiter.execution.parallel.enabled>
           </parameters>
         </configuration>
 
@@ -54,25 +44,31 @@
           </execution>
         </executions>
 
-        <!-- Add matching TestEngine implementations to the runtime. -->
-
         <dependencies>
           <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.3.0-RC1</version>
+            <version>${junit.jupiter.version}</version>
           </dependency>
         </dependencies>
-
       </plugin>
 
-      <!-- Prevent Surefire from executing tests... how to prevent Maven to load Surefire at all?! -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.0</version>
+      </plugin>
+
+      <!-- Disable Surefire by binding its 'default-test' goal to phase 'none' -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <skipTests>true</skipTests>
-        </configuration>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <phase>${maven.surefire.phase}</phase>
+          </execution>
+        </executions>
       </plugin>
 
     </plugins>

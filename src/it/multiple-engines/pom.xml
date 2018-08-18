@@ -3,25 +3,23 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>de.sormuras</groupId>
-  <artifactId>junit-platform-maven-plugin-it-multiple-engines</artifactId>
-  <version>it</version>
-
-  <description>A simple IT verifying the basic use case.</description>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-  </properties>
+  <groupId>it</groupId>
+  <artifactId>multiple-engines</artifactId>
+  <version>0</version>
 
   <dependencies>
 
-    <!-- Jupiter API-->
+    <!-- Jupiter API and @ParameterizedTest API -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.3.0-RC1</version>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -29,7 +27,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -37,7 +35,7 @@
     <dependency>
       <groupId>net.jqwik</groupId>
       <artifactId>jqwik</artifactId>
-      <version>0.8.14</version>
+      <version>${jqwik.version}</version>
       <scope>test</scope>
     </dependency>
 
@@ -47,7 +45,6 @@
     <plugins>
 
       <plugin>
-
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
@@ -66,42 +63,49 @@
           <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.3.0-RC1</version>
+            <version>${junit.jupiter.version}</version>
           </dependency>
 
           <!-- Vintage Engine for JUnit 3 and 4 -->
           <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
-            <version>5.3.0-RC1</version>
+            <version>${junit.vintage.version}</version>
           </dependency>
 
           <!-- Brahms executes Java programs -->
           <dependency>
             <groupId>de.sormuras</groupId>
             <artifactId>brahms</artifactId>
-            <version>0.0.12</version>
+            <version>${brahms.version}</version>
           </dependency>
 
           <!-- JQwik Engine -->
           <dependency>
             <groupId>net.jqwik</groupId>
             <artifactId>jqwik</artifactId>
-            <version>0.8.14</version>
+            <version>${jqwik.version}</version>
           </dependency>
 
         </dependencies>
-
-
       </plugin>
 
-      <!-- Prevent Surefire from executing tests... how to prevent Maven to load Surefire at all?! -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compiler.plugin.version}</version>
+      </plugin>
+
+      <!-- Disable Surefire by binding its 'default-test' goal to phase 'none' -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <configuration>
-          <skipTests>true</skipTests>
-        </configuration>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <phase>${maven.surefire.phase}</phase>
+          </execution>
+        </executions>
       </plugin>
 
     </plugins>
