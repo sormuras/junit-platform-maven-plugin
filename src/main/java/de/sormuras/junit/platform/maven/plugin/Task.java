@@ -19,33 +19,22 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
-import static org.junit.platform.engine.discovery.DiscoverySelectors.selectClasspathRoots;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.IntSupplier;
 import org.apache.maven.plugin.logging.Log;
-import org.junit.platform.launcher.Launcher;
-import org.junit.platform.launcher.LauncherDiscoveryRequest;
-import org.junit.platform.launcher.core.LauncherDiscoveryRequestBuilder;
-import org.junit.platform.launcher.core.LauncherFactory;
-import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
 import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
 class Task implements IntSupplier {
 
   private final ClassLoader classLoader;
-  private final Configuration configuration;
+  private final JUnitPlatformLauncher launcher;
+  private final Log log;
 
   public Task(ClassLoader classLoader, Configuration configuration) {
     this.classLoader = classLoader;
-    this.configuration = configuration;
+    this.launcher = new JUnitPlatformLauncher(configuration);
+    this.log = configuration.getLog();
   }
 
   @Override
@@ -53,48 +42,19 @@ class Task implements IntSupplier {
     ClassLoader oldContext = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(classLoader);
     try {
-      return launchJUnitPlatform(configuration);
+      return launch();
+    } catch (AssertionError e) {
+      return 2;
     } finally {
       Thread.currentThread().setContextClassLoader(oldContext);
     }
   }
 
-  private static int launchJUnitPlatform(Configuration configuration) {
-    Log log = configuration.getLog();
-    log.info("Launching JUnit Platform...");
-    log.info("");
-    log.debug("project: " + configuration.getMavenProject());
-    log.debug("timeout: " + configuration.getTimeout().getSeconds());
-    log.debug("parameters: " + configuration.getParameters());
-    log.debug("");
-
-    Set<Path> roots = new HashSet<>();
-    roots.add(Paths.get(configuration.getMavenProject().getBuild().getTestOutputDirectory()));
-
-    Map<String, String> parameters = new HashMap<>();
-    for (Map.Entry<Object, Object> entry : configuration.getParameters().entrySet()) {
-      parameters.put((String) entry.getKey(), (String) entry.getValue());
-    }
-
-    LauncherDiscoveryRequest request =
-        LauncherDiscoveryRequestBuilder.request()
-            .selectors(selectClasspathRoots(roots))
-            .configurationParameters(parameters)
-            .build();
-
-    Launcher launcher = LauncherFactory.create();
-
-    SummaryGeneratingListener listener = new SummaryGeneratingListener();
-    launcher.registerTestExecutionListeners(listener);
-
+  private int launch() {
     long startTimeMillis = System.currentTimeMillis();
-    launcher.execute(request);
+    TestExecutionSummary summary = launcher.call();
     long duration = System.currentTimeMillis() - startTimeMillis;
-
-    TestExecutionSummary summary = listener.getSummary();
-
     boolean success = summary.getTestsFailedCount() == 0 && summary.getContainersFailedCount() == 0;
-
     if (success) {
       long succeeded = summary.getTestsSucceededCount();
       log.info(String.format("Successfully executed: %d test(s) in %d ms", succeeded, duration));
@@ -107,7 +67,6 @@ class Task implements IntSupplier {
         log.error(line);
       }
     }
-
     return success ? 0 : 1;
   }
 }

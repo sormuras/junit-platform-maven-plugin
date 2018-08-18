@@ -33,4 +33,8 @@ interface Configuration {
   Duration getTimeout();
 
   Properties getParameters();
+
+  default boolean failOnZeroTests() {
+    return true;
+  }
 }
