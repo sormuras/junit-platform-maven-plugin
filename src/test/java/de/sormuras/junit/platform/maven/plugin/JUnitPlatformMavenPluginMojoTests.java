@@ -37,8 +37,8 @@ class JUnitPlatformMavenPluginMojoTests {
   @RegisterExtension MojoExtension extension = new MojoExtension();
 
   @Test
-  void timeout99() throws Exception {
-    Path base = Paths.get("target", "test-classes", "project", "timeout-99");
+  void project99() throws Exception {
+    Path base = Paths.get("target", "test-classes", "project", "99");
     assertTrue(Files.isDirectory(base));
 
     Mojo mojo = extension.lookupConfiguredMojo(base.toFile(), "launch-junit-platform");
@@ -48,7 +48,7 @@ class JUnitPlatformMavenPluginMojoTests {
     Configuration configuration = (Configuration) mojo;
     assertNotNull(configuration.getMavenProject());
     assertEquals(99L, configuration.getTimeout().getSeconds());
-    assertEquals(Paths.get("reports", "99"), configuration.getReportsPath());
-    assertFalse(configuration.failOnZeroTests());
+    assertEquals(Paths.get("reports", "99"), configuration.getReports());
+    assertFalse(configuration.isStrict());
   }
 }

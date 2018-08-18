@@ -27,16 +27,27 @@ import org.apache.maven.project.MavenProject;
 
 interface Configuration {
 
+  /** The underlying Maven project. */
   MavenProject getMavenProject();
 
+  /** Log instance. */
   Log getLog();
 
+  /** Global timeout duration in seconds. */
   Duration getTimeout();
 
-  boolean failOnZeroTests();
+  /** Strict fail-fast mode switch. */
+  boolean isStrict();
 
-  Path getReportsPath();
+  /** Path to directory for storing reports, like test result files. */
+  Path getReports();
 
-  // Launcher configurations parameters
+  /**
+   * Launcher configuration parameters.
+   *
+   * @see <a
+   *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-config-params">Configuration
+   *     Parameters</a>
+   */
   Properties getParameters();
 }

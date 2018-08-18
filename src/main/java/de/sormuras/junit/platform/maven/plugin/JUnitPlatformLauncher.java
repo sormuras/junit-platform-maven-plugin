@@ -72,7 +72,7 @@ class JUnitPlatformLauncher implements Callable<TestExecutionSummary> {
     if (!testPlan.containsTests()) {
       String message = "Zero tests discovered!";
       log.warn(message);
-      if (configuration.failOnZeroTests()) {
+      if (configuration.isStrict()) {
         throw new AssertionError(message);
       }
     }
@@ -82,11 +82,11 @@ class JUnitPlatformLauncher implements Callable<TestExecutionSummary> {
     SummaryGeneratingListener summary = new SummaryGeneratingListener();
     launcher.registerTestExecutionListeners(summary);
 
-    Path path = configuration.getReportsPath();
-    if (!path.isAbsolute()) {
-      path = Paths.get(build.getDirectory()).resolve(configuration.getReportsPath());
+    Path reports = configuration.getReports();
+    if (!reports.isAbsolute()) {
+      reports = Paths.get(build.getDirectory()).resolve(configuration.getReports());
     }
-    launcher.registerTestExecutionListeners(new XmlReportsWritingListener(path, log::error));
+    launcher.registerTestExecutionListeners(new XmlReportsWritingListener(reports, log::error));
 
     launcher.execute(request);
 

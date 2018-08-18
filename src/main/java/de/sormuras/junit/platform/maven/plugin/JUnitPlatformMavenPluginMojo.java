@@ -58,10 +58,10 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   private Properties parameters = new Properties();
 
   @Parameter(defaultValue = "true", required = true, readonly = true)
-  private boolean failOnZeroTests;
+  private boolean strict;
 
   @Parameter(defaultValue = "junit-platform-reports", required = true, readonly = true)
-  private String reportsPath;
+  private String reports;
 
   @Override
   public MavenProject getMavenProject() {
@@ -74,13 +74,13 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   }
 
   @Override
-  public boolean failOnZeroTests() {
-    return failOnZeroTests;
+  public boolean isStrict() {
+    return strict;
   }
 
   @Override
-  public Path getReportsPath() {
-    return Paths.get(reportsPath);
+  public Path getReports() {
+    return Paths.get(reports);
   }
 
   @Override

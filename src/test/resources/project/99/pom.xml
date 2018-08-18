@@ -15,8 +15,8 @@
         <artifactId>junit-platform-maven-plugin</artifactId>
         <configuration>
           <timeout>99</timeout>
-          <failOnZeroTests>false</failOnZeroTests>
-          <reportsPath>reports/99</reportsPath>
+          <strict>false</strict>
+          <reports>reports/99</reports>
         </configuration>
       </plugin>
     </plugins>
