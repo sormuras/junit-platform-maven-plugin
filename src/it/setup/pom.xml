@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>it</groupId>
+  <artifactId>setup</artifactId>
+  <version>0</version>
+  <packaging>pom</packaging>
+
+  <properties>
+    <!-- versions -->
+    <junit.platform.version>1.3.0-RC1</junit.platform.version>
+    <junit.jupiter.version>5.3.0-RC1</junit.jupiter.version>
+    <junit.vintage.version>5.3.0-RC1</junit.vintage.version>
+    <brahms.version>0.0.12</brahms.version>
+    <junit.version>4.12</junit.version>
+    <jqwik.version>0.8.14</jqwik.version>
+    <!-- shared build and compiler settings -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.plugin.version>3.8.0</maven.compiler.plugin.version>
+    <maven.compiler.release>11</maven.compiler.release>
+    <maven.surefire.phase>none</maven.surefire.phase>
+  </properties>
+
+  <build>
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven.compiler.plugin.version}</version>
+      </plugin>
+
+      <!-- Disable Surefire by binding its 'default-test' goal to phase 'none' -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>default-test</id>
+            <phase>${maven.surefire.phase}</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+</project>
