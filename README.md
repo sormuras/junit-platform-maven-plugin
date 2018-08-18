@@ -46,6 +46,14 @@ And configure the `junit-platform-maven-plugin` like this in the `<build><plugin
     <timeout>99</timeout>
     <strict>true</strict>
     <reports>custom-reports-directory</reports>
+    <tags>
+      <tag>foo</tag>
+      <tag>bar</tag>
+      <tag>(micro | integration) &#038; (foo | baz)</tag> <!-- Really?! &#038; works as '&'? -->
+    </tags>
+    <parameters>
+      <ninety.nine>99</ninety.nine>
+    </parameters>
   </configuration>
   
   <!-- Add matching TestEngine implementation to the test runtime. -->
