@@ -15,20 +15,13 @@ Maven Plugin launching the JUnit Platform
 ## Usage with Jupiter
 
 Add test compile dependencies into the `pom.xml`.
-For example, if you want to write tests using the Jupiter API, you'll need the `junit-jupiter-api` artifact.
-And perhaps `junit-jupiter-params` as well:
+For example, if you want to write tests using the Jupiter API, you'll need the [`junit-jupiter-api`](https://junit.org/junit5/docs/current/user-guide/#writing-tests) artifact:
 
 ```xml
 <dependencies>
   <dependency>
     <groupId>org.junit.jupiter</groupId>
     <artifactId>junit-jupiter-api</artifactId>
-    <version>5.2.0</version>
-    <scope>test</scope>
-  </dependency>
-  <dependency>
-    <groupId>org.junit.jupiter</groupId>
-    <artifactId>junit-jupiter-params</artifactId>
     <version>5.2.0</version>
     <scope>test</scope>
   </dependency>
