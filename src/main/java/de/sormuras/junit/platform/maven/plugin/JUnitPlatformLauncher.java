@@ -79,13 +79,17 @@ class JUnitPlatformLauncher implements Callable<TestExecutionSummary> {
   }
 
   private TestExecutionSummary execute() {
-    Path reports = Paths.get(build.getDirectory(), "junit-platform-reports");
+    SummaryGeneratingListener summary = new SummaryGeneratingListener();
+    launcher.registerTestExecutionListeners(summary);
 
-    SummaryGeneratingListener listener = new SummaryGeneratingListener();
-    launcher.registerTestExecutionListeners(listener);
-    launcher.registerTestExecutionListeners(new XmlReportsWritingListener(reports, log::error));
+    Path path = configuration.getReportsPath();
+    if (!path.isAbsolute()) {
+      path = Paths.get(build.getDirectory()).resolve(configuration.getReportsPath());
+    }
+    launcher.registerTestExecutionListeners(new XmlReportsWritingListener(path, log::error));
+
     launcher.execute(request);
 
-    return listener.getSummary();
+    return summary.getSummary();
   }
 }

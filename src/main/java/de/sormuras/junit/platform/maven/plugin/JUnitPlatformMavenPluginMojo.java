@@ -24,6 +24,7 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
@@ -56,6 +57,12 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   @Parameter(readonly = true)
   private Properties parameters = new Properties();
 
+  @Parameter(defaultValue = "true", required = true, readonly = true)
+  private boolean failOnZeroTests;
+
+  @Parameter(defaultValue = "junit-platform-reports", required = true, readonly = true)
+  private String reportsPath;
+
   @Override
   public MavenProject getMavenProject() {
     return project;
@@ -64,6 +71,16 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   @Override
   public Duration getTimeout() {
     return Duration.ofSeconds(timeout);
+  }
+
+  @Override
+  public boolean failOnZeroTests() {
+    return failOnZeroTests;
+  }
+
+  @Override
+  public Path getReportsPath() {
+    return Paths.get(reportsPath);
   }
 
   @Override

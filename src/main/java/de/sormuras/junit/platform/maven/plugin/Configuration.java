@@ -19,6 +19,7 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Properties;
 import org.apache.maven.plugin.logging.Log;
@@ -32,9 +33,10 @@ interface Configuration {
 
   Duration getTimeout();
 
-  Properties getParameters();
+  boolean failOnZeroTests();
 
-  default boolean failOnZeroTests() {
-    return true;
-  }
+  Path getReportsPath();
+
+  // Launcher configurations parameters
+  Properties getParameters();
 }
