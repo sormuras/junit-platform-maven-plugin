@@ -36,14 +36,33 @@ interface Configuration {
   /** Global timeout duration in seconds. */
   Duration getTimeout();
 
-  /** Strict fail-fast mode switch. */
+  /**
+   * Strict fail-fast mode switch.
+   *
+   * <h3>Console Launcher equivalents</h3>
+   * {@code --fail-if-no-tests}
+   */
   boolean isStrict();
 
-  /** Path to directory for storing reports, like test result files. */
+  /**
+   * Path to directory for storing reports, like test result files.
+   *
+   * The directory will be created if it does not exist.
+   *
+   * A Relative path is resolved below the current build directory, normally {@code target}.
+   *
+   * <h3>Console Launcher equivalent</h3>
+   * {@code --reports-dir}
+   */
   Path getReports();
 
   /**
    * Launcher configuration parameters.
+   *
+   * Set a configuration parameter for test discovery and execution.
+   *
+   * <h3>Console Launcher equivalent</h3>
+   * {@code --config <key=value>}
    *
    * @see <a
    *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-config-params">Configuration
