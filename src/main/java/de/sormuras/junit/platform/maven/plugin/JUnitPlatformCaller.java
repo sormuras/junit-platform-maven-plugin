@@ -21,6 +21,13 @@ package de.sormuras.junit.platform.maven.plugin;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.IntSupplier;
 import org.apache.maven.plugin.logging.Log;
 import org.junit.platform.launcher.listeners.TestExecutionSummary;
@@ -30,11 +37,13 @@ class JUnitPlatformCaller implements IntSupplier {
   private final ClassLoader classLoader;
   private final JUnitPlatformLauncher launcher;
   private final Log log;
+  private final long timeout;
 
   public JUnitPlatformCaller(ClassLoader classLoader, Configuration configuration) {
     this.classLoader = classLoader;
     this.launcher = new JUnitPlatformLauncher(configuration);
     this.log = configuration.getLog();
+    this.timeout = configuration.getTimeout().toMillis();
   }
 
   @Override
@@ -43,17 +52,29 @@ class JUnitPlatformCaller implements IntSupplier {
     Thread.currentThread().setContextClassLoader(classLoader);
     try {
       return launch();
-    } catch (AssertionError e) {
-      return 2;
     } finally {
       Thread.currentThread().setContextClassLoader(oldContext);
     }
   }
 
   private int launch() {
-    long startTimeMillis = System.currentTimeMillis();
-    TestExecutionSummary summary = launcher.call();
-    long duration = System.currentTimeMillis() - startTimeMillis;
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    Future<TestExecutionSummary> future = executor.submit(launcher);
+    try {
+      return summarize(future.get(timeout, TimeUnit.MILLISECONDS));
+    } catch (InterruptedException e) {
+      log.error("Launcher execution interrupted", e);
+      return -1;
+    } catch (ExecutionException e) {
+      throw rethrow(e.getCause());
+    } catch (TimeoutException e) {
+      log.error("Global timeout reached: " + timeout + " millis", e);
+      return -2;
+    }
+  }
+
+  private int summarize(TestExecutionSummary summary) {
+    long duration = summary.getTimeFinished() - summary.getTimeStarted();
     boolean success = summary.getTestsFailedCount() == 0 && summary.getContainersFailedCount() == 0;
     if (success) {
       long succeeded = summary.getTestsSucceededCount();
@@ -68,5 +89,15 @@ class JUnitPlatformCaller implements IntSupplier {
       }
     }
     return success ? 0 : 1;
+  }
+
+  private static UndeclaredThrowableException rethrow(Throwable cause) {
+    if (cause instanceof RuntimeException) {
+      throw (RuntimeException) cause;
+    }
+    if (cause instanceof Error) {
+      throw (Error) cause;
+    }
+    return new UndeclaredThrowableException(cause);
   }
 }
