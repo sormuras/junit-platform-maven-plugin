@@ -24,7 +24,6 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
@@ -79,8 +78,8 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   }
 
   @Override
-  public Path getReports() {
-    return Paths.get(reports);
+  public String getReports() {
+    return reports;
   }
 
   @Override

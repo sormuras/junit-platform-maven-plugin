@@ -48,7 +48,7 @@ class JUnitPlatformMavenPluginMojoTests {
     Configuration configuration = (Configuration) mojo;
     assertNotNull(configuration.getMavenProject());
     assertEquals(99L, configuration.getTimeout().getSeconds());
-    assertEquals(Paths.get("reports", "99"), configuration.getReports());
+    assertEquals(Paths.get("reports", "99"), Paths.get(configuration.getReports()));
     assertFalse(configuration.isStrict());
   }
 }

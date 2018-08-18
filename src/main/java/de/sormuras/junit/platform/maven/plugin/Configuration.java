@@ -19,7 +19,6 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Properties;
 import org.apache.maven.plugin.logging.Log;
@@ -40,6 +39,7 @@ interface Configuration {
    * Strict fail-fast mode switch.
    *
    * <h3>Console Launcher equivalents</h3>
+   *
    * {@code --fail-if-no-tests}
    */
   boolean isStrict();
@@ -47,21 +47,23 @@ interface Configuration {
   /**
    * Path to directory for storing reports, like test result files.
    *
-   * The directory will be created if it does not exist.
-   *
-   * A Relative path is resolved below the current build directory, normally {@code target}.
+   * <p>The directory will be created if it does not exist. A relative path is resolved below the
+   * current build directory, normally {@code target}. An empty path disables the generation of
+   * reports.
    *
    * <h3>Console Launcher equivalent</h3>
+   *
    * {@code --reports-dir}
    */
-  Path getReports();
+  String getReports();
 
   /**
    * Launcher configuration parameters.
    *
-   * Set a configuration parameter for test discovery and execution.
+   * <p>Set a configuration parameter for test discovery and execution.
    *
    * <h3>Console Launcher equivalent</h3>
+   *
    * {@code --config <key=value>}
    *
    * @see <a
