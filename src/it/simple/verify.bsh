@@ -18,7 +18,7 @@ for (String name : expectedFiles) {
 String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
 String[] expectedSnippets = new String[] {
   "[INFO] Launching JUnit Platform...",
-  "[INFO] Successfully executed: 3 test(s)",
+  "[INFO] Successfully executed 3 tests",
   "[INFO] BUILD SUCCESS"
 };
 

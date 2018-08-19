@@ -26,7 +26,7 @@ String[] expectedSnippets = new String[] {
   "[INFO]  o Brahms Maingine",
   "[INFO]  o Brahms Single-File Source-Code Engine (JEP 330)",
   "[INFO]  o JQwik Test Engine",
-  "[INFO] Successfully executed: 6 test(s)",
+  "[INFO] Successfully executed 6 tests",
   "[INFO] BUILD SUCCESS"
 };
 

@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.IntSupplier;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
 class JUnitPlatformCaller implements IntSupplier {
@@ -78,7 +79,15 @@ class JUnitPlatformCaller implements IntSupplier {
     boolean success = summary.getTestsFailedCount() == 0 && summary.getContainersFailedCount() == 0;
     if (success) {
       long succeeded = summary.getTestsSucceededCount();
-      log.info(String.format("Successfully executed: %d test(s) in %d ms", succeeded, duration));
+      String s = succeeded == 1 ? "" : "s";
+      log.info(
+          MessageUtils.buffer()
+              .a("Successfully executed ")
+              .success(succeeded)
+              .a(" test" + s + " in ")
+              .a(duration)
+              .a(" ms")
+              .toString());
     } else {
       StringWriter message = new StringWriter();
       PrintWriter writer = new PrintWriter(message);

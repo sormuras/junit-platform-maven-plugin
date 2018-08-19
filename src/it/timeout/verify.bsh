@@ -16,7 +16,6 @@ for (String name : expectedFiles) {
 String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
 String[] expectedSnippets = new String[] {
   "[INFO] Launching JUnit Platform...",
-  "[DEBUG]    timeout: 1",
   "[ERROR] Global timeout reached: 1000 millis",
   "java.util.concurrent.TimeoutException",
   "[INFO] BUILD FAILURE"

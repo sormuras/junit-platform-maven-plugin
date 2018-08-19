@@ -52,21 +52,14 @@ class JUnitPlatformLauncher implements Callable<TestExecutionSummary> {
   @Override
   public TestExecutionSummary call() {
     log.info("Launching JUnit Platform...");
-    log.info("");
-    log.debug("   project: " + configuration.getMavenProject());
-    log.debug("   reports: " + configuration.getReports());
-    log.debug("   timeout: " + configuration.getTimeout().getSeconds());
-    log.debug("    strict: " + configuration.isStrict());
-    log.debug("      tags: " + configuration.getTags());
-    log.debug("parameters: " + configuration.getParameters());
-    log.debug("");
     discover();
     return execute();
   }
 
   private void discover() {
-    TestPlan testPlan = launcher.discover(request);
+    log.debug("Discovering tests...");
 
+    TestPlan testPlan = launcher.discover(request);
     testPlan.getRoots().forEach(engine -> log.info(" o " + engine.getDisplayName()));
     log.info("");
 
@@ -80,6 +73,8 @@ class JUnitPlatformLauncher implements Callable<TestExecutionSummary> {
   }
 
   private TestExecutionSummary execute() {
+    log.debug("Executing tests...");
+
     SummaryGeneratingListener summary = new SummaryGeneratingListener();
     launcher.registerTestExecutionListeners(summary);
 

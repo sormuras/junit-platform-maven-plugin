@@ -34,12 +34,14 @@ import java.util.function.IntSupplier;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.shared.utils.logging.MessageUtils;
 
 /** Launch JUnit Platform Mojo. */
 @Mojo(
@@ -52,16 +54,18 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
   @Parameter(defaultValue = "${project}", readonly = true, required = true)
   private MavenProject project;
 
-  @Parameter(defaultValue = "100", readonly = true, required = true)
+  @Parameter(defaultValue = "false")
+  private boolean skip;
+
+  @Parameter(defaultValue = "100")
   private long timeout;
 
-  @Parameter(readonly = true)
-  private Map<String, String> parameters = new HashMap<>();
+  @Parameter private Map<String, String> parameters = new HashMap<>();
 
-  @Parameter(defaultValue = "true", required = true, readonly = true)
+  @Parameter(defaultValue = "true")
   private boolean strict;
 
-  @Parameter(defaultValue = "junit-platform-reports", required = true, readonly = true)
+  @Parameter(defaultValue = "junit-platform-reports")
   private String reports;
 
   @Parameter(readonly = true)
@@ -97,10 +101,15 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
     return tags;
   }
 
-  public void execute() throws MojoExecutionException {
+  public void execute() throws MojoExecutionException, MojoFailureException {
     Log log = getLog();
     log.debug("Executing " + getClass().getTypeName() + "...");
     log.debug("");
+
+    if (skip) {
+      log.info(MessageUtils.buffer().warning("JUnit Platform skipped.").toString());
+      return;
+    }
 
     ClassLoader loader = createClassLoader();
 
@@ -110,7 +119,7 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
 
     int result = caller.getAsInt();
     if (result != 0) {
-      throw new MojoExecutionException("RED ALERT!");
+      throw new MojoFailureException("RED ALERT!");
     }
   }
 
@@ -129,7 +138,7 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
     } catch (DependencyResolutionRequiredException e) {
       throw new MojoExecutionException("Resolving test class-path elements failed", e);
     } catch (MalformedURLException e) {
-      throw new MojoExecutionException("Malformed URL caught: ", e);
+      throw new MojoExecutionException("Malformed URL in test class-path detected: ", e);
     }
     log.debug("");
     return URLClassLoader.newInstance(urls, parent);
