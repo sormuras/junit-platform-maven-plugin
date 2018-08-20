@@ -20,7 +20,7 @@
           <tags>
             <tag>!98</tag>
             <tag>99</tag>
-            <tag>(a | b) &#038; (c | !d)</tag>
+            <tag><![CDATA[(a | b) & (c | !d)]]></tag>
           </tags>
           <parameters>
             <ninety.nine>99</ninety.nine>

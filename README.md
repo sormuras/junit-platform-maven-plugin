@@ -45,7 +45,7 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
     <tags>
       <tag>foo</tag>
       <tag>bar</tag>
-      <tag>(a | b) &#038; (c | !d)</tag> <!-- '&' is escaped in XML via &#038; -->
+      <tag><![CDATA[(a | b) & (c | !d)]]></tag>
     </tags>
     <parameters>
       <ninety.nine>99</ninety.nine>
