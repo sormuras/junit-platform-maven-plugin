@@ -33,6 +33,7 @@ import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
+/** Entry-point that cares about `ClassLoader`, global timeout and summary emissions. */
 class JUnitPlatformCaller implements IntSupplier {
 
   private final ClassLoader classLoader;
@@ -78,13 +79,12 @@ class JUnitPlatformCaller implements IntSupplier {
     long duration = summary.getTimeFinished() - summary.getTimeStarted();
     boolean success = summary.getTestsFailedCount() == 0 && summary.getContainersFailedCount() == 0;
     if (success) {
-      long succeeded = summary.getTestsSucceededCount();
-      String s = succeeded == 1 ? "" : "s";
+      long count = summary.getTestsSucceededCount();
       log.info(
           MessageUtils.buffer()
               .a("Successfully executed ")
-              .success(succeeded)
-              .a(" test" + s + " in ")
+              .success(count)
+              .a(" test" + (count == 1 ? "" : "s") + " in ")
               .a(duration)
               .a(" ms")
               .toString());
