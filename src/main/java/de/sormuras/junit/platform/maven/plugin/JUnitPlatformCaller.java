@@ -61,8 +61,8 @@ class JUnitPlatformCaller implements IntSupplier {
 
   private int launch() {
     ExecutorService executor = Executors.newSingleThreadExecutor();
-    Future<TestExecutionSummary> future = executor.submit(launcher);
     try {
+      Future<TestExecutionSummary> future = executor.submit(launcher);
       return summarize(future.get(timeout, TimeUnit.MILLISECONDS));
     } catch (InterruptedException e) {
       log.error("Launcher execution interrupted", e);
@@ -72,6 +72,8 @@ class JUnitPlatformCaller implements IntSupplier {
     } catch (TimeoutException e) {
       log.error("Global timeout reached: " + timeout + " millis", e);
       return -2;
+    } finally {
+      executor.shutdownNow();
     }
   }
 
