@@ -11,22 +11,25 @@
   <packaging>maven-plugin</packaging>
 
   <name>JUnit Platform Maven Plugin</name>
+  <description>Launches the JUnit Platform</description>
   <url>https://github.com/sormuras/junit-platform-maven-plugin</url>
   <scm>
     <url>https://github.com/sormuras/junit-platform-maven-plugin.git</url>
   </scm>
-  <description>Launches the JUnit Platform</description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>10</maven.compiler.release>
+    <maven.compiler.source>10</maven.compiler.source>
+    <maven.compiler.target>10</maven.compiler.target>
+    <maven.version>3.5.2</maven.version> <!-- Travis CI supports 3.5.2 out of the box -->
+    <junit.platform.version>1.3.0-RC1</junit.platform.version>
+    <junit.jupiter.version>5.3.0-RC1</junit.jupiter.version>
+  </properties>
 
   <prerequisites>
     <maven>${maven.version}</maven>
   </prerequisites>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <maven.version>3.5.2</maven.version> <!-- Travis CI supports 3.5.2 out of the box -->
-  </properties>
 
   <developers>
     <developer>
@@ -57,21 +60,21 @@
 
   <dependencies>
 
-    <!-- Lock "junit-platform-?" version preventing engines overriding them with other ones. -->
+    <!-- Lock down "junit-platform-?" version preventing engines overriding them with other ones. -->
     <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-commons</artifactId>
-      <version>1.3.0-RC1</version>
+      <version>${junit.platform.version}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-engine</artifactId>
-      <version>1.3.0-RC1</version>
+      <version>${junit.platform.version}</version>
     </dependency>
     <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-launcher</artifactId>
-      <version>1.3.0-RC1</version>
+      <version>${junit.platform.version}</version>
     </dependency>
 
     <!-- Needed for org.apache.maven.shared.utils.logging.MessageUtils and friends. -->
@@ -117,7 +120,7 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.3.0-RC1</version>
+      <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -183,20 +186,39 @@
           <!-- <goalPrefix>maven-archetype-plugin</goalPrefix> -->
           <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
         </configuration>
-        <executions>
-          <execution>
-            <id>mojo-descriptor</id>
-            <goals>
-              <goal>descriptor</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>help-goal</id>
-            <goals>
-              <goal>helpmojo</goal>
-            </goals>
-          </execution>
-        </executions>
+        <!-- Needed for JDK 10, see https://github.com/apache/maven-plugin-tools/pull/14 -->
+        <dependencies>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>6.2.1</version>
+          </dependency>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-commons</artifactId>
+            <version>6.2.1</version>
+          </dependency>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm-tree</artifactId>
+            <version>6.2.1</version>
+          </dependency>
+        </dependencies>
+        <!-- Execution blocked by https://issues.apache.org/jira/browse/MPLUGIN-339 -->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<id>mojo-descriptor</id>-->
+            <!--<goals>-->
+              <!--<goal>descriptor</goal>-->
+            <!--</goals>-->
+          <!--</execution>-->
+          <!--<execution>-->
+            <!--<id>help-goal</id>-->
+            <!--<goals>-->
+              <!--<goal>helpmojo</goal>-->
+            <!--</goals>-->
+          <!--</execution>-->
+        <!--</executions>-->
       </plugin>
       <plugin>
         <groupId>com.coveo</groupId>
