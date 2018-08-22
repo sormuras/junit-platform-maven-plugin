@@ -102,6 +102,13 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
     return tags;
   }
 
+  private ModularWorld modularWorld;
+
+  @Override
+  public ModularWorld getModularWorld() {
+    return modularWorld;
+  }
+
   public void execute() throws MojoExecutionException, MojoFailureException {
     Log log = getLog();
     log.debug("Executing JUnit Platform Maven Plugin...");
@@ -113,17 +120,23 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
 
     Path mainPath = Paths.get(project.getBuild().getOutputDirectory());
     Path testPath = Paths.get(project.getBuild().getTestOutputDirectory());
-    var mode = ModularMode.of(mainPath, testPath);
-    log.debug("");
-    log.debug("Detected modular mode: " + mode);
+    this.modularWorld = new ModularWorld(mainPath, testPath);
 
-    int result = createCaller(mode).getAsInt();
+    int result = createCaller(getModularWorld()).getAsInt();
     if (result != 0) {
       throw new MojoFailureException("RED ALERT!");
     }
   }
 
-  private IntSupplier createCaller(ModularMode mode) throws MojoExecutionException {
+  private IntSupplier createCaller(ModularWorld world) throws MojoExecutionException {
+    var log = getLog();
+    var mode = world.getMode();
+
+    log.debug("");
+    log.debug("Detected modular mode: " + mode);
+    log.debug("  main module: " + world.getMainModuleReference());
+    log.debug("  test module: " + world.getTestModuleReference());
+
     switch (mode) {
       case MAIN_PLAIN_TEST_PLAIN:
         ClassLoader loader = createClassLoaderForPlainMode();
@@ -131,6 +144,9 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
         Class<?> callerClass = load(loader, JUnitPlatformCaller.class);
         Class<?>[] callerTypes = new Class<?>[] {ClassLoader.class, configClass};
         return (IntSupplier) create(callerClass, callerTypes, loader, this);
+      case MAIN_PLAIN_TEST_MODULE:
+      case MAIN_MODULE_TEST_MODULE:
+        return new ConsoleLauncher(this);
       default:
         throw new MojoExecutionException("Not yet supported modular mode: " + mode);
     }

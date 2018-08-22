@@ -19,9 +19,12 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 
@@ -32,6 +35,9 @@ interface Configuration {
 
   /** @return log instance usable be plugins */
   Log getLog();
+
+  /** @return modular world helper */
+  ModularWorld getModularWorld();
 
   /** @return global timeout duration in seconds */
   Duration getTimeout();
@@ -59,6 +65,18 @@ interface Configuration {
    * @return path to reports directory, may be empty
    */
   String getReports();
+
+  default Optional<Path> getReportsPath() {
+    var reports = getReports();
+    if (reports.trim().isEmpty()) { // .isBlank()
+      return Optional.empty();
+    }
+    Path path = Paths.get(reports);
+    if (path.isAbsolute()) {
+      return Optional.of(path);
+    }
+    return Optional.of(Paths.get(getMavenProject().getBuild().getDirectory()).resolve(path));
+  }
 
   /**
    * Launcher configuration parameters.

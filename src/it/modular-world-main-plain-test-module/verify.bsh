@@ -18,7 +18,7 @@ String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")
 String[] expectedSnippets = new String[] {
   "[DEBUG] Executing JUnit Platform Maven Plugin...",
   "[DEBUG] Detected modular mode: MAIN_PLAIN_TEST_MODULE",
-  "[INFO] BUILD FAILURE"
+  "[INFO] BUILD SUCCESS"
 };
 
 for (String snippet : expectedSnippets) {
