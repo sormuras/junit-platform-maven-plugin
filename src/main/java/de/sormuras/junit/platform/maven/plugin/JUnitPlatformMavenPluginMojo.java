@@ -24,6 +24,7 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -103,29 +104,41 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
 
   public void execute() throws MojoExecutionException, MojoFailureException {
     Log log = getLog();
-    log.debug("Executing " + getClass().getTypeName() + "...");
-    log.debug("");
+    log.debug("Executing JUnit Platform Maven Plugin...");
 
     if (skip) {
       log.info(MessageUtils.buffer().warning("JUnit Platform skipped.").toString());
       return;
     }
 
-    ClassLoader loader = createClassLoader();
+    Path mainPath = Paths.get(project.getBuild().getOutputDirectory());
+    Path testPath = Paths.get(project.getBuild().getTestOutputDirectory());
+    var mode = ModularMode.of(mainPath, testPath);
+    log.debug("");
+    log.debug("Detected modular mode: " + mode);
 
-    Class<?> callerClass = load(loader, JUnitPlatformCaller.class);
-    Class<?>[] callerTypes = new Class<?>[] {ClassLoader.class, Configuration.class};
-    IntSupplier caller = (IntSupplier) create(callerClass, callerTypes, loader, this);
-
-    int result = caller.getAsInt();
+    int result = createCaller(mode).getAsInt();
     if (result != 0) {
       throw new MojoFailureException("RED ALERT!");
     }
   }
 
-  private ClassLoader createClassLoader() throws MojoExecutionException {
+  private IntSupplier createCaller(ModularMode mode) throws MojoExecutionException {
+    switch (mode) {
+      case MAIN_PLAIN_TEST_PLAIN:
+        ClassLoader loader = createClassLoaderForPlainMode();
+        Class<?> configClass = load(loader, Configuration.class);
+        Class<?> callerClass = load(loader, JUnitPlatformCaller.class);
+        Class<?>[] callerTypes = new Class<?>[] {ClassLoader.class, configClass};
+        return (IntSupplier) create(callerClass, callerTypes, loader, this);
+      default:
+        throw new MojoExecutionException("Not yet supported modular mode: " + mode);
+    }
+  }
+
+  private ClassLoader createClassLoaderForPlainMode() throws MojoExecutionException {
     Log log = getLog();
-    log.debug("  Creating classloader using the following elements:");
+    log.debug("Creating classloader using the following elements:");
     ClassLoader parent = getClass().getClassLoader();
     URL[] urls;
     try {
@@ -140,8 +153,9 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
     } catch (MalformedURLException e) {
       throw new MojoExecutionException("Malformed URL in test class-path detected: ", e);
     }
-    log.debug("");
-    return URLClassLoader.newInstance(urls, parent);
+    var loader = URLClassLoader.newInstance(urls, parent);
+    loader.setDefaultAssertionStatus(true); // -ea
+    return loader;
   }
 
   private static Class<?> load(ClassLoader loader, Class<?> type) {
