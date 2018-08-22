@@ -231,7 +231,8 @@
         </configuration>
         <executions>
           <execution>
-            <phase>validate</phase>
+            <id>check</id>
+            <phase>initialize</phase>
             <goals>
               <goal>check</goal>
             </goals>
@@ -277,9 +278,33 @@
 
   <profiles>
     <profile>
+      <id>run-fmt</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>com.coveo</groupId>
+            <artifactId>fmt-maven-plugin</artifactId>
+            <configuration>
+              <additionalSourceDirectories>
+                <param>src/it</param>
+              </additionalSourceDirectories>
+            </configuration>
+            <executions>
+              <execution>
+                <id>format</id>
+                <phase>validate</phase>
+                <goals>
+                  <goal>format</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>run-its</id>
       <build>
-
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
