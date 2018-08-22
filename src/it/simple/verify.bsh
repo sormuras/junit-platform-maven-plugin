@@ -2,6 +2,8 @@ import java.io.*;
 import java.util.*;
 import java.nio.file.*;
 
+boolean ok = true;
+
 String[] expectedFiles = new String[] {
   "target/test-classes/JupiterTest.class",
   "target/test-classes/JupiterTests.class",
@@ -11,26 +13,34 @@ String[] expectedFiles = new String[] {
 for (String name : expectedFiles) {
   if (!new File(basedir, name).isFile()) {
     System.err.println("Expected file not found: " + name);
-    return false;
+    ok = false;
   }
 }
 
 String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
-log += new String(Files.readAllBytes(basedir.toPath().resolve("target/junit-console-launcher.err.txt")), "UTF-8");
-log += new String(Files.readAllBytes(basedir.toPath().resolve("target/junit-console-launcher.out.txt")), "UTF-8");
 String[] expectedSnippets = new String[] {
-// build.log
   "[INFO] Launching JUnit Platform...",
-  "[INFO] BUILD SUCCESS",
-// out.txt
-  "3 tests successful"
+  "[INFO] BUILD SUCCESS"
 };
 
 for (String snippet : expectedSnippets) {
   if (!log.contains(snippet)) {
     System.err.println("Expected snippet in log not found: " + snippet);
-    return false;
+    ok = false;
   }
 }
 
-return true;
+
+String[] empties = new String[] {
+  "target/junit-platform-console-launcher.err.txt",
+  "target/junit-platform-console-launcher.out.txt"
+};
+
+for (String name : empties) {
+  if (Files.size(basedir.toPath().resolve(name)) != 0) {
+    System.err.println("Expected empty file: " + name);
+    ok = false;
+  }
+}
+
+return ok;

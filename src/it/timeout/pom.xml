@@ -42,7 +42,7 @@
         <version>@project.version@</version>
 
         <configuration>
-          <timeout>3</timeout>
+          <timeout>2</timeout>
         </configuration>
 
         <executions>
