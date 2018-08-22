@@ -10,25 +10,24 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.IntSupplier;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 
-class ConsoleLauncher implements IntSupplier {
+class JUnitPlatformConsoleStarter implements IntSupplier {
 
   private final Configuration configuration;
+  private final ModularWorld world;
 
-  ConsoleLauncher(Configuration configuration) {
+  JUnitPlatformConsoleStarter(Configuration configuration, ModularWorld world) {
     this.configuration = configuration;
+    this.world = world;
   }
 
   @Override
   public int getAsInt() {
-    return execute();
-  }
-
-  private int execute() {
     var log = configuration.getLog();
     var target = Paths.get(configuration.getMavenProject().getBuild().getDirectory());
     var timeout = configuration.getTimeout().toSeconds();
     var reports = configuration.getReportsPath();
-    var testMod = configuration.getModularWorld().getTestModuleReference();
+    var mainMod = world.getTestModuleReference();
+    var testMod = world.getTestModuleReference();
 
     // Prepare the process builder
     var builder = new ProcessBuilder();
@@ -42,6 +41,11 @@ class ConsoleLauncher implements IntSupplier {
 
     // Supply standard options for Java
     // https://docs.oracle.com/javase/10/tools/java.htm
+    if (!mainMod.isPresent() && !testMod.isPresent()) {
+      builder.command().add("--class-path");
+      builder.command().add(createModulePathArgument());
+      builder.command().add("org.junit.platform.console.ConsoleLauncher");
+    }
     if (testMod.isPresent()) {
       builder.command().add("--module-path");
       builder.command().add(createModulePathArgument());
@@ -60,8 +64,7 @@ class ConsoleLauncher implements IntSupplier {
     configuration.getTags().forEach(builder.command()::add);
     configuration
         .getParameters()
-        .forEach(
-            (key, value) -> builder.command().add("--config=\"" + key + "\"=\"" + value + "\""));
+        .forEach((key, value) -> builder.command().add(createConfigArgument(key, value)));
     reports.ifPresent(
         path -> {
           builder.command().add("--reports-dir");
@@ -69,9 +72,10 @@ class ConsoleLauncher implements IntSupplier {
         });
 
     if (testMod.isPresent()) {
-      // builder.command().add("--scan-modules");
       builder.command().add("--select-module");
       builder.command().add(testMod.get().descriptor().name());
+    } else {
+      builder.command().add("--scan-class-path");
     }
 
     // Start
@@ -89,6 +93,10 @@ class ConsoleLauncher implements IntSupplier {
       log.error("Executing process failed", e);
       return -1;
     }
+  }
+
+  private String createConfigArgument(String key, String value) {
+    return "--config=\"" + key + "\"=\"" + value + "\"";
   }
 
   private String createModulePathArgument() {

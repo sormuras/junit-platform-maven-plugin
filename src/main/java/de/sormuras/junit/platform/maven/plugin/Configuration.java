@@ -36,9 +36,6 @@ interface Configuration {
   /** @return log instance usable be plugins */
   Log getLog();
 
-  /** @return modular world helper */
-  ModularWorld getModularWorld();
-
   /** @return global timeout duration in seconds */
   Duration getTimeout();
 
