@@ -79,13 +79,13 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
     }
 
     // Start
-    log.debug("Starting process...");
+    log.debug("Starting process (timeout=" + timeout + ")...");
     builder.command().forEach(log::debug);
     try {
       var process = builder.start();
       var ok = process.waitFor(timeout, TimeUnit.SECONDS);
       if (!ok) {
-        log.error("Global timeout reached: " + timeout + " seconds");
+        log.error("Global timeout reached: " + timeout + " second(s)");
         return -2;
       }
       return process.exitValue();

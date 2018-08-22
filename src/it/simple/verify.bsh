@@ -16,10 +16,14 @@ for (String name : expectedFiles) {
 }
 
 String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
+log += new String(Files.readAllBytes(basedir.toPath().resolve("target/junit-console-launcher.err.txt")), "UTF-8");
+log += new String(Files.readAllBytes(basedir.toPath().resolve("target/junit-console-launcher.out.txt")), "UTF-8");
 String[] expectedSnippets = new String[] {
+// build.log
   "[INFO] Launching JUnit Platform...",
-  "[INFO] Successfully executed 3 tests",
-  "[INFO] BUILD SUCCESS"
+  "[INFO] BUILD SUCCESS",
+// out.txt
+  "3 tests successful"
 };
 
 for (String snippet : expectedSnippets) {
