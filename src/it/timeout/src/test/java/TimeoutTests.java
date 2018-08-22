@@ -4,6 +4,6 @@ class TimeoutTests {
 
   @Test
   void test() throws Exception {
-    Thread.sleep(10000);
+    Thread.sleep(60 * 1000);
   }
 }

@@ -32,8 +32,8 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
     // Prepare the process builder
     var builder = new ProcessBuilder();
     // builder.directory(program.getParent().toFile());
-    builder.redirectError(target.resolve("junit-console-launcher.err.txt").toFile());
-    builder.redirectOutput(target.resolve("junit-console-launcher.out.txt").toFile());
+    builder.redirectError(target.resolve("junit-platform-console-launcher.err.txt").toFile());
+    builder.redirectOutput(target.resolve("junit-platform-console-launcher.out.txt").toFile());
     builder.redirectInput(ProcessBuilder.Redirect.INHERIT);
 
     // "java[.exe]"
@@ -57,7 +57,8 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
 
     // Now append console launcher options
     // See https://junit.org/junit5/docs/snapshot/user-guide/#running-tests-console-launcher-options
-    builder.command().add("--disable-ansi-colors");
+    builder.command().add("--details");
+    builder.command().add("none");
     if (configuration.isStrict()) {
       builder.command().add("--fail-if-no-tests");
     }
@@ -79,13 +80,17 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
     }
 
     // Start
-    log.debug("Starting process (timeout=" + timeout + ")...");
+    log.debug("Starting process...");
     builder.command().forEach(log::debug);
     try {
       var process = builder.start();
+      log.debug("Process started: #" + process.pid() + " " + process.info());
       var ok = process.waitFor(timeout, TimeUnit.SECONDS);
       if (!ok) {
-        log.error("Global timeout reached: " + timeout + " second(s)");
+        var s = timeout == 1 ? "" : "s";
+        log.error("Global timeout of " + timeout + " second" + s + " reached.");
+        log.error("Killing process #" + process.pid());
+        process.destroy();
         return -2;
       }
       return process.exitValue();
