@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.logging.Log;
+import org.junit.platform.engine.DiscoveryFilter;
+import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.launcher.Launcher;
 import org.junit.platform.launcher.LauncherDiscoveryRequest;
 import org.junit.platform.launcher.TagFilter;
@@ -34,17 +36,26 @@ class JUnitPlatformLauncher implements Callable<TestExecutionSummary> {
     this.build = configuration.getMavenProject().getBuild();
     this.launcher = LauncherFactory.create();
     this.request = buildRequest();
+
+    log.debug("");
+    log.debug("Created JUnit LauncherDiscoveryRequest" + request);
+    log.debug("  discovery selectors: " + request.getSelectorsByType(DiscoverySelector.class));
+    log.debug("  discovery filters: " + request.getFiltersByType(DiscoveryFilter.class));
+    log.debug("  engine filters: " + request.getEngineFilters());
+    log.debug("  post test descriptor filters: " + request.getPostDiscoveryFilters());
   }
 
   private LauncherDiscoveryRequest buildRequest() {
+    LauncherDiscoveryRequestBuilder builder = LauncherDiscoveryRequestBuilder.request();
+    // selectors
     Set<Path> roots = new HashSet<>();
     roots.add(Paths.get(build.getTestOutputDirectory()));
-
-    LauncherDiscoveryRequestBuilder builder = LauncherDiscoveryRequestBuilder.request();
     builder.selectors(selectClasspathRoots(roots));
+    // filters
     if (!configuration.getTags().isEmpty()) {
       builder.filters(TagFilter.includeTags(configuration.getTags()));
     }
+    // parameters
     builder.configurationParameters(configuration.getParameters());
     return builder.build();
   }
