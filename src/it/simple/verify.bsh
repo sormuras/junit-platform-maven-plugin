@@ -20,6 +20,19 @@ for (String name : expectedFiles) {
 String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
 String[] expectedSnippets = new String[] {
   "[INFO] Launching JUnit Platform...",
+  "[INFO] Test run finished",
+  "[INFO] [         4 containers found      ]",
+  "[INFO] [         0 containers skipped    ]",
+  "[INFO] [         4 containers started    ]",
+  "[INFO] [         0 containers aborted    ]",
+  "[INFO] [         4 containers successful ]",
+  "[INFO] [         0 containers failed     ]",
+  "[INFO] [         3 tests found           ]",
+  "[INFO] [         0 tests skipped         ]",
+  "[INFO] [         3 tests started         ]",
+  "[INFO] [         0 tests aborted         ]",
+  "[INFO] [         3 tests successful      ]",
+  "[INFO] [         0 tests failed          ]",
   "[INFO] BUILD SUCCESS"
 };
 
@@ -32,8 +45,7 @@ for (String snippet : expectedSnippets) {
 
 
 String[] empties = new String[] {
-  "target/junit-platform-console-launcher.err.txt",
-  "target/junit-platform-console-launcher.out.txt"
+  "target/junit-platform-console-launcher.err.txt"
 };
 
 for (String name : empties) {

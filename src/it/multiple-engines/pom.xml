@@ -51,6 +51,16 @@
       <scope>runtime</scope>
     </dependency>
     <dependency>
+      <groupId>de.sormuras</groupId>
+      <artifactId>brahms</artifactId>
+      <version>${brahms.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.vintage</groupId>
+      <artifactId>junit-vintage-engine</artifactId>
+      <version>${junit.vintage.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-engine</artifactId>
       <version>${junit.platform.version}</version>

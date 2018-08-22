@@ -28,12 +28,14 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
     var reports = configuration.getReportsPath();
     var mainMod = world.getTestModuleReference();
     var testMod = world.getTestModuleReference();
+    var errorPath = target.resolve("junit-platform-console-launcher.err.txt");
+    var outputPath = target.resolve("junit-platform-console-launcher.out.txt");
 
     // Prepare the process builder
     var builder = new ProcessBuilder();
     // builder.directory(program.getParent().toFile());
-    builder.redirectError(target.resolve("junit-platform-console-launcher.err.txt").toFile());
-    builder.redirectOutput(target.resolve("junit-platform-console-launcher.out.txt").toFile());
+    builder.redirectError(errorPath.toFile());
+    builder.redirectOutput(outputPath.toFile());
     builder.redirectInput(ProcessBuilder.Redirect.INHERIT);
 
     // "java[.exe]"
@@ -57,8 +59,9 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
 
     // Now append console launcher options
     // See https://junit.org/junit5/docs/snapshot/user-guide/#running-tests-console-launcher-options
+    builder.command().add("--disable-ansi-colors");
     builder.command().add("--details");
-    builder.command().add("none");
+    builder.command().add("tree");
     if (configuration.isStrict()) {
       builder.command().add("--fail-if-no-tests");
     }
@@ -93,7 +96,10 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
         process.destroy();
         return -2;
       }
-      return process.exitValue();
+      var exitValue = process.exitValue();
+      Files.readAllLines(outputPath).forEach(exitValue == 0 ? log::info : log::error);
+      Files.readAllLines(errorPath).forEach(exitValue == 0 ? log::warn : log::error);
+      return exitValue;
     } catch (IOException | InterruptedException e) {
       log.error("Executing process failed", e);
       return -1;

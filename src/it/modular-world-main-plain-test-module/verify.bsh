@@ -18,6 +18,19 @@ String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")
 String[] expectedSnippets = new String[] {
   "[INFO] Launching JUnit Platform...",
   "[DEBUG] Detected modular mode: MAIN_PLAIN_TEST_MODULE",
+  "[INFO] Test run finished",
+  "[INFO] [         2 containers found      ]",
+  "[INFO] [         0 containers skipped    ]",
+  "[INFO] [         2 containers started    ]",
+  "[INFO] [         0 containers aborted    ]",
+  "[INFO] [         2 containers successful ]",
+  "[INFO] [         0 containers failed     ]",
+  "[INFO] [         1 tests found           ]",
+  "[INFO] [         0 tests skipped         ]",
+  "[INFO] [         1 tests started         ]",
+  "[INFO] [         0 tests aborted         ]",
+  "[INFO] [         1 tests successful      ]",
+  "[INFO] [         0 tests failed          ]",
   "[INFO] BUILD SUCCESS"
 };
 

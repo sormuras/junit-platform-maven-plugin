@@ -9,6 +9,11 @@ before_install:
 script:
 - mvn -Prun-its verify
 
+after_success:
+- tail -200 target/it/multiple-engines/build.log
+
 after_failure:
+# - tail -200 target/it/modular-world-main-plain-test-module/build.log
 - tail -200 target/it/multiple-engines/build.log
 # - tail -200 target/it/simple/build.log
+# - tail -200 target/it/timeout/build.log
