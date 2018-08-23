@@ -14,8 +14,12 @@
         <groupId>de.sormuras</groupId>
         <artifactId>junit-platform-maven-plugin</artifactId>
         <configuration>
+          <versions>
+            <junit.platform.version>99-platform</junit.platform.version>
+            <junit.jupiter.version>99-jupiter</junit.jupiter.version>
+            <junit.vintage.version>99-vintage</junit.vintage.version>
+          </versions>
           <timeout>99</timeout>
-          <strict>false</strict>
           <reports>reports/99</reports>
           <tags>
             <tag>!98</tag>

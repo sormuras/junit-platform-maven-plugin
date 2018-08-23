@@ -57,84 +57,81 @@ class JUnitPlatformStarter implements IntSupplier {
 
     // Prepare the process builder
     var builder = new ProcessBuilder();
+    var cmd = builder.command();
     // builder.directory(program.getParent().toFile());
     builder.redirectError(errorPath.toFile());
     builder.redirectOutput(outputPath.toFile());
     builder.redirectInput(ProcessBuilder.Redirect.INHERIT);
 
     // "java[.exe]"
-    builder.command().add(getCurrentJavaExecutablePath().toString());
+    cmd.add(getCurrentJavaExecutablePath().toString());
 
     // Supply standard options for Java
     // https://docs.oracle.com/javase/10/tools/java.htm
     if (testModule.isPresent()) {
-      builder.command().add("--module-path");
-      builder.command().add(createPathArgument());
-      builder.command().add("--add-modules");
-      builder.command().add("ALL-MODULE-PATH,ALL-DEFAULT");
-      builder.command().add("--module");
-      builder.command().add("org.junit.platform.console");
+      cmd.add("--module-path");
+      cmd.add(createPathArgument());
+      cmd.add("--add-modules");
+      cmd.add("ALL-MODULE-PATH,ALL-DEFAULT");
+      cmd.add("--module");
+      cmd.add("org.junit.platform.console");
     } else {
       if (mainModule.isPresent()) {
-        builder.command().add("--module-path");
-        builder.command().add(createPathArgument());
-        builder.command().add("--add-modules");
-        builder.command().add("ALL-MODULE-PATH,ALL-DEFAULT");
+        cmd.add("--module-path");
+        cmd.add(createPathArgument());
+        cmd.add("--add-modules");
+        cmd.add("ALL-MODULE-PATH,ALL-DEFAULT");
         var name = mainModule.get().descriptor().name();
-        builder.command().add("--patch-module");
-        builder.command().add(name + "=" + testClasses);
-        builder.command().add("--add-reads");
-        builder.command().add(name + "=org.junit.jupiter.api");
+        cmd.add("--patch-module");
+        cmd.add(name + "=" + testClasses);
+        cmd.add("--add-reads");
+        cmd.add(name + "=org.junit.jupiter.api");
         // all packages, due to
         // http://mail.openjdk.java.net/pipermail/jigsaw-dev/2017-January/010749.html
         var packages = mainModule.get().descriptor().packages();
         packages.forEach(
             pkg -> {
-              builder.command().add("--add-opens");
-              builder.command().add(name + "/" + pkg + "=org.junit.platform.commons");
+              cmd.add("--add-opens");
+              cmd.add(name + "/" + pkg + "=org.junit.platform.commons");
             });
-        builder.command().add("--module");
-        builder.command().add("org.junit.platform.console");
+        cmd.add("--module");
+        cmd.add("org.junit.platform.console");
       } else {
-        builder.command().add("--class-path");
-        builder.command().add(createPathArgument());
-        builder.command().add("org.junit.platform.console.ConsoleLauncher");
+        cmd.add("--class-path");
+        cmd.add(createPathArgument());
+        cmd.add("org.junit.platform.console.ConsoleLauncher");
       }
     }
 
     // Now append console launcher options
     // See https://junit.org/junit5/docs/snapshot/user-guide/#running-tests-console-launcher-options
-    builder.command().add("--disable-ansi-colors");
-    builder.command().add("--details");
-    builder.command().add("tree");
-    if (mojo.isStrict()) {
-      builder.command().add("--fail-if-no-tests");
-    }
-    mojo.getTags().forEach(builder.command()::add);
-    mojo.getParameters()
-        .forEach((key, value) -> builder.command().add(createConfigArgument(key, value)));
+    cmd.add("--disable-ansi-colors");
+    cmd.add("--details");
+    cmd.add("tree");
+    mojo.getTags().forEach(tag -> cmd.add(createTagArgument(tag)));
+    mojo.getParameters().forEach((key, value) -> cmd.add(createConfigArgument(key, value)));
     reports.ifPresent(
         path -> {
-          builder.command().add("--reports-dir");
-          builder.command().add(path.toString());
+          cmd.add("--reports-dir");
+          cmd.add(path.toString());
         });
 
     if (testModule.isPresent()) {
-      builder.command().add("--select-module");
-      builder.command().add(testModule.get().descriptor().name());
+      cmd.add("--select-module");
+      cmd.add(testModule.get().descriptor().name());
     } else {
       if (mainModule.isPresent()) {
-        builder.command().add("--select-module");
-        builder.command().add(mainModule.get().descriptor().name());
+        cmd.add("--select-module");
+        cmd.add(mainModule.get().descriptor().name());
       } else {
-        builder.command().add("--scan-class-path");
+        cmd.add("--scan-class-path");
       }
     }
 
     // Start
     debug("");
     debug("Starting process...");
-    builder.command().forEach(mojo::debug);
+    cmd.forEach(mojo::debug);
     try {
       var timeout = mojo.getTimeout().toSeconds();
       var process = builder.start();
@@ -161,6 +158,10 @@ class JUnitPlatformStarter implements IntSupplier {
     return "--config=\"" + key + "\"=\"" + value + "\"";
   }
 
+  private String createTagArgument(String tag) {
+    return "--include-tag=\"" + tag + "\"";
+  }
+
   private String createPathArgument() {
     var project = mojo.getMavenProject();
     var elements = new ArrayList<String>();
@@ -174,15 +175,33 @@ class JUnitPlatformStarter implements IntSupplier {
         debug(" -> %s", path);
         elements.add(path.toString());
       }
-      // junit-platform-console
-      resolve(elements, "org.junit.platform", "junit-platform-console", "1.3.0-RC1");
+      var map = project.getArtifactMap();
       // junit-jupiter-engine, iff junit-jupiter-api is present
-      if (project.getArtifactMap().containsKey("org.junit.jupiter:junit-jupiter-api")) {
-        resolve(elements, "org.junit.jupiter", "junit-jupiter-engine", "5.3.0-RC1");
+      var jupiterApi = map.get("org.junit.jupiter:junit-jupiter-api");
+      var jupiterEngine = "org.junit.jupiter:junit-jupiter-engine";
+      var jupiterVersion = mojo.getJUnitJupiterVersion();
+      if (jupiterApi != null && !map.containsKey(jupiterEngine)) {
+        jupiterVersion = jupiterApi.getVersion();
+        resolve(elements, jupiterEngine, jupiterVersion);
       }
       // junit-vintage-engine, iff junit:junit is present
-      if (project.getArtifactMap().containsKey("junit:junit")) {
-        resolve(elements, "org.junit.vintage", "junit-vintage-engine", "5.3.0-RC1");
+      var vintageApi = map.get("junit:junit");
+      var vintageEngine = "org.junit.vintage:junit-vintage-engine";
+      if (vintageApi != null && !map.containsKey(vintageEngine)) {
+        try {
+          resolve(elements, vintageEngine, mojo.getJUnitVintageVersion());
+        } catch (Exception e) {
+          resolve(elements, vintageEngine, jupiterVersion);
+        }
+      }
+      // junit-platform-console
+      var platformConsole = "org.junit.platform:junit-platform-console";
+      var platformVersion =
+          "1" + jupiterVersion.substring(1); // TODO "5.x.y-z" to "1.x.y-z" ... brittle!
+      try {
+        resolve(elements, platformConsole, platformVersion);
+      } catch (Exception e) {
+        resolve(elements, platformConsole, mojo.getJUnitPlatformVersion());
       }
     } catch (Exception e) {
       throw new IllegalStateException("Resolving test class-path elements failed", e);
@@ -190,15 +209,14 @@ class JUnitPlatformStarter implements IntSupplier {
     return String.join(File.pathSeparator, elements);
   }
 
-  private void resolve(List<String> elements, String group, String artifact, String version)
+  private void resolve(List<String> elements, String groupAndArtifact, String version)
       throws Exception {
     var map = mojo.getMavenProject().getArtifactMap();
-    var ga = group + ':' + artifact;
-    if (map.containsKey(ga)) {
-      debug("Skip resolving '%s', because it is already mapped.", ga);
+    if (map.containsKey(groupAndArtifact)) {
+      debug("Skip resolving '%s', because it is already mapped.", groupAndArtifact);
       return;
     }
-    var gav = ga + ":" + version;
+    var gav = groupAndArtifact + ":" + version;
     debug("");
     debug("Resolving '%s' and its transitive dependencies...", gav);
     for (var resolved : mojo.resolve(gav)) {

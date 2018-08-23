@@ -21,7 +21,6 @@ package de.sormuras.junit.platform.maven.plugin;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -51,7 +50,8 @@ class JUnitPlatformMojoTests {
     assertNotNull(mojo.getLog());
     assertEquals(99L, mojo.getTimeout().getSeconds());
     assertEquals(Paths.get("reports", "99"), Paths.get(mojo.getReports()));
-    assertFalse(mojo.isStrict());
+    assertTrue(mojo.getReportsPath().orElseThrow().isAbsolute());
+    assertTrue(mojo.getReportsPath().orElseThrow().endsWith(Paths.get("reports", "99")));
     assertAll(
         () -> assertEquals("!98", mojo.getTags().get(0)),
         () -> assertEquals("99", mojo.getTags().get(1)),
@@ -60,5 +60,9 @@ class JUnitPlatformMojoTests {
     assertAll(
         () -> assertEquals("99", mojo.getParameters().get("ninety.nine")),
         () -> assertEquals(1, mojo.getParameters().size()));
+    assertAll(
+        () -> assertEquals("99-platform", mojo.getJUnitPlatformVersion()),
+        () -> assertEquals("99-jupiter", mojo.getJUnitJupiterVersion()),
+        () -> assertEquals("99-vintage", mojo.getJUnitVintageVersion()));
   }
 }

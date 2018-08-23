@@ -41,7 +41,6 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
   <!-- Configure the plugin. -->
   <configuration>
     <timeout>99</timeout>
-    <strict>true</strict>
     <reports>custom-reports-directory</reports>
     <tags>
       <tag>foo</tag>
