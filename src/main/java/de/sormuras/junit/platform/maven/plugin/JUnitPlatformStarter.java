@@ -39,13 +39,16 @@ class JUnitPlatformStarter implements IntSupplier {
     this.modules = modules;
   }
 
+  private void debug(String format, Object... args) {
+    mojo.debug(String.format(format, args));
+  }
+
   @Override
   public int getAsInt() {
     var log = mojo.getLog();
     var build = mojo.getMavenProject().getBuild();
     var target = Paths.get(build.getDirectory());
     var testClasses = build.getTestOutputDirectory();
-    var timeout = mojo.getTimeout().toSeconds();
     var reports = mojo.getReportsPath();
     var mainModule = modules.getMainModuleReference();
     var testModule = modules.getTestModuleReference();
@@ -129,12 +132,13 @@ class JUnitPlatformStarter implements IntSupplier {
     }
 
     // Start
-    log.debug("");
-    log.debug("Starting process...");
-    builder.command().forEach(log::debug);
+    debug("");
+    debug("Starting process...");
+    builder.command().forEach(mojo::debug);
     try {
+      var timeout = mojo.getTimeout().toSeconds();
       var process = builder.start();
-      log.debug("Process started: #" + process.pid() + " " + process.info());
+      debug("Process started: #%d %s", process.pid(), process.info());
       var ok = process.waitFor(timeout, TimeUnit.SECONDS);
       if (!ok) {
         var s = timeout == 1 ? "" : "s";
@@ -158,28 +162,27 @@ class JUnitPlatformStarter implements IntSupplier {
   }
 
   private String createPathArgument() {
-    var log = mojo.getLog();
     var project = mojo.getMavenProject();
     var elements = new ArrayList<String>();
     try {
       for (var element : project.getTestClasspathElements()) {
         var path = Paths.get(element).toAbsolutePath().normalize();
         if (Files.notExists(path)) {
-          log.debug("   X " + path + " // doesn't exist");
+          debug("  X %s // doesn't exist", path);
           continue;
         }
-        log.debug("  -> " + path);
+        debug(" -> %s", path);
         elements.add(path.toString());
       }
       // junit-platform-console
-      loadArtifacts(elements, "org.junit.platform", "junit-platform-console", "1.3.0-RC1");
+      resolve(elements, "org.junit.platform", "junit-platform-console", "1.3.0-RC1");
       // junit-jupiter-engine, iff junit-jupiter-api is present
       if (project.getArtifactMap().containsKey("org.junit.jupiter:junit-jupiter-api")) {
-        loadArtifacts(elements, "org.junit.jupiter", "junit-jupiter-engine", "5.3.0-RC1");
+        resolve(elements, "org.junit.jupiter", "junit-jupiter-engine", "5.3.0-RC1");
       }
       // junit-vintage-engine, iff junit:junit is present
       if (project.getArtifactMap().containsKey("junit:junit")) {
-        loadArtifacts(elements, "org.junit.vintage", "junit-vintage-engine", "5.3.0-RC1");
+        resolve(elements, "org.junit.vintage", "junit-vintage-engine", "5.3.0-RC1");
       }
     } catch (Exception e) {
       throw new IllegalStateException("Resolving test class-path elements failed", e);
@@ -187,31 +190,30 @@ class JUnitPlatformStarter implements IntSupplier {
     return String.join(File.pathSeparator, elements);
   }
 
-  private void loadArtifacts(List<String> elements, String group, String artifact, String version)
+  private void resolve(List<String> elements, String group, String artifact, String version)
       throws Exception {
-    var log = mojo.getLog();
     var map = mojo.getMavenProject().getArtifactMap();
     var ga = group + ':' + artifact;
     if (map.containsKey(ga)) {
-      log.debug("Skip loading " + ga + ", it is already mapped.");
+      debug("Skip resolving '%s', because it is already mapped.", ga);
       return;
     }
     var gav = ga + ":" + version;
-    log.debug("");
-    log.debug("Loading '" + gav + "' and its transitive dependencies...");
+    debug("");
+    debug("Resolving '%s' and its transitive dependencies...", gav);
     for (var resolved : mojo.resolve(gav)) {
       var key = resolved.getGroupId() + ':' + resolved.getArtifactId();
       if (map.containsKey(key)) {
-        log.debug("  X  " + resolved + " // already mapped by project");
+        debug("  X %s // mapped by project", resolved);
         continue;
       }
       var path = resolved.getFile().toPath().toAbsolutePath().normalize();
       var element = path.toString();
       if (elements.contains(element)) {
-        log.debug("  X  " + resolved + " // already added before");
+        debug("  X %s // already added", resolved);
         continue;
       }
-      log.debug("  -> " + element);
+      debug(" -> %s", element);
       elements.add(element);
     }
   }

@@ -45,46 +45,47 @@ abstract class AbstractBaseMojo extends AbstractMojo {
   private MavenProject project;
 
   /** The entry point to Maven Artifact Resolver, i.e. the component doing all the work. */
-  @Component private RepositorySystem repositorySystem;
+  @Component private RepositorySystem resolver;
 
   /** The current repository/network configuration of Maven. */
   @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
-  private RepositorySystemSession repositorySession;
+  private RepositorySystemSession session;
 
   /** The project's remote repositories to use for the resolution. */
   @Parameter(defaultValue = "${project.remotePluginRepositories}", readonly = true)
   private List<RemoteRepository> repositories;
+
+  void debug(String format, Object... args) {
+    getLog().debug(String.format(format, args));
+  }
 
   MavenProject getMavenProject() {
     return project;
   }
 
   List<Artifact> resolve(String coordinates) throws Exception {
-    var log = getLog();
     var artifact = new DefaultArtifact(coordinates);
-    var request = new ArtifactRequest();
-    request.setArtifact(artifact);
-    request.setRepositories(repositories);
+    debug("Resolving artifact %s from %s...", artifact, repositories);
 
-    log.debug(format("Resolving artifact %s from %s...", artifact, repositories));
-    var resolved = repositorySystem.resolveArtifact(repositorySession, request);
-    log.debug(format("Resolved %s from %s", artifact, resolved.getRepository()));
-    log.debug(format("Stored %s to %s", artifact, resolved.getArtifact().getFile()));
+    var artifactRequest = new ArtifactRequest();
+    artifactRequest.setArtifact(artifact);
+    artifactRequest.setRepositories(repositories);
+    var resolved = resolver.resolveArtifact(session, artifactRequest);
+    debug("Resolved %s from %s", artifact, resolved.getRepository());
+    debug("Stored %s to %s", artifact, resolved.getArtifact().getFile());
 
     var collectRequest = new CollectRequest();
     collectRequest.setRoot(new Dependency(artifact, ""));
     collectRequest.setRepositories(repositories);
 
     var dependencyRequest = new DependencyRequest(collectRequest, (all, ways) -> true);
-    var artifactResults =
-        repositorySystem
-            .resolveDependencies(repositorySession, dependencyRequest)
-            .getArtifactResults();
+    debug("Resolving dependencies %s...", dependencyRequest);
+    var artifacts = resolver.resolveDependencies(session, dependencyRequest).getArtifactResults();
 
-    return artifactResults
+    return artifacts
         .stream()
         .map(ArtifactResult::getArtifact)
-        .peek(a -> log.info(format("%s resolved to %s", a, a.getFile())))
+        .peek(a -> debug("Artifact %s resolved to %s", a, a.getFile()))
         .collect(Collectors.toList());
   }
 }
