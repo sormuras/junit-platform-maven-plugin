@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package de.sormuras.junit.platform.maven.plugin;
 
 import java.io.File;
@@ -10,26 +29,26 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntSupplier;
 
-class JUnitPlatformConsoleStarter implements IntSupplier {
+class JUnitPlatformStarter implements IntSupplier {
 
-  private final Configuration configuration;
-  private final ModularWorld world;
+  private final JUnitPlatformMojo mojo;
+  private final Modules modules;
 
-  JUnitPlatformConsoleStarter(Configuration configuration, ModularWorld world) {
-    this.configuration = configuration;
-    this.world = world;
+  JUnitPlatformStarter(JUnitPlatformMojo mojo, Modules modules) {
+    this.mojo = mojo;
+    this.modules = modules;
   }
 
   @Override
   public int getAsInt() {
-    var log = configuration.getLog();
-    var build = configuration.getMavenProject().getBuild();
+    var log = mojo.getLog();
+    var build = mojo.getMavenProject().getBuild();
     var target = Paths.get(build.getDirectory());
     var testClasses = build.getTestOutputDirectory();
-    var timeout = configuration.getTimeout().toSeconds();
-    var reports = configuration.getReportsPath();
-    var mainModule = world.getMainModuleReference();
-    var testModule = world.getTestModuleReference();
+    var timeout = mojo.getTimeout().toSeconds();
+    var reports = mojo.getReportsPath();
+    var mainModule = modules.getMainModuleReference();
+    var testModule = modules.getTestModuleReference();
     var errorPath = target.resolve("junit-platform-console-launcher.err.txt");
     var outputPath = target.resolve("junit-platform-console-launcher.out.txt");
 
@@ -45,33 +64,6 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
 
     // Supply standard options for Java
     // https://docs.oracle.com/javase/10/tools/java.htm
-    if (world.getMode().equals(ModularMode.MAIN_PLAIN_TEST_PLAIN)) {
-      builder.command().add("--class-path");
-      builder.command().add(createPathArgument());
-      builder.command().add("org.junit.platform.console.ConsoleLauncher");
-    }
-    if (mainModule.isPresent() && !testModule.isPresent()) {
-      assert world.getMode() == ModularMode.MAIN_MODULE_TEST_PLAIN;
-      builder.command().add("--module-path");
-      builder.command().add(createPathArgument());
-      builder.command().add("--add-modules");
-      builder.command().add("ALL-MODULE-PATH,ALL-DEFAULT");
-      var name = mainModule.get().descriptor().name();
-      builder.command().add("--patch-module");
-      builder.command().add(name + "=" + testClasses);
-      builder.command().add("--add-reads");
-      builder.command().add(name + "=org.junit.jupiter.api");
-      // all packages, due to
-      // http://mail.openjdk.java.net/pipermail/jigsaw-dev/2017-January/010749.html
-      var packages = mainModule.get().descriptor().packages();
-      packages.forEach(
-          pkg -> {
-            builder.command().add("--add-opens");
-            builder.command().add(name + "/" + pkg + "=org.junit.platform.commons");
-          });
-      builder.command().add("--module");
-      builder.command().add("org.junit.platform.console");
-    }
     if (testModule.isPresent()) {
       builder.command().add("--module-path");
       builder.command().add(createPathArgument());
@@ -79,6 +71,32 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
       builder.command().add("ALL-MODULE-PATH,ALL-DEFAULT");
       builder.command().add("--module");
       builder.command().add("org.junit.platform.console");
+    } else {
+      if (mainModule.isPresent()) {
+        builder.command().add("--module-path");
+        builder.command().add(createPathArgument());
+        builder.command().add("--add-modules");
+        builder.command().add("ALL-MODULE-PATH,ALL-DEFAULT");
+        var name = mainModule.get().descriptor().name();
+        builder.command().add("--patch-module");
+        builder.command().add(name + "=" + testClasses);
+        builder.command().add("--add-reads");
+        builder.command().add(name + "=org.junit.jupiter.api");
+        // all packages, due to
+        // http://mail.openjdk.java.net/pipermail/jigsaw-dev/2017-January/010749.html
+        var packages = mainModule.get().descriptor().packages();
+        packages.forEach(
+            pkg -> {
+              builder.command().add("--add-opens");
+              builder.command().add(name + "/" + pkg + "=org.junit.platform.commons");
+            });
+        builder.command().add("--module");
+        builder.command().add("org.junit.platform.console");
+      } else {
+        builder.command().add("--class-path");
+        builder.command().add(createPathArgument());
+        builder.command().add("org.junit.platform.console.ConsoleLauncher");
+      }
     }
 
     // Now append console launcher options
@@ -86,12 +104,11 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
     builder.command().add("--disable-ansi-colors");
     builder.command().add("--details");
     builder.command().add("tree");
-    if (configuration.isStrict()) {
+    if (mojo.isStrict()) {
       builder.command().add("--fail-if-no-tests");
     }
-    configuration.getTags().forEach(builder.command()::add);
-    configuration
-        .getParameters()
+    mojo.getTags().forEach(builder.command()::add);
+    mojo.getParameters()
         .forEach((key, value) -> builder.command().add(createConfigArgument(key, value)));
     reports.ifPresent(
         path -> {
@@ -141,8 +158,8 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
   }
 
   private String createPathArgument() {
-    var log = configuration.getLog();
-    var project = configuration.getMavenProject();
+    var log = mojo.getLog();
+    var project = mojo.getMavenProject();
     var elements = new ArrayList<String>();
     try {
       for (var element : project.getTestClasspathElements()) {
@@ -172,8 +189,8 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
 
   private void loadArtifacts(List<String> elements, String group, String artifact, String version)
       throws Exception {
-    var log = configuration.getLog();
-    var map = configuration.getMavenProject().getArtifactMap();
+    var log = mojo.getLog();
+    var map = mojo.getMavenProject().getArtifactMap();
     var ga = group + ':' + artifact;
     if (map.containsKey(ga)) {
       log.debug("Skip loading " + ga + ", it is already mapped.");
@@ -182,16 +199,16 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
     var gav = ga + ":" + version;
     log.debug("");
     log.debug("Loading '" + gav + "' and its transitive dependencies...");
-    for (var loadedArtifact : configuration.loadArtifacts(gav)) {
-      var key = loadedArtifact.getGroupId() + ':' + loadedArtifact.getArtifactId();
+    for (var resolved : mojo.resolve(gav)) {
+      var key = resolved.getGroupId() + ':' + resolved.getArtifactId();
       if (map.containsKey(key)) {
-        log.debug("  X  " + loadedArtifact + " // already mapped by project");
+        log.debug("  X  " + resolved + " // already mapped by project");
         continue;
       }
-      var path = loadedArtifact.getFile().toPath().toAbsolutePath().normalize();
+      var path = resolved.getFile().toPath().toAbsolutePath().normalize();
       var element = path.toString();
       if (elements.contains(element)) {
-        log.debug("  X  " + loadedArtifact + " // already added before");
+        log.debug("  X  " + resolved + " // already added before");
         continue;
       }
       log.debug("  -> " + element);

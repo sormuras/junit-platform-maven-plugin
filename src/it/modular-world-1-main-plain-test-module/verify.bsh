@@ -17,7 +17,6 @@ for (String name : expectedFiles) {
 String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
 String[] expectedSnippets = new String[] {
   "[INFO] Launching JUnit Platform...",
-  "[DEBUG] Detected modular mode: MAIN_PLAIN_TEST_MODULE",
   "[INFO] Test run finished",
   "[INFO] [         2 containers found      ]",
   "[INFO] [         0 containers skipped    ]",

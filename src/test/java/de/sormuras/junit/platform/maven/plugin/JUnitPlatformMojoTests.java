@@ -33,7 +33,7 @@ import org.apache.maven.plugin.testing.MojoExtension;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-class JUnitPlatformMavenPluginMojoTests {
+class JUnitPlatformMojoTests {
 
   @RegisterExtension MojoExtension extension = new MojoExtension();
 
@@ -42,23 +42,23 @@ class JUnitPlatformMavenPluginMojoTests {
     Path base = Paths.get("target", "test-classes", "project", "99");
     assertTrue(Files.isDirectory(base));
 
-    Mojo mojo = extension.lookupConfiguredMojo(base.toFile(), "launch-junit-platform");
-    assertNotNull(mojo);
-    assertTrue(mojo instanceof JUnitPlatformMavenPluginMojo);
+    Mojo configuredMojo = extension.lookupConfiguredMojo(base.toFile(), "launch-junit-platform");
+    assertNotNull(configuredMojo);
+    assertTrue(configuredMojo instanceof JUnitPlatformMojo);
 
-    Configuration configuration = (Configuration) mojo;
-    assertNotNull(configuration.getMavenProject());
-    assertNotNull(configuration.getLog());
-    assertEquals(99L, configuration.getTimeout().getSeconds());
-    assertEquals(Paths.get("reports", "99"), Paths.get(configuration.getReports()));
-    assertFalse(configuration.isStrict());
+    JUnitPlatformMojo mojo = (JUnitPlatformMojo) configuredMojo;
+    assertNotNull(mojo.getMavenProject());
+    assertNotNull(mojo.getLog());
+    assertEquals(99L, mojo.getTimeout().getSeconds());
+    assertEquals(Paths.get("reports", "99"), Paths.get(mojo.getReports()));
+    assertFalse(mojo.isStrict());
     assertAll(
-        () -> assertEquals("!98", configuration.getTags().get(0)),
-        () -> assertEquals("99", configuration.getTags().get(1)),
-        () -> assertEquals("(a | b) & (c | !d)", configuration.getTags().get(2)),
-        () -> assertEquals(3, configuration.getTags().size()));
+        () -> assertEquals("!98", mojo.getTags().get(0)),
+        () -> assertEquals("99", mojo.getTags().get(1)),
+        () -> assertEquals("(a | b) & (c | !d)", mojo.getTags().get(2)),
+        () -> assertEquals(3, mojo.getTags().size()));
     assertAll(
-        () -> assertEquals("99", configuration.getParameters().get("ninety.nine")),
-        () -> assertEquals(1, configuration.getParameters().size()));
+        () -> assertEquals("99", mojo.getParameters().get("ninety.nine")),
+        () -> assertEquals(1, mojo.getParameters().size()));
   }
 }
