@@ -104,6 +104,59 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
       return;
     }
 
+    log.debug("");
+    log.debug("Repositories: " + project.getRepositories());
+    project
+        .getRepositories()
+        .forEach(
+            repository -> {
+              log.debug("  url = " + repository.getUrl());
+              log.debug("  releases = " + repository.getReleases());
+            });
+
+    log.debug("");
+    log.debug("Artifacts: " + project.getArtifacts());
+    project
+        .getArtifacts()
+        .forEach(
+            artifact -> {
+              log.debug("  this = " + artifact);
+              log.debug("  file = " + artifact.getFile());
+              log.debug("  versions = " + artifact.getAvailableVersions());
+            });
+
+    log.debug("");
+    log.debug("Plugin Artifacts: " + project.getPluginArtifacts());
+    project
+        .getPluginArtifacts()
+        .forEach(
+            artifact -> {
+              log.debug("  this = " + artifact);
+              log.debug("  file = " + artifact.getFile());
+              log.debug("  versions = " + artifact.getAvailableVersions());
+            });
+
+    log.debug("");
+    log.debug("Dependencies: " + project.getDependencies());
+    project
+        .getDependencies()
+        .forEach(
+            dependency -> {
+              log.debug("  this = " + dependency);
+              log.debug("  path = " + dependency.getSystemPath());
+            });
+
+    // log.debug("");
+    // log.debug("Plugin Artifact Repository: " + project.getPluginArtifactRepositories());
+
+    log.debug("");
+    // log.debug("Plugin Artifact Map: " + project.getPluginArtifactMap());
+    // project.getPluginArtifactMap().forEach((k, v) -> log.debug("  " + k + " -> " + v));
+    var plugin = project.getPluginArtifactMap().get("de.sormuras:junit-platform-maven-plugin");
+    log.debug("  plugin: " + plugin);
+    log.debug("    file: " + plugin.getFile());
+    log.debug("   trail: " + plugin.getDependencyTrail());
+
     Path mainPath = Paths.get(project.getBuild().getOutputDirectory());
     Path testPath = Paths.get(project.getBuild().getTestOutputDirectory());
     var world = new ModularWorld(mainPath, testPath);
