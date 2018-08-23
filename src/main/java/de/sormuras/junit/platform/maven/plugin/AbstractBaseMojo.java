@@ -48,11 +48,11 @@ abstract class AbstractBaseMojo extends AbstractMojo {
   @Component private RepositorySystem resolver;
 
   /** The current repository/network configuration of Maven. */
-  @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
+  @Parameter(defaultValue = "${repositorySystemSession}", readonly = true, required = true)
   private RepositorySystemSession session;
 
   /** The project's remote repositories to use for the resolution. */
-  @Parameter(defaultValue = "${project.remotePluginRepositories}", readonly = true)
+  @Parameter(defaultValue = "${project.remotePluginRepositories}", readonly = true, required = true)
   private List<RemoteRepository> repositories;
 
   void debug(String format, Object... args) {
