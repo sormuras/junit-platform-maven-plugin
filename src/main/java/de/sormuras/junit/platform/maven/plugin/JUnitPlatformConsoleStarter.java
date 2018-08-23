@@ -6,9 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntSupplier;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
 
 class JUnitPlatformConsoleStarter implements IntSupplier {
 
@@ -154,32 +154,49 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
         log.debug("  -> " + path);
         elements.add(path.toString());
       }
-      log.debug("");
-      log.debug("Artifact map");
-      project.getArtifactMap().forEach((k, v) -> log.debug(k + "=" + v));
       // junit-platform-console
-      if (!project.getArtifactMap().containsKey("org.junit.platform:junit-platform-console")) {
-        log.debug("Adding 'junit-platform-console' and its transitive dependencies");
-        // TODO log.debug("Adding 'junit-platform-console' and its transitive dependencies");
-      }
+      loadArtifacts(elements, "org.junit.platform", "junit-platform-console", "1.3.0-RC1");
       // junit-jupiter-engine, iff junit-jupiter-api is present
       if (project.getArtifactMap().containsKey("org.junit.jupiter:junit-jupiter-api")) {
-        if (!project.getArtifactMap().containsKey("org.junit.jupiter:junit-jupiter-engine")) {
-          log.debug("Adding 'junit-jupiter-engine' and its transitive dependencies");
-          // TODO log.debug("Adding 'junit-jupiter-engine' and its transitive dependencies");
-        }
+        loadArtifacts(elements, "org.junit.jupiter", "junit-jupiter-engine", "5.3.0-RC1");
       }
-      // junit-vintage-engine, iff junit is present
+      // junit-vintage-engine, iff junit:junit is present
       if (project.getArtifactMap().containsKey("junit:junit")) {
-        if (!project.getArtifactMap().containsKey("org.junit.vintage:junit-vintage-engine")) {
-          log.debug("Adding 'junit-vintage-engine' and its transitive dependencies");
-          // TODO log.debug("Adding 'junit-vintage-engine' and its transitive dependencies");
-        }
+        loadArtifacts(elements, "org.junit.vintage", "junit-vintage-engine", "5.3.0-RC1");
       }
-    } catch (DependencyResolutionRequiredException e) {
+    } catch (Exception e) {
       throw new IllegalStateException("Resolving test class-path elements failed", e);
     }
     return String.join(File.pathSeparator, elements);
+  }
+
+  private void loadArtifacts(List<String> elements, String group, String artifact, String version)
+      throws Exception {
+    var log = configuration.getLog();
+    var map = configuration.getMavenProject().getArtifactMap();
+    var ga = group + ':' + artifact;
+    if (map.containsKey(ga)) {
+      log.debug("Skip loading " + ga + ", it is already mapped.");
+      return;
+    }
+    var gav = ga + ":" + version;
+    log.debug("");
+    log.debug("Loading '" + gav + "' and its transitive dependencies...");
+    for (var loadedArtifact : configuration.loadArtifacts(gav)) {
+      var key = loadedArtifact.getGroupId() + ':' + loadedArtifact.getArtifactId();
+      if (map.containsKey(key)) {
+        log.debug("  X  " + loadedArtifact + " // already mapped by project");
+        continue;
+      }
+      var path = loadedArtifact.getFile().toPath().toAbsolutePath().normalize();
+      var element = path.toString();
+      if (elements.contains(element)) {
+        log.debug("  X  " + loadedArtifact + " // already added before");
+        continue;
+      }
+      log.debug("  -> " + element);
+      elements.add(element);
+    }
   }
 
   private static Path getCurrentJavaExecutablePath() {

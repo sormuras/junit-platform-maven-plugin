@@ -26,15 +26,25 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.logging.MessageUtils;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.*;
 
 /** Launch JUnit Platform Mojo. */
 @Mojo(
@@ -104,59 +114,6 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
       return;
     }
 
-    log.debug("");
-    log.debug("Repositories: " + project.getRepositories());
-    project
-        .getRepositories()
-        .forEach(
-            repository -> {
-              log.debug("  url = " + repository.getUrl());
-              log.debug("  releases = " + repository.getReleases());
-            });
-
-    log.debug("");
-    log.debug("Artifacts: " + project.getArtifacts());
-    project
-        .getArtifacts()
-        .forEach(
-            artifact -> {
-              log.debug("  this = " + artifact);
-              log.debug("  file = " + artifact.getFile());
-              log.debug("  versions = " + artifact.getAvailableVersions());
-            });
-
-    log.debug("");
-    log.debug("Plugin Artifacts: " + project.getPluginArtifacts());
-    project
-        .getPluginArtifacts()
-        .forEach(
-            artifact -> {
-              log.debug("  this = " + artifact);
-              log.debug("  file = " + artifact.getFile());
-              log.debug("  versions = " + artifact.getAvailableVersions());
-            });
-
-    log.debug("");
-    log.debug("Dependencies: " + project.getDependencies());
-    project
-        .getDependencies()
-        .forEach(
-            dependency -> {
-              log.debug("  this = " + dependency);
-              log.debug("  path = " + dependency.getSystemPath());
-            });
-
-    // log.debug("");
-    // log.debug("Plugin Artifact Repository: " + project.getPluginArtifactRepositories());
-
-    log.debug("");
-    // log.debug("Plugin Artifact Map: " + project.getPluginArtifactMap());
-    // project.getPluginArtifactMap().forEach((k, v) -> log.debug("  " + k + " -> " + v));
-    var plugin = project.getPluginArtifactMap().get("de.sormuras:junit-platform-maven-plugin");
-    log.debug("  plugin: " + plugin);
-    log.debug("    file: " + plugin.getFile());
-    log.debug("   trail: " + plugin.getDependencyTrail());
-
     Path mainPath = Paths.get(project.getBuild().getOutputDirectory());
     Path testPath = Paths.get(project.getBuild().getTestOutputDirectory());
     var world = new ModularWorld(mainPath, testPath);
@@ -169,5 +126,55 @@ public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Config
     if (result != 0) {
       throw new MojoFailureException("RED ALERT!");
     }
+  }
+
+  /** The entry point to Maven Artifact Resolver, i.e. the component doing all the work. */
+  @Component private RepositorySystem repoSystem;
+
+  /** The current repository/network configuration of Maven. */
+  @Parameter(defaultValue = "${repositorySystemSession}", readonly = true)
+  private RepositorySystemSession repoSession;
+
+  /** The project's remote repositories to use for the resolution. */
+  @Parameter(defaultValue = "${project.remotePluginRepositories}", readonly = true)
+  private List<RemoteRepository> remoteRepos;
+
+  @Override
+  public List<Artifact> loadArtifacts(String artifactCoords) throws Exception {
+    Log log = getLog();
+
+    Artifact artifact = new DefaultArtifact(artifactCoords);
+
+    ArtifactRequest request = new ArtifactRequest();
+    request.setArtifact(artifact);
+    request.setRepositories(remoteRepos);
+
+    log.info(String.format("Resolving artifact %s from %s", artifact, remoteRepos));
+
+    ArtifactResult result = repoSystem.resolveArtifact(repoSession, request);
+
+    log.info(
+        String.format(
+            "Resolved artifact %s to %s from %s",
+            artifact, result.getArtifact().getFile(), result.getRepository()));
+
+    CollectRequest collectRequest = new CollectRequest();
+    collectRequest.setRoot(new Dependency(artifact, ""));
+    collectRequest.setRepositories(remoteRepos);
+
+    DependencyRequest dependencyRequest =
+        new DependencyRequest(collectRequest, (all, ways) -> true);
+
+    List<ArtifactResult> artifactResults =
+        repoSystem.resolveDependencies(repoSession, dependencyRequest).getArtifactResults();
+
+    for (ArtifactResult artifactResult : artifactResults) {
+      log.info(
+          String.format(
+              "%s resolved to %s",
+              artifactResult.getArtifact(), artifactResult.getArtifact().getFile()));
+    }
+
+    return artifactResults.stream().map(ArtifactResult::getArtifact).collect(Collectors.toList());
   }
 }

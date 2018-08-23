@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.artifact.Artifact;
 
 interface Configuration {
 
@@ -35,6 +36,9 @@ interface Configuration {
 
   /** @return log instance usable be plugins */
   Log getLog();
+
+  /** @return resolve all needed artifacts */
+  List<Artifact> loadArtifacts(String coordinates) throws Exception;
 
   /** @return global timeout duration in seconds */
   Duration getTimeout();
