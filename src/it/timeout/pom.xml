@@ -18,33 +18,17 @@
       <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
-    <!-- test runtime -->
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>${junit.jupiter.version}</version>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.platform</groupId>
-      <artifactId>junit-platform-console</artifactId>
-      <version>${junit.platform.version}</version>
-      <scope>runtime</scope>
-    </dependency>
   </dependencies>
 
   <build>
     <plugins>
-
       <plugin>
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
-
         <configuration>
           <timeout>2</timeout>
         </configuration>
-
         <executions>
           <execution>
             <goals>
@@ -52,16 +36,8 @@
             </goals>
           </execution>
         </executions>
-
-        <dependencies>
-          <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.jupiter.version}</version>
-          </dependency>
-        </dependencies>
       </plugin>
-
     </plugins>
   </build>
+
 </project>

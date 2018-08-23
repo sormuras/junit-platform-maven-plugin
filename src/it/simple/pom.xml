@@ -22,18 +22,15 @@
 
   <build>
     <plugins>
-
       <plugin>
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
-
         <configuration>
           <parameters>
             <junit.jupiter.execution.parallel.enabled>true</junit.jupiter.execution.parallel.enabled>
           </parameters>
         </configuration>
-
         <executions>
           <execution>
             <goals>
@@ -41,9 +38,7 @@
             </goals>
           </execution>
         </executions>
-
       </plugin>
-
     </plugins>
   </build>
 </project>

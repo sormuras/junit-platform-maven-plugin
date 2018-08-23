@@ -10,6 +10,7 @@ Maven Plugin launching the JUnit Platform
 ## Goals
 
 * Utilize JUnit Platform's ability to execute multiple `TestEngine`s natively.
+* Auto-load well-known engine implementations at test runtime: users only have to depend on `junit-jupiter-api`, the Jupiter TestEngine is provided.
 * Support _white-box_ and _black-box_ testing when writing modularized projects.
 
 ## Usage with Jupiter
@@ -22,7 +23,7 @@ For example, if you want to write tests using the Jupiter API, you'll need the [
   <dependency>
     <groupId>org.junit.jupiter</groupId>
     <artifactId>junit-jupiter-api</artifactId>
-    <version>5.2.0</version>
+    <version>5.3.0-RC1</version>
     <scope>test</scope>
   </dependency>
 </dependencies>
@@ -52,20 +53,9 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
     </parameters>
   </configuration>
   
-  <!-- Add matching TestEngine implementation to the test runtime. -->
-  <dependencies>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.2.0</version>
-      <scope>runtime</scope>
-    </dependency>
-  </dependencies>
-  
   <!-- Bind and execute the plugin to the test phase. -->
   <executions>
     <execution>
-      <phase>test</phase>
       <goals>
         <goal>launch-junit-platform</goal>
       </goals>
