@@ -41,6 +41,7 @@ import org.apache.maven.shared.utils.logging.MessageUtils;
     name = "launch-junit-platform",
     defaultPhase = LifecyclePhase.TEST,
     threadSafe = true,
+    requiresDependencyCollection = ResolutionScope.TEST,
     requiresDependencyResolution = ResolutionScope.TEST)
 public class JUnitPlatformMavenPluginMojo extends AbstractMojo implements Configuration {
 
