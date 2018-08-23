@@ -18,7 +18,8 @@
       <version>${junit.jupiter.version}</version>
       <scope>test</scope>
     </dependency>
-    <!-- test runtime -->
+
+    <!-- BEGIN // The "junit-platform-maven-plugin" should add them, when missing. -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
@@ -31,6 +32,8 @@
       <version>${junit.platform.version}</version>
       <scope>runtime</scope>
     </dependency>
+    <!-- END. -->
+
   </dependencies>
 
   <build>
@@ -55,13 +58,6 @@
           </execution>
         </executions>
 
-        <dependencies>
-          <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit.jupiter.version}</version>
-          </dependency>
-        </dependencies>
       </plugin>
 
     </plugins>

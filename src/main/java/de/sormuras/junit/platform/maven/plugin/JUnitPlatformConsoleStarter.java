@@ -112,6 +112,7 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
     }
 
     // Start
+    log.debug("");
     log.debug("Starting process...");
     builder.command().forEach(log::debug);
     try {
@@ -152,6 +153,28 @@ class JUnitPlatformConsoleStarter implements IntSupplier {
         }
         log.debug("  -> " + path);
         elements.add(path.toString());
+      }
+      log.debug("");
+      log.debug("Artifact map");
+      project.getArtifactMap().forEach((k, v) -> log.debug(k + "=" + v));
+      // junit-platform-console
+      if (!project.getArtifactMap().containsKey("org.junit.platform:junit-platform-console")) {
+        log.debug("Adding 'junit-platform-console' and its transitive dependencies");
+        // TODO log.debug("Adding 'junit-platform-console' and its transitive dependencies");
+      }
+      // junit-jupiter-engine, iff junit-jupiter-api is present
+      if (project.getArtifactMap().containsKey("org.junit.jupiter:junit-jupiter-api")) {
+        if (!project.getArtifactMap().containsKey("org.junit.jupiter:junit-jupiter-engine")) {
+          log.debug("Adding 'junit-jupiter-engine' and its transitive dependencies");
+          // TODO log.debug("Adding 'junit-jupiter-engine' and its transitive dependencies");
+        }
+      }
+      // junit-vintage-engine, iff junit is present
+      if (project.getArtifactMap().containsKey("junit:junit")) {
+        if (!project.getArtifactMap().containsKey("org.junit.vintage:junit-vintage-engine")) {
+          log.debug("Adding 'junit-vintage-engine' and its transitive dependencies");
+          // TODO log.debug("Adding 'junit-vintage-engine' and its transitive dependencies");
+        }
       }
     } catch (DependencyResolutionRequiredException e) {
       throw new IllegalStateException("Resolving test class-path elements failed", e);
