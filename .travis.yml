@@ -13,7 +13,8 @@ after_success:
 - tail -200 target/it/multiple-engines/build.log
 
 after_failure:
-# - tail -200 target/it/modular-world-main-plain-test-module/build.log
+- tail -200 target/it/configured/build.log
+- tail -200 target/it/modular-world-1-main-plain-test-module/build.log
+- tail -200 target/it/modular-world-2-main-module-test-plain/build.log
 - tail -200 target/it/multiple-engines/build.log
-# - tail -200 target/it/simple/build.log
-# - tail -200 target/it/timeout/build.log
+- tail -200 target/it/timeout/build.log
