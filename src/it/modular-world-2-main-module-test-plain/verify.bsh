@@ -24,7 +24,7 @@ String[] snippets = new String[] {
   "[DEBUG]   Jupiter   -> " + junitJupiterVersion,
   "[DEBUG]   Vintage   -> " + junitVintageVersion,
   "[DEBUG] Java module system",
-  "[DEBUG]   main -> module { name: foo, [mandated java.base (@11-ea)] }",
+  "[DEBUG]   main -> module foo { requires=[java.base] packages=[foo] }",
   "[DEBUG]   test -> <empty>",
   "[INFO] Test run finished",
   "[INFO] [         2 containers found      ]",

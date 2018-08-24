@@ -21,6 +21,7 @@ package de.sormuras.junit.platform.maven.plugin;
 
 import static java.util.stream.Collectors.joining;
 
+import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleFinder;
 import java.lang.module.ModuleReference;
 import java.nio.file.Path;
@@ -78,6 +79,23 @@ class Modules {
     if (reference == null) {
       return "<empty>";
     }
-    return reference.descriptor().toString();
+    var module = reference.descriptor();
+    var builder = new StringBuilder();
+    if (module.isOpen()) {
+      builder.append("open ");
+    }
+    builder.append("module ").append(module.name());
+    builder.append(" {");
+    builder
+        .append(" requires=")
+        .append(
+            module
+                .requires()
+                .stream()
+                .map(ModuleDescriptor.Requires::name)
+                .collect(joining(", ", "[", "]")));
+    builder.append(" packages=").append(module.packages());
+    builder.append(" }");
+    return builder.toString();
   }
 }
