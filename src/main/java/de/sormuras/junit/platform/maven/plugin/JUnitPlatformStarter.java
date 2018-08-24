@@ -161,6 +161,9 @@ class JUnitPlatformStarter implements IntSupplier {
   }
 
   private String createPathArgument() {
+    debug("");
+    debug("Creating path argument");
+
     var project = mojo.getMavenProject();
     var elements = new ArrayList<String>();
     try {
@@ -210,13 +213,13 @@ class JUnitPlatformStarter implements IntSupplier {
     for (var resolved : mojo.resolve(gav)) {
       var key = resolved.getGroupId() + ':' + resolved.getArtifactId();
       if (map.containsKey(key)) {
-        debug("  X %s // mapped by project", resolved);
+        // debug("  X %s // mapped by project", resolved);
         continue;
       }
       var path = resolved.getFile().toPath().toAbsolutePath().normalize();
       var element = path.toString();
       if (elements.contains(element)) {
-        debug("  X %s // already added", resolved);
+        // debug("  X %s // already added", resolved);
         continue;
       }
       debug(" -> %s", element);

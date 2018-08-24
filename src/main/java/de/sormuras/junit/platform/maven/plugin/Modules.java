@@ -44,6 +44,19 @@ class Modules {
     return Optional.ofNullable(testModuleReference);
   }
 
+  @Override
+  public String toString() {
+    return String.format("Modules [main=%s, test=%s]", toStringMainModule(), toStringTestModule());
+  }
+
+  String toStringMainModule() {
+    return toString(mainModuleReference);
+  }
+
+  String toStringTestModule() {
+    return toString(testModuleReference);
+  }
+
   static ModuleReference getSingleModuleReferenceOrNull(Path path) {
     var all = ModuleFinder.of(path).findAll();
     var firstOpt = all.stream().findFirst();
@@ -59,5 +72,12 @@ class Modules {
                 + " but found: "
                 + all.stream().map(ModuleReference::toString).collect(joining(", ", "<", ">")));
     }
+  }
+
+  private static String toString(ModuleReference reference) {
+    if (reference == null) {
+      return "<empty>";
+    }
+    return reference.descriptor().toString();
   }
 }

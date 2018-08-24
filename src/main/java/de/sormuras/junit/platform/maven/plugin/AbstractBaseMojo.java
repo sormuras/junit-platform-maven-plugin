@@ -63,13 +63,13 @@ abstract class AbstractBaseMojo extends AbstractMojo {
   @Parameter(defaultValue = "${repositorySystemSession}", readonly = true, required = true)
   private RepositorySystemSession session;
 
-  Modules createModules(Build build) {
+  private Modules createModules(Build build) {
     var mainPath = Paths.get(build.getOutputDirectory());
     var testPath = Paths.get(build.getTestOutputDirectory());
     return new Modules(mainPath, testPath);
   }
 
-  Map<String, String> createAutomaticDetectedVersions(MavenProject project) {
+  private Map<String, String> createAutomaticDetectedVersions(MavenProject project) {
     var map = project.getArtifactMap();
 
     String jupiterVersion;
@@ -130,27 +130,27 @@ abstract class AbstractBaseMojo extends AbstractMojo {
 
   List<Artifact> resolve(String coordinates) throws Exception {
     var artifact = new DefaultArtifact(coordinates);
-    debug("Resolving artifact %s from %s...", artifact, repositories);
+    // debug("Resolving artifact %s from %s...", artifact, repositories);
 
     var artifactRequest = new ArtifactRequest();
     artifactRequest.setArtifact(artifact);
     artifactRequest.setRepositories(repositories);
-    var resolved = resolver.resolveArtifact(session, artifactRequest);
-    debug("Resolved %s from %s", artifact, resolved.getRepository());
-    debug("Stored %s to %s", artifact, resolved.getArtifact().getFile());
+    // var resolved = resolver.resolveArtifact(session, artifactRequest);
+    // debug("Resolved %s from %s", artifact, resolved.getRepository());
+    // debug("Stored %s to %s", artifact, resolved.getArtifact().getFile());
 
     var collectRequest = new CollectRequest();
     collectRequest.setRoot(new Dependency(artifact, ""));
     collectRequest.setRepositories(repositories);
 
     var dependencyRequest = new DependencyRequest(collectRequest, (all, ways) -> true);
-    debug("Resolving dependencies %s...", dependencyRequest);
+    // debug("Resolving dependencies %s...", dependencyRequest);
     var artifacts = resolver.resolveDependencies(session, dependencyRequest).getArtifactResults();
 
     return artifacts
         .stream()
         .map(ArtifactResult::getArtifact)
-        .peek(a -> debug("Artifact %s resolved to %s", a, a.getFile()))
+        // .peek(a -> debug("Artifact %s resolved to %s", a, a.getFile()))
         .collect(Collectors.toList());
   }
 }
