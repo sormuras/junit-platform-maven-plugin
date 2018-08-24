@@ -66,15 +66,17 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
       return;
     }
 
-    var build = getMavenProject().getBuild();
-    Path mainPath = Paths.get(build.getOutputDirectory());
-    Path testPath = Paths.get(build.getTestOutputDirectory());
-    var modules = new Modules(mainPath, testPath);
-    log.debug("");
-    log.debug("Main module reference -> " + modules.getMainModuleReference());
-    log.debug("Test module reference -> " + modules.getTestModuleReference());
+    initialize();
 
-    int result = new JUnitPlatformStarter(this, modules).getAsInt();
+    log.debug("");
+    log.debug("JUnit-related versions");
+    log.debug("  Platform  -> " + getJUnitPlatformVersion());
+    log.debug("  Jupiter   -> " + getJUnitJupiterVersion());
+    log.debug("  Vintage   -> " + getJUnitVintageVersion());
+    log.debug("Main module reference -> " + getModules().getMainModuleReference());
+    log.debug("Test module reference -> " + getModules().getTestModuleReference());
+
+    int result = new JUnitPlatformStarter(this).getAsInt();
     if (result != 0) {
       throw new MojoFailureException("RED ALERT!");
     }
@@ -164,16 +166,21 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
 
   /** Desired JUnit Jupiter version. */
   String getJUnitJupiterVersion() {
-    return versions.getOrDefault("junit.jupiter.version", "5.3.0-RC1");
+    return getVersion("junit.jupiter.version");
   }
 
   /** Desired JUnit Platform version. */
   String getJUnitPlatformVersion() {
-    return versions.getOrDefault("junit.platform.version", "1.3.0-RC1");
+    return getVersion("junit.platform.version");
   }
 
   /** Desired JUnit Vintage version. */
   String getJUnitVintageVersion() {
-    return versions.getOrDefault("junit.vintage.version", "5.3.0-RC1");
+    return getVersion("junit.vintage.version");
+  }
+
+  /** Desired version. */
+  String getVersion(String key) {
+    return versions.getOrDefault(key, getDetectedVersion(key));
   }
 }

@@ -19,10 +19,11 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
-import static java.lang.String.format;
-
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+import org.apache.maven.model.Build;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -41,8 +42,19 @@ import org.eclipse.aether.resolution.DependencyRequest;
 /** Provides basic utility helpers. */
 abstract class AbstractBaseMojo extends AbstractMojo {
 
+  /** Detected versions extracted from the project's dependencies. */
+  private Map<String, String> detectedVersions;
+
+  /** Module system helper. */
+  private Modules modules;
+
+  /** The project. */
   @Parameter(defaultValue = "${project}", readonly = true, required = true)
   private MavenProject project;
+
+  /** The project's remote repositories to use for the resolution. */
+  @Parameter(defaultValue = "${project.remotePluginRepositories}", readonly = true, required = true)
+  private List<RemoteRepository> repositories;
 
   /** The entry point to Maven Artifact Resolver, i.e. the component doing all the work. */
   @Component private RepositorySystem resolver;
@@ -51,16 +63,69 @@ abstract class AbstractBaseMojo extends AbstractMojo {
   @Parameter(defaultValue = "${repositorySystemSession}", readonly = true, required = true)
   private RepositorySystemSession session;
 
-  /** The project's remote repositories to use for the resolution. */
-  @Parameter(defaultValue = "${project.remotePluginRepositories}", readonly = true, required = true)
-  private List<RemoteRepository> repositories;
+  Modules createModules(Build build) {
+    var mainPath = Paths.get(build.getOutputDirectory());
+    var testPath = Paths.get(build.getTestOutputDirectory());
+    return new Modules(mainPath, testPath);
+  }
+
+  Map<String, String> createAutomaticDetectedVersions(MavenProject project) {
+    var map = project.getArtifactMap();
+
+    String jupiterVersion;
+    var jupiterEngine = map.get("org.junit.jupiter:junit-jupiter-engine");
+    if (jupiterEngine != null) {
+      jupiterVersion = jupiterEngine.getVersion();
+    } else {
+      var jupiterApi = map.get("org.junit.jupiter:junit-jupiter-api");
+      if (jupiterApi != null) {
+        jupiterVersion = jupiterApi.getVersion();
+      } else {
+        jupiterVersion = "5.3.0-RC1";
+      }
+    }
+
+    String vintageVersion;
+    var vintageEngine = map.get("org.junit.vintage:junit-vintage-engine");
+    if (vintageEngine != null) {
+      vintageVersion = vintageEngine.getVersion();
+    } else {
+      vintageVersion = "5.3.0-RC1";
+    }
+
+    String platformVersion;
+    var platformCommons = map.get("org.junit.platform:junit-platform-commons");
+    if (platformCommons != null) {
+      platformVersion = platformCommons.getVersion();
+    } else {
+      platformVersion = "1.3.0-RC1";
+    }
+
+    return Map.of(
+        "junit.jupiter.version", jupiterVersion,
+        "junit.vintage.version", vintageVersion,
+        "junit.platform.version", platformVersion);
+  }
 
   void debug(String format, Object... args) {
     getLog().debug(String.format(format, args));
   }
 
+  String getDetectedVersion(String key) {
+    return detectedVersions.get(key);
+  }
+
   MavenProject getMavenProject() {
     return project;
+  }
+
+  Modules getModules() {
+    return modules;
+  }
+
+  void initialize() {
+    modules = createModules(getMavenProject().getBuild());
+    detectedVersions = createAutomaticDetectedVersions(getMavenProject());
   }
 
   List<Artifact> resolve(String coordinates) throws Exception {

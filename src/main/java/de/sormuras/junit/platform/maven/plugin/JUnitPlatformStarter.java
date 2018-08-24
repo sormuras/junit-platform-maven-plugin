@@ -32,11 +32,9 @@ import java.util.function.IntSupplier;
 class JUnitPlatformStarter implements IntSupplier {
 
   private final JUnitPlatformMojo mojo;
-  private final Modules modules;
 
-  JUnitPlatformStarter(JUnitPlatformMojo mojo, Modules modules) {
+  JUnitPlatformStarter(JUnitPlatformMojo mojo) {
     this.mojo = mojo;
-    this.modules = modules;
   }
 
   private void debug(String format, Object... args) {
@@ -50,8 +48,8 @@ class JUnitPlatformStarter implements IntSupplier {
     var target = Paths.get(build.getDirectory());
     var testClasses = build.getTestOutputDirectory();
     var reports = mojo.getReportsPath();
-    var mainModule = modules.getMainModuleReference();
-    var testModule = modules.getTestModuleReference();
+    var mainModule = mojo.getModules().getMainModuleReference();
+    var testModule = mojo.getModules().getTestModuleReference();
     var errorPath = target.resolve("junit-platform-console-launcher.err.txt");
     var outputPath = target.resolve("junit-platform-console-launcher.out.txt");
 
@@ -176,31 +174,21 @@ class JUnitPlatformStarter implements IntSupplier {
         elements.add(path.toString());
       }
       var map = project.getArtifactMap();
-      // junit-jupiter-engine, iff junit-jupiter-api is present
+      // junit-jupiter-engine
       var jupiterApi = map.get("org.junit.jupiter:junit-jupiter-api");
       var jupiterEngine = "org.junit.jupiter:junit-jupiter-engine";
-      var jupiterVersion = mojo.getJUnitJupiterVersion();
       if (jupiterApi != null && !map.containsKey(jupiterEngine)) {
-        jupiterVersion = jupiterApi.getVersion();
-        resolve(elements, jupiterEngine, jupiterVersion);
+        resolve(elements, jupiterEngine, mojo.getJUnitJupiterVersion());
       }
-      // junit-vintage-engine, iff junit:junit is present
+      // junit-vintage-engine
       var vintageApi = map.get("junit:junit");
       var vintageEngine = "org.junit.vintage:junit-vintage-engine";
       if (vintageApi != null && !map.containsKey(vintageEngine)) {
-        try {
-          resolve(elements, vintageEngine, mojo.getJUnitVintageVersion());
-        } catch (Exception e) {
-          resolve(elements, vintageEngine, jupiterVersion);
-        }
+        resolve(elements, vintageEngine, mojo.getJUnitVintageVersion());
       }
       // junit-platform-console
       var platformConsole = "org.junit.platform:junit-platform-console";
-      var platformVersion =
-          "1" + jupiterVersion.substring(1); // TODO "5.x.y-z" to "1.x.y-z" ... brittle!
-      try {
-        resolve(elements, platformConsole, platformVersion);
-      } catch (Exception e) {
+      if (!map.containsKey(platformConsole)) {
         resolve(elements, platformConsole, mojo.getJUnitPlatformVersion());
       }
     } catch (Exception e) {

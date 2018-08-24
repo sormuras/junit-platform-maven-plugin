@@ -28,28 +28,20 @@ import java.util.Optional;
 
 class Modules {
 
-  private final Path mainPath;
-  private final Path testPath;
+  private final ModuleReference mainModuleReference;
+  private final ModuleReference testModuleReference;
 
   Modules(Path mainPath, Path testPath) {
-    this.mainPath = mainPath;
-    this.testPath = testPath;
-  }
-
-  Path getMainPath() {
-    return mainPath;
-  }
-
-  Path getTestPath() {
-    return testPath;
+    this.mainModuleReference = getSingleModuleReferenceOrNull(mainPath);
+    this.testModuleReference = getSingleModuleReferenceOrNull(testPath);
   }
 
   Optional<ModuleReference> getMainModuleReference() {
-    return Optional.ofNullable(getSingleModuleReferenceOrNull(getMainPath()));
+    return Optional.ofNullable(mainModuleReference);
   }
 
   Optional<ModuleReference> getTestModuleReference() {
-    return Optional.ofNullable(getSingleModuleReferenceOrNull(getTestPath()));
+    return Optional.ofNullable(testModuleReference);
   }
 
   static ModuleReference getSingleModuleReferenceOrNull(Path path) {
