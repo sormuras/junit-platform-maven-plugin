@@ -9,7 +9,7 @@
     <version>0</version>
   </parent>
 
-  <artifactId>modular-world-1-main-plain-test-module</artifactId>
+  <artifactId>modular-world-1-main-empty-test-module</artifactId>
 
   <dependencies>
     <dependency>
