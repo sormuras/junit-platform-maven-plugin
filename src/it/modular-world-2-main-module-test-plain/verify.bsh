@@ -2,22 +2,30 @@ import java.io.*;
 import java.util.*;
 import java.nio.file.*;
 
-String[] expectedFiles = new String[] {
+//
+// Expectations
+//
+
+String[] files = new String[] {
   "target/classes/foo/Foo.class",
   "target/classes/module-info.class",
   "target/test-classes/foo/FooTests.class"
 };
 
-for (String name : expectedFiles) {
-  if (!new File(basedir, name).isFile()) {
-    System.err.println("Expected file not found: " + name);
-    return false;
-  }
-}
+String[] emptyFiles = new String[] {
+  "target/junit-platform-console-launcher.err.txt"
+};
 
 String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
-String[] expectedSnippets = new String[] {
+String[] snippets = new String[] {
   "[INFO] Launching JUnit Platform...",
+  "[DEBUG] JUnit-related versions",
+  "[DEBUG]   Platform  -> " + junitPlatformVersion,
+  "[DEBUG]   Jupiter   -> " + junitJupiterVersion,
+  "[DEBUG]   Vintage   -> " + junitVintageVersion,
+  "[DEBUG] Java module system",
+  "[DEBUG]   main -> module { name: foo, [mandated java.base (@11-ea)] }",
+  "[DEBUG]   test -> <empty>",
   "[INFO] Test run finished",
   "[INFO] [         2 containers found      ]",
   "[INFO] [         0 containers skipped    ]",
@@ -34,11 +42,63 @@ String[] expectedSnippets = new String[] {
   "[INFO] BUILD SUCCESS"
 };
 
-for (String snippet : expectedSnippets) {
-  if (!log.contains(snippet)) {
-    System.err.println("Expected snippet in log not found: " + snippet);
-    return false;
+String[] badSnippets = new String[] {
+  "[WARNING]",
+  "[ERROR]"
+};
+
+//
+// Verification
+//
+
+boolean ok = true;
+
+System.out.println("\nVerifying non-empty files...");
+for (String name : files) {
+  Path path = basedir.toPath().resolve(name);
+  if (!Files.isReadable(path)) {
+    System.out.println("XXX| Expected file not found: " + path);
+    ok = false;
+    continue;
   }
+  long size = Files.size(path);
+  if (size == 0) {
+    System.err.println("XXX| Expected file " + path + " not to be empty");
+    ok = false;
+    continue;
+  }
+  System.out.println(" ok| " + name + " exists and is not empty: " + size);
 }
 
-return true;
+System.out.println("\nVerifying empty files...");
+for (String name : emptyFiles) {
+  long size = Files.size(basedir.toPath().resolve(name));
+  if (size != 0) {
+    System.err.println("XXX| Expected file " + name + " to be empty: " + size);
+    ok = false;
+    continue;
+  }
+  System.out.println(" ok| " + name + " exists and is empty");
+}
+
+System.out.println("\nVerifying log snippets...");
+for (String snippet : snippets) {
+  if (!log.contains(snippet)) {
+    System.err.println("XXX| Snippet `" + snippet + "` not found");
+    ok = false;
+    continue;
+  }
+  System.out.println(" ok| `" + snippet + "` found in log");
+}
+
+System.out.println("\nVerifying bad log snippets...");
+for (String snippet : badSnippets) {
+  if (log.contains(snippet)) {
+    System.err.println("XXX| Snippet `" + snippet + "` found");
+    ok = false;
+    continue;
+  }
+  System.out.println(" ok| `" + snippet + "` not found");
+}
+
+return ok;

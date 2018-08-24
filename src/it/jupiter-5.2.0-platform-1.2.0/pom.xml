@@ -26,6 +26,11 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
+        <configuration>
+          <versions>
+            <junit.vintage.version>5.2.0</junit.vintage.version>
+          </versions>
+        </configuration>
         <executions>
           <execution>
             <goals>

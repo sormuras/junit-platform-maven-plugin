@@ -7,8 +7,10 @@ import java.nio.file.*;
 //
 
 String[] files = new String[] {
-  "target/test-classes/module-info.class",
-  "target/test-classes/foo/FooTests.class"
+  "target/junit-platform-console-launcher.out.txt",
+  "target/test-classes/JupiterTest.class",
+  "target/test-classes/JupiterTests.class",
+  "target/test-classes/TestJupiter.class"
 };
 
 String[] emptyFiles = new String[] {
@@ -24,19 +26,19 @@ String[] snippets = new String[] {
   "[DEBUG]   Vintage   -> " + junitVintageVersion,
   "[DEBUG] Java module system",
   "[DEBUG]   main -> <empty>",
-  "[DEBUG]   test -> open module { name: foo, [org.junit.jupiter.api, mandated java.base (@11-ea)] }",
+  "[DEBUG]   test -> <empty>",
   "[INFO] Test run finished",
-  "[INFO] [         2 containers found      ]",
+  "[INFO] [         4 containers found      ]",
   "[INFO] [         0 containers skipped    ]",
-  "[INFO] [         2 containers started    ]",
+  "[INFO] [         4 containers started    ]",
   "[INFO] [         0 containers aborted    ]",
-  "[INFO] [         2 containers successful ]",
+  "[INFO] [         4 containers successful ]",
   "[INFO] [         0 containers failed     ]",
-  "[INFO] [         1 tests found           ]",
+  "[INFO] [         3 tests found           ]",
   "[INFO] [         0 tests skipped         ]",
-  "[INFO] [         1 tests started         ]",
+  "[INFO] [         3 tests started         ]",
   "[INFO] [         0 tests aborted         ]",
-  "[INFO] [         1 tests successful      ]",
+  "[INFO] [         3 tests successful      ]",
   "[INFO] [         0 tests failed          ]",
   "[INFO] BUILD SUCCESS"
 };
@@ -101,3 +103,4 @@ for (String snippet : badSnippets) {
 }
 
 return ok;
+
