@@ -66,19 +66,12 @@ class JUnitPlatformStarter implements IntSupplier {
 
     // Supply standard options for Java
     // https://docs.oracle.com/javase/10/tools/java.htm
-    if (testModule.isPresent()) {
+    if (mainModule.isPresent() || testModule.isPresent()) {
       cmd.add("--module-path");
       cmd.add(createPathArgument());
       cmd.add("--add-modules");
       cmd.add("ALL-MODULE-PATH,ALL-DEFAULT");
-      cmd.add("--module");
-      cmd.add("org.junit.platform.console");
-    } else {
-      if (mainModule.isPresent()) {
-        cmd.add("--module-path");
-        cmd.add(createPathArgument());
-        cmd.add("--add-modules");
-        cmd.add("ALL-MODULE-PATH,ALL-DEFAULT");
+      if (mainModule.isPresent() && !testModule.isPresent()) {
         var name = mainModule.get().descriptor().name();
         cmd.add("--patch-module");
         cmd.add(name + "=" + testClasses);
@@ -92,13 +85,13 @@ class JUnitPlatformStarter implements IntSupplier {
               cmd.add("--add-opens");
               cmd.add(name + "/" + pkg + "=org.junit.platform.commons");
             });
-        cmd.add("--module");
-        cmd.add("org.junit.platform.console");
-      } else {
-        cmd.add("--class-path");
-        cmd.add(createPathArgument());
-        cmd.add("org.junit.platform.console.ConsoleLauncher");
       }
+      cmd.add("--module");
+      cmd.add("org.junit.platform.console");
+    } else {
+      cmd.add("--class-path");
+      cmd.add(createPathArgument());
+      cmd.add("org.junit.platform.console.ConsoleLauncher");
     }
 
     // Now append console launcher options
