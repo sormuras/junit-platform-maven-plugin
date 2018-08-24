@@ -245,6 +245,18 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>de.sormuras</groupId>
+        <artifactId>junit-platform-maven-plugin</artifactId>
+        <version>0.0.7</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>launch-junit-platform</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
