@@ -76,6 +76,7 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
     log.debug("Java module system");
     log.debug("  main -> " + getModules().toStringMainModule());
     log.debug("  test -> " + getModules().toStringTestModule());
+    log.debug("  mode -> " + getModules().getMode());
     int result = new JUnitPlatformStarter(this).getAsInt();
     if (result != 0) {
       throw new MojoFailureException("RED ALERT!");
