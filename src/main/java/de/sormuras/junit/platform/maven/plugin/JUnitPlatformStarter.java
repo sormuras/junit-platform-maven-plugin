@@ -180,7 +180,9 @@ class JUnitPlatformStarter implements IntSupplier {
       var vintageApi = map.get("junit:junit");
       var vintageEngine = "org.junit.vintage:junit-vintage-engine";
       if (vintageApi != null && !map.containsKey(vintageEngine)) {
-        resolve(elements, vintageEngine, mojo.getJUnitVintageVersion());
+        if (vintageApi.getVersion().equals("4.12")) {
+          resolve(elements, vintageEngine, mojo.getJUnitVintageVersion());
+        }
       }
       // junit-platform-console
       var platformConsole = "org.junit.platform:junit-platform-console";
