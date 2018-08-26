@@ -66,7 +66,7 @@ for (String name : files) {
     ok = false;
     continue;
   }
-  System.out.println(" ok| " + name + " exists and is not empty: " + size);
+  System.out.println("   | " + name + " exists and is not empty: " + size);
 }
 
 System.out.println("\nVerifying empty files...");
@@ -77,7 +77,7 @@ for (String name : emptyFiles) {
     ok = false;
     continue;
   }
-  System.out.println(" ok| " + name + " exists and is empty");
+  System.out.println("   | " + name + " exists and is empty");
 }
 
 System.out.println("\nVerifying log snippets...");
@@ -87,7 +87,7 @@ for (String snippet : snippets) {
     ok = false;
     continue;
   }
-  System.out.println(" ok| `" + snippet + "` found in log");
+  System.out.println("   | `" + snippet + "` found in log");
 }
 
 System.out.println("\nVerifying bad log snippets...");
@@ -97,7 +97,7 @@ for (String snippet : badSnippets) {
     ok = false;
     continue;
   }
-  System.out.println(" ok| `" + snippet + "` not found");
+  System.out.println("   | `" + snippet + "` not found");
 }
 
 return ok;
