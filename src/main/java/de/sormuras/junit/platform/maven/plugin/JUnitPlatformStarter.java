@@ -41,7 +41,6 @@ class JUnitPlatformStarter implements IntSupplier {
     var log = mojo.getLog();
     var build = mojo.getMavenProject().getBuild();
     var target = Paths.get(build.getDirectory());
-    var testClasses = build.getTestOutputDirectory();
     var reports = mojo.getReportsPath();
     var mainModule = mojo.getModules().getMainModuleReference();
     var testModule = mojo.getModules().getTestModuleReference();
@@ -61,25 +60,30 @@ class JUnitPlatformStarter implements IntSupplier {
 
     // Supply standard options for Java
     // https://docs.oracle.com/javase/10/tools/java.htm
+    cmd.addAll(mojo.getJavaOptions().getAdditionalOptions());
     if (mainModule.isPresent() || testModule.isPresent()) {
       cmd.add("--module-path");
       cmd.add(createPathArgument());
       cmd.add("--add-modules");
-      cmd.add("ALL-MODULE-PATH,ALL-DEFAULT");
+      cmd.add(createAddModulesArgument());
       if (mainModule.isPresent() && !testModule.isPresent()) {
         var name = mainModule.get().descriptor().name();
         cmd.add("--patch-module");
-        cmd.add(name + "=" + testClasses);
-        cmd.add("--add-reads");
-        cmd.add(name + "=org.junit.jupiter.api");
-        // all packages, due to
-        // http://mail.openjdk.java.net/pipermail/jigsaw-dev/2017-January/010749.html
-        var packages = mainModule.get().descriptor().packages();
-        packages.forEach(
-            pkg -> {
-              cmd.add("--add-opens");
-              cmd.add(name + "/" + pkg + "=org.junit.platform.commons");
+        cmd.add(name + "=" + build.getTestOutputDirectory());
+        var addReads = createAddReadsModules();
+        addReads.forEach(
+            module -> {
+              cmd.add("--add-reads");
+              cmd.add(name + "=" + module);
             });
+        for (var module : createAddOpensModules()) {
+          // iterate all packages, "name/*" is not possible due to
+          // http://mail.openjdk.java.net/pipermail/jigsaw-dev/2017-January/010749.html
+          for (var pack : mainModule.get().descriptor().packages()) {
+            cmd.add("--add-opens");
+            cmd.add(name + "/" + pack + "=" + module);
+          }
+        }
       }
       cmd.add("--module");
       cmd.add("org.junit.platform.console");
@@ -138,6 +142,58 @@ class JUnitPlatformStarter implements IntSupplier {
       log.error("Executing process failed", e);
       return -1;
     }
+  }
+
+  private String createAddModulesArgument() {
+    var value = mojo.getJavaOptions().getAddModules();
+    if (value != null) {
+      return value;
+    }
+    // Or play it generic with "ALL-MODULE-PATH,ALL-DEFAULT"?
+    switch (mojo.getModules().getMode()) {
+      case MAIN_MODULE_TEST_CLASSIC:
+        return mojo.getModules().getMainModuleReference().orElseThrow().descriptor().name();
+      default:
+        return mojo.getModules().getTestModuleReference().orElseThrow().descriptor().name();
+    }
+  }
+
+  private List<String> createAddOpensModules() {
+    var value = mojo.getJavaOptions().getAddOpens();
+    if (value != null) {
+      return value;
+    }
+    var modules = new ArrayList<String>();
+    var map = mojo.getMavenProject().getArtifactMap();
+    if (map.containsKey("org.junit.platform:junit-platform-commons")) {
+      modules.add("org.junit.platform.commons");
+    }
+    return modules;
+  }
+
+  private List<String> createAddReadsModules() {
+    var value = mojo.getJavaOptions().getAddReads();
+    if (value != null) {
+      return value;
+    }
+    var modules = new ArrayList<String>();
+    var map = mojo.getMavenProject().getArtifactMap();
+    // Jupiter
+    if (map.containsKey("org.junit.jupiter:junit-jupiter-api")) {
+      modules.add("org.junit.jupiter.api");
+    }
+    if (map.containsKey("org.junit.jupiter:junit-jupiter-params")) {
+      modules.add("org.junit.jupiter.params");
+    }
+    if (map.containsKey("org.junit.jupiter:junit-jupiter-migrationsupport")) {
+      modules.add("org.junit.jupiter.migrationsupport");
+    }
+    // JUnit 3/4
+    if (map.containsKey("junit:junit")) {
+      modules.add("junit");
+    }
+
+    return modules;
   }
 
   private String createConfigArgument(String key, String value) {

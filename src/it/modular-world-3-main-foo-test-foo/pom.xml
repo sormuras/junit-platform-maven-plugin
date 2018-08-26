@@ -26,6 +26,14 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
+        <configuration>
+          <javaOptions>
+            <additionalOptions>
+              <additionalOption>--show-version</additionalOption>
+              <additionalOption>--show-module-resolution</additionalOption>
+            </additionalOptions>
+          </javaOptions>
+        </configuration>
         <executions>
           <execution>
             <goals>

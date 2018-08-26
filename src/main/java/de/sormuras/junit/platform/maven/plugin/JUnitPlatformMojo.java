@@ -38,6 +38,8 @@ import org.apache.maven.shared.utils.logging.MessageUtils;
     requiresDependencyResolution = ResolutionScope.TEST)
 public class JUnitPlatformMojo extends AbstractBaseMojo {
 
+  @Parameter private JavaOptions javaOptions = new JavaOptions();
+
   @Parameter private Map<String, String> parameters = Map.of();
 
   @Parameter(defaultValue = "junit-platform-reports")
@@ -82,6 +84,10 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
     if (result != 0) {
       throw new MojoFailureException("RED ALERT!");
     }
+  }
+
+  JavaOptions getJavaOptions() {
+    return javaOptions;
   }
 
   /**
