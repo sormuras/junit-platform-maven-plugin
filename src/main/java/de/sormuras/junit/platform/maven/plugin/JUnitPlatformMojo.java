@@ -14,6 +14,7 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -58,6 +59,11 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
 
     if (skip) {
       log.info(MessageUtils.buffer().warning("JUnit Platform execution skipped.").toString());
+      return;
+    }
+
+    if (Files.notExists(Paths.get(getMavenProject().getBuild().getTestOutputDirectory()))) {
+      log.info(MessageUtils.buffer().warning("Test output directory doesn't exist.").toString());
       return;
     }
 
