@@ -1,0 +1,3 @@
+module tool {
+  exports tool;
+}
