@@ -13,6 +13,6 @@ class FooTests {
 
   @Test
   void accessModuleFoo() {
-    assertEquals("foo", getClass().getModule().getName(), "Class does not reside in module 'foo'!");
+    assertEquals("foo", getClass().getModule().getName(), "Class doesn't reside in module 'foo'!");
   }
 }

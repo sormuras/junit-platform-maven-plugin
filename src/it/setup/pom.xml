@@ -18,20 +18,23 @@
     <jqwik.version>0.8.14</jqwik.version>
     <!-- shared build and compiler settings -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.plugin.version>3.8.0</maven.compiler.plugin.version>
-    <maven.compiler.release>11</maven.compiler.release>
     <maven.surefire.phase>none</maven.surefire.phase>
   </properties>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.8.0</version>
+          <configuration>
+            <release>11</release>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>${maven.compiler.plugin.version}</version>
-      </plugin>
-
       <!-- Disable Surefire by binding its 'default-test' goal to phase 'none' -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -44,7 +47,6 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
 </project>

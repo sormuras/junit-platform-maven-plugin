@@ -9,11 +9,12 @@ class BarTests {
 
   @Test
   void accessModuleBar() {
-    assertEquals("bar", getClass().getModule().getName(), "Class does not reside in module 'bar'!");
+    assertEquals(
+        "bar", getClass().getModule().getName(), "BarTests doesn't reside in module 'bar'!");
   }
 
   @Test
   void accessModuleFoo() {
-    assertEquals("foo", Foo.class.getModule().getName(), "Class does not reside in module 'bar'!");
+    assertEquals("foo", Foo.class.getModule().getName(), "Foo doesn't reside in module 'foo'!");
   }
 }
