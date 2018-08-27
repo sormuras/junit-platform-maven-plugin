@@ -23,13 +23,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.IntSupplier;
+import org.apache.maven.project.MavenProject;
 
 class JUnitPlatformStarter implements IntSupplier {
 
   private final JUnitPlatformMojo mojo;
+  private final MavenProject project;
 
   JUnitPlatformStarter(JUnitPlatformMojo mojo) {
     this.mojo = mojo;
+    this.project = mojo.getMavenProject();
   }
 
   private void debug(String format, Object... args) {
@@ -39,11 +42,7 @@ class JUnitPlatformStarter implements IntSupplier {
   @Override
   public int getAsInt() {
     var log = mojo.getLog();
-    var build = mojo.getMavenProject().getBuild();
-    var reports = mojo.getReportsPath();
-    var mainModule = mojo.getModules().getMainModuleReference();
-    var testModule = mojo.getModules().getTestModuleReference();
-    var target = Paths.get(build.getDirectory()).resolve("junit-platform");
+    var target = Paths.get(project.getBuild().getDirectory()).resolve("junit-platform");
     var cmdPath = target.resolve("console-launcher.cmd.log");
     var errorPath = target.resolve("console-launcher.err.log");
     var outputPath = target.resolve("console-launcher.out.log");
@@ -59,65 +58,8 @@ class JUnitPlatformStarter implements IntSupplier {
     // "java[.exe]"
     cmd.add(getCurrentJavaExecutablePath().toString());
 
-    // Supply standard options for Java
-    // https://docs.oracle.com/javase/10/tools/java.htm
-    cmd.addAll(mojo.getJavaOptions().getAdditionalOptions());
-    if (mainModule.isPresent() || testModule.isPresent()) {
-      cmd.add("--module-path");
-      cmd.add(createPathArgument());
-      cmd.add("--add-modules");
-      cmd.add(createAddModulesArgument());
-      if (mainModule.isPresent() && !testModule.isPresent()) {
-        var name = mainModule.get().descriptor().name();
-        cmd.add("--patch-module");
-        cmd.add(name + "=" + build.getTestOutputDirectory());
-        var addReads = createAddReadsModules();
-        addReads.forEach(
-            module -> {
-              cmd.add("--add-reads");
-              cmd.add(name + "=" + module);
-            });
-        for (var module : createAddOpensModules()) {
-          // iterate all packages, "name/*" is not possible due to
-          // http://mail.openjdk.java.net/pipermail/jigsaw-dev/2017-January/010749.html
-          for (var pack : mainModule.get().descriptor().packages()) {
-            cmd.add("--add-opens");
-            cmd.add(name + "/" + pack + "=" + module);
-          }
-        }
-      }
-      cmd.add("--module");
-      cmd.add("org.junit.platform.console");
-    } else {
-      cmd.add("--class-path");
-      cmd.add(createPathArgument());
-      cmd.add("org.junit.platform.console.ConsoleLauncher");
-    }
-
-    // Now append console launcher options
-    // See https://junit.org/junit5/docs/snapshot/user-guide/#running-tests-console-launcher-options
-    cmd.add("--disable-ansi-colors");
-    cmd.add("--details");
-    cmd.add("tree");
-    mojo.getTags().forEach(tag -> cmd.add(createTagArgument(tag)));
-    mojo.getParameters().forEach((key, value) -> cmd.add(createConfigArgument(key, value)));
-    reports.ifPresent(
-        path -> {
-          cmd.add("--reports-dir");
-          cmd.add(path.toString());
-        });
-
-    if (testModule.isPresent()) {
-      cmd.add("--select-module");
-      cmd.add(testModule.get().descriptor().name());
-    } else {
-      if (mainModule.isPresent()) {
-        cmd.add("--select-module");
-        cmd.add(mainModule.get().descriptor().name());
-      } else {
-        cmd.add("--scan-class-path");
-      }
-    }
+    mojo.getOverrideJavaOptions().ifPresentOrElse(cmd::addAll, () -> addJavaOptions(cmd));
+    mojo.getOverrideLauncherOptions().ifPresentOrElse(cmd::addAll, () -> addLauncherOptions(cmd));
 
     // Prepare target directory...
     try {
@@ -166,6 +108,76 @@ class JUnitPlatformStarter implements IntSupplier {
     }
   }
 
+  // Supply standard options for Java
+  // https://docs.oracle.com/javase/10/tools/java.htm
+  private void addJavaOptions(List<String> cmd) {
+    var testOutput = project.getBuild().getTestOutputDirectory();
+    var mainModule = mojo.getModules().getMainModuleReference();
+    var testModule = mojo.getModules().getTestModuleReference();
+    cmd.addAll(mojo.getJavaOptions().getAdditionalOptions());
+    if (mainModule.isPresent() || testModule.isPresent()) {
+      cmd.add("--module-path");
+      cmd.add(createPathArgument());
+      cmd.add("--add-modules");
+      cmd.add(createAddModulesArgument());
+      if (mainModule.isPresent() && !testModule.isPresent()) {
+        var name = mainModule.get().descriptor().name();
+        cmd.add("--patch-module");
+        cmd.add(name + "=" + testOutput);
+        var addReads = createAddReadsModules();
+        addReads.forEach(
+            module -> {
+              cmd.add("--add-reads");
+              cmd.add(name + "=" + module);
+            });
+        for (var module : createAddOpensModules()) {
+          // iterate all packages, "name/*" is not possible due to
+          // http://mail.openjdk.java.net/pipermail/jigsaw-dev/2017-January/010749.html
+          for (var pack : mainModule.get().descriptor().packages()) {
+            cmd.add("--add-opens");
+            cmd.add(name + "/" + pack + "=" + module);
+          }
+        }
+      }
+      cmd.add("--module");
+      cmd.add("org.junit.platform.console");
+    } else {
+      cmd.add("--class-path");
+      cmd.add(createPathArgument());
+      cmd.add("org.junit.platform.console.ConsoleLauncher");
+    }
+  }
+
+  // Append console launcher options
+  // See https://junit.org/junit5/docs/snapshot/user-guide/#running-tests-console-launcher-options
+  private void addLauncherOptions(List<String> cmd) {
+    cmd.add("--disable-ansi-colors");
+    cmd.add("--details");
+    cmd.add("tree");
+    mojo.getTags().forEach(tag -> cmd.add(createTagArgument(tag)));
+    mojo.getParameters().forEach((key, value) -> cmd.add(createConfigArgument(key, value)));
+    mojo.getReportsPath()
+        .ifPresent(
+            path -> {
+              cmd.add("--reports-dir");
+              cmd.add(path.toString());
+            });
+
+    var mainModule = mojo.getModules().getMainModuleReference();
+    var testModule = mojo.getModules().getTestModuleReference();
+    if (testModule.isPresent()) {
+      cmd.add("--select-module");
+      cmd.add(testModule.get().descriptor().name());
+    } else {
+      if (mainModule.isPresent()) {
+        cmd.add("--select-module");
+        cmd.add(mainModule.get().descriptor().name());
+      } else {
+        cmd.add("--scan-class-path");
+      }
+    }
+  }
+
   private String createAddModulesArgument() {
     var value = mojo.getJavaOptions().getAddModules();
     if (value != null) {
@@ -186,7 +198,7 @@ class JUnitPlatformStarter implements IntSupplier {
       return value;
     }
     var modules = new ArrayList<String>();
-    var map = mojo.getMavenProject().getArtifactMap();
+    var map = project.getArtifactMap();
     if (map.containsKey("org.junit.platform:junit-platform-commons")) {
       modules.add("org.junit.platform.commons");
     }
@@ -199,7 +211,7 @@ class JUnitPlatformStarter implements IntSupplier {
       return value;
     }
     var modules = new ArrayList<String>();
-    var map = mojo.getMavenProject().getArtifactMap();
+    var map = project.getArtifactMap();
     // Jupiter
     if (map.containsKey("org.junit.jupiter:junit-jupiter-api")) {
       modules.add("org.junit.jupiter.api");
@@ -230,7 +242,6 @@ class JUnitPlatformStarter implements IntSupplier {
     debug("");
     debug("Creating path argument");
 
-    var project = mojo.getMavenProject();
     var elements = new ArrayList<String>();
     try {
       for (var element : project.getTestClasspathElements()) {

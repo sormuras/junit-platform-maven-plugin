@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it</groupId>
+    <artifactId>setup</artifactId>
+    <version>0</version>
+  </parent>
+
+  <artifactId>dry-run-override-options</artifactId>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>@project.groupId@</groupId>
+        <artifactId>@project.artifactId@</artifactId>
+        <version>@project.version@</version>
+        <configuration>
+          <dryRun>true</dryRun>
+          <overrideJavaOptions>
+            <overrideJavaOption>foo</overrideJavaOption>
+          </overrideJavaOptions>
+          <overrideLauncherOptions>
+            <overrideLauncherOption>bar</overrideLauncherOption>
+          </overrideLauncherOptions>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>launch-junit-platform</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

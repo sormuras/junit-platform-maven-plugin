@@ -43,6 +43,10 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
 
   @Parameter private JavaOptions javaOptions = new JavaOptions();
 
+  @Parameter private List<String> overrideJavaOptions;
+
+  @Parameter private List<String> overrideLauncherOptions;
+
   @Parameter private Map<String, String> parameters = Map.of();
 
   @Parameter(defaultValue = "junit-platform/reports")
@@ -92,6 +96,14 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
 
   JavaOptions getJavaOptions() {
     return javaOptions;
+  }
+
+  Optional<List<String>> getOverrideJavaOptions() {
+    return Optional.ofNullable(overrideJavaOptions);
+  }
+
+  Optional<List<String>> getOverrideLauncherOptions() {
+    return Optional.ofNullable(overrideLauncherOptions);
   }
 
   /**
