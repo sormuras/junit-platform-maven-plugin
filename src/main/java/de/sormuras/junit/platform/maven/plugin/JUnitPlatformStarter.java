@@ -40,12 +40,13 @@ class JUnitPlatformStarter implements IntSupplier {
   public int getAsInt() {
     var log = mojo.getLog();
     var build = mojo.getMavenProject().getBuild();
-    var target = Paths.get(build.getDirectory());
     var reports = mojo.getReportsPath();
     var mainModule = mojo.getModules().getMainModuleReference();
     var testModule = mojo.getModules().getTestModuleReference();
-    var errorPath = target.resolve("junit-platform-console-launcher.err.txt");
-    var outputPath = target.resolve("junit-platform-console-launcher.out.txt");
+    var target = Paths.get(build.getDirectory()).resolve("junit-platform");
+    var cmdPath = target.resolve("console-launcher.cmd.log");
+    var errorPath = target.resolve("console-launcher.err.log");
+    var outputPath = target.resolve("console-launcher.out.log");
 
     // Prepare the process builder
     var builder = new ProcessBuilder();
@@ -116,6 +117,27 @@ class JUnitPlatformStarter implements IntSupplier {
       } else {
         cmd.add("--scan-class-path");
       }
+    }
+
+    // Prepare target directory...
+    try {
+      Files.createDirectories(target);
+      Files.write(cmdPath, cmd);
+      if (Files.notExists(errorPath)) {
+        Files.createFile(errorPath);
+      }
+      if (Files.notExists(outputPath)) {
+        Files.createFile(outputPath);
+      }
+    } catch (IOException e) {
+      log.warn("Preparing target path failed: " + target, e);
+    }
+
+    // In dry-run mode, we're done here.
+    if (mojo.isDryRun()) {
+      mojo.getLog().info("Dry-run mode is active -- only printing command line");
+      cmd.forEach(mojo.getLog()::info);
+      return 0;
     }
 
     // Start
@@ -225,52 +247,25 @@ class JUnitPlatformStarter implements IntSupplier {
       var jupiterApi = map.get("org.junit.jupiter:junit-jupiter-api");
       var jupiterEngine = "org.junit.jupiter:junit-jupiter-engine";
       if (jupiterApi != null && !map.containsKey(jupiterEngine)) {
-        resolve(elements, jupiterEngine, mojo.getJUnitJupiterVersion());
+        mojo.resolve(elements, jupiterEngine, mojo.getJUnitJupiterVersion());
       }
       // junit-vintage-engine
       var vintageApi = map.get("junit:junit");
       var vintageEngine = "org.junit.vintage:junit-vintage-engine";
       if (vintageApi != null && !map.containsKey(vintageEngine)) {
         if (vintageApi.getVersion().equals("4.12")) {
-          resolve(elements, vintageEngine, mojo.getJUnitVintageVersion());
+          mojo.resolve(elements, vintageEngine, mojo.getJUnitVintageVersion());
         }
       }
       // junit-platform-console
       var platformConsole = "org.junit.platform:junit-platform-console";
       if (!map.containsKey(platformConsole)) {
-        resolve(elements, platformConsole, mojo.getJUnitPlatformVersion());
+        mojo.resolve(elements, platformConsole, mojo.getJUnitPlatformVersion());
       }
     } catch (Exception e) {
       throw new IllegalStateException("Resolving test class-path elements failed", e);
     }
     return String.join(File.pathSeparator, elements);
-  }
-
-  private void resolve(List<String> elements, String groupAndArtifact, String version)
-      throws Exception {
-    var map = mojo.getMavenProject().getArtifactMap();
-    if (map.containsKey(groupAndArtifact)) {
-      debug("Skip resolving '%s', because it is already mapped.", groupAndArtifact);
-      return;
-    }
-    var gav = groupAndArtifact + ":" + version;
-    debug("");
-    debug("Resolving '%s' and its transitive dependencies...", gav);
-    for (var resolved : mojo.resolve(gav)) {
-      var key = resolved.getGroupId() + ':' + resolved.getArtifactId();
-      if (map.containsKey(key)) {
-        // debug("  X %s // mapped by project", resolved);
-        continue;
-      }
-      var path = resolved.getFile().toPath().toAbsolutePath().normalize();
-      var element = path.toString();
-      if (elements.contains(element)) {
-        // debug("  X %s // already added", resolved);
-        continue;
-      }
-      debug(" -> %s", element);
-      elements.add(element);
-    }
   }
 
   private static Path getCurrentJavaExecutablePath() {

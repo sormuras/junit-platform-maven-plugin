@@ -58,13 +58,34 @@ abstract class AbstractBaseMojo extends AbstractMojo {
   @Parameter(defaultValue = "${repositorySystemSession}", readonly = true, required = true)
   private RepositorySystemSession session;
 
-  private Modules createModules(Build build) {
+  void debug(String format, Object... args) {
+    getLog().debug(String.format(format, args));
+  }
+
+  String getDetectedVersion(String key) {
+    return detectedVersions.get(key);
+  }
+
+  MavenProject getMavenProject() {
+    return project;
+  }
+
+  Modules getModules() {
+    return modules;
+  }
+
+  void initialize() {
+    modules = initializeModules(getMavenProject().getBuild());
+    detectedVersions = initializeDetectedVersions(getMavenProject());
+  }
+
+  private Modules initializeModules(Build build) {
     var mainPath = Paths.get(build.getOutputDirectory());
     var testPath = Paths.get(build.getTestOutputDirectory());
     return new Modules(mainPath, testPath);
   }
 
-  private Map<String, String> createAutomaticDetectedVersions(MavenProject project) {
+  private Map<String, String> initializeDetectedVersions(MavenProject project) {
     var map = project.getArtifactMap();
 
     String jupiterVersion;
@@ -102,28 +123,33 @@ abstract class AbstractBaseMojo extends AbstractMojo {
         "junit.platform.version", platformVersion);
   }
 
-  void debug(String format, Object... args) {
-    getLog().debug(String.format(format, args));
+  void resolve(List<String> elements, String groupAndArtifact, String version) throws Exception {
+    var map = project.getArtifactMap();
+    if (map.containsKey(groupAndArtifact)) {
+      debug("Skip resolving '%s', because it is already mapped.", groupAndArtifact);
+      return;
+    }
+    var gav = groupAndArtifact + ":" + version;
+    debug("");
+    debug("Resolving '%s' and its transitive dependencies...", gav);
+    for (var resolved : resolve(gav)) {
+      var key = resolved.getGroupId() + ':' + resolved.getArtifactId();
+      if (map.containsKey(key)) {
+        // debug("  X %s // mapped by project", resolved);
+        continue;
+      }
+      var path = resolved.getFile().toPath().toAbsolutePath().normalize();
+      var element = path.toString();
+      if (elements.contains(element)) {
+        // debug("  X %s // already added", resolved);
+        continue;
+      }
+      debug(" -> %s", element);
+      elements.add(element);
+    }
   }
 
-  String getDetectedVersion(String key) {
-    return detectedVersions.get(key);
-  }
-
-  MavenProject getMavenProject() {
-    return project;
-  }
-
-  Modules getModules() {
-    return modules;
-  }
-
-  void initialize() {
-    modules = createModules(getMavenProject().getBuild());
-    detectedVersions = createAutomaticDetectedVersions(getMavenProject());
-  }
-
-  List<Artifact> resolve(String coordinates) throws Exception {
+  private List<Artifact> resolve(String coordinates) throws Exception {
     var artifact = new DefaultArtifact(coordinates);
     // debug("Resolving artifact %s from %s...", artifact, repositories);
 

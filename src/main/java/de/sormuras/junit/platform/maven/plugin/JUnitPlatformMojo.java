@@ -38,11 +38,14 @@ import org.apache.maven.shared.utils.logging.MessageUtils;
     requiresDependencyResolution = ResolutionScope.TEST)
 public class JUnitPlatformMojo extends AbstractBaseMojo {
 
+  @Parameter(defaultValue = "false")
+  private boolean dryRun;
+
   @Parameter private JavaOptions javaOptions = new JavaOptions();
 
   @Parameter private Map<String, String> parameters = Map.of();
 
-  @Parameter(defaultValue = "junit-platform-reports")
+  @Parameter(defaultValue = "junit-platform/reports")
   private String reports;
 
   @Parameter(defaultValue = "false")
@@ -80,6 +83,7 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
     log.debug("  main -> " + getModules().toStringMainModule());
     log.debug("  test -> " + getModules().toStringTestModule());
     log.debug("  mode -> " + getModules().getMode());
+
     int result = new JUnitPlatformStarter(this).getAsInt();
     if (result != 0) {
       throw new MojoFailureException("RED ALERT!");
@@ -190,5 +194,10 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
   /** Desired version. */
   String getVersion(String key) {
     return versions.getOrDefault(key, getDetectedVersion(key));
+  }
+
+  /** Dry-run mode switch. */
+  boolean isDryRun() {
+    return dryRun;
   }
 }
