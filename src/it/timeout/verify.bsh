@@ -7,10 +7,18 @@ import java.nio.file.*;
 //
 
 String[] files = new String[] {
-  "target/test-classes/TimeoutTests.class"
+  // compile: main
+  // <empty>
+  // compile: test
+  "target/test-classes/TimeoutTests.class",
+  // test: junit-platform
+  "target/junit-platform/console-launcher.cmd.log"
 };
 
-String[] emptyFiles = new String[] {};
+String[] emptyFiles = new String[] {
+  "target/junit-platform/console-launcher.err.log",
+  "target/junit-platform/console-launcher.out.log"
+};
 
 String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
 String[] snippets = new String[] {
