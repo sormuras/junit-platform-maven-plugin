@@ -16,11 +16,13 @@ package de.sormuras.junit.platform.maven.plugin;
 
 import static java.util.stream.Collectors.joining;
 
+import java.lang.module.FindException;
 import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleFinder;
 import java.lang.module.ModuleReference;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.Set;
 
 class Modules {
 
@@ -143,7 +145,13 @@ class Modules {
   }
 
   static ModuleReference getSingleModuleReferenceOrNull(Path path) {
-    var all = ModuleFinder.of(path).findAll();
+    Set<ModuleReference> all;
+    try {
+      all = ModuleFinder.of(path).findAll();
+    } catch (FindException e) {
+      // e.printStackTrace();
+      return null;
+    }
     var firstOpt = all.stream().findFirst();
     switch (all.size()) {
       case 0:
@@ -152,7 +160,7 @@ class Modules {
         return firstOpt.get();
       default:
         throw new IllegalArgumentException(
-            "expected exact one module in "
+            "expected exactly one module in "
                 + path
                 + " but found: "
                 + all.stream().map(ModuleReference::toString).collect(joining(", ", "<", ">")));
