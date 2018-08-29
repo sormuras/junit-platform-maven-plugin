@@ -41,6 +41,8 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
   @Parameter(defaultValue = "false")
   private boolean dryRun;
 
+  @Parameter private String javaExecutable;
+
   @Parameter private JavaOptions javaOptions = new JavaOptions();
 
   @Parameter private List<String> overrideJavaOptions;
@@ -92,6 +94,14 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
     if (result != 0) {
       throw new MojoFailureException("RED ALERT!");
     }
+  }
+
+  String getJavaExecutable() {
+    if (javaExecutable != null) {
+      return javaExecutable;
+    }
+    var path = ProcessHandle.current().info().command().map(Paths::get).orElseThrow();
+    return path.normalize().toAbsolutePath().toString();
   }
 
   JavaOptions getJavaOptions() {

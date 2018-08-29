@@ -17,7 +17,6 @@ package de.sormuras.junit.platform.maven.plugin;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +55,7 @@ class JUnitPlatformStarter implements IntSupplier {
     builder.redirectInput(ProcessBuilder.Redirect.INHERIT);
 
     // "java[.exe]"
-    cmd.add(getCurrentJavaExecutablePath().toString());
+    cmd.add(mojo.getJavaExecutable());
 
     mojo.getOverrideJavaOptions().ifPresentOrElse(cmd::addAll, () -> addJavaOptions(cmd));
     mojo.getOverrideLauncherOptions().ifPresentOrElse(cmd::addAll, () -> addLauncherOptions(cmd));
@@ -277,10 +276,5 @@ class JUnitPlatformStarter implements IntSupplier {
       throw new IllegalStateException("Resolving test class-path elements failed", e);
     }
     return String.join(File.pathSeparator, elements);
-  }
-
-  private static Path getCurrentJavaExecutablePath() {
-    var path = ProcessHandle.current().info().command().map(Paths::get).orElseThrow();
-    return path.normalize().toAbsolutePath();
   }
 }
