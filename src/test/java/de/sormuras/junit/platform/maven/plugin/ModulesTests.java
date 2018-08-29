@@ -14,6 +14,7 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -32,7 +33,9 @@ class ModulesTests {
 
     var reference = Modules.getSingleModuleReferenceOrNull(jar);
     assertNotNull(reference);
-    assertTrue(reference.descriptor().isAutomatic());
+    var descriptor = reference.descriptor();
+    assertEquals("org.junit.platform.commons", descriptor.name());
+    assertTrue(descriptor.isAutomatic());
   }
 
   @Test
@@ -42,7 +45,9 @@ class ModulesTests {
 
     var reference = Modules.getSingleModuleReferenceOrNull(jar);
     assertNotNull(reference);
-    assertFalse(reference.descriptor().isAutomatic());
+    var descriptor = reference.descriptor();
+    assertEquals("org.slf4j", descriptor.name());
+    assertFalse(descriptor.isAutomatic());
   }
 
   @Test
