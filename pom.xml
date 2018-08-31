@@ -111,12 +111,12 @@
       <plugins>
         <plugin>
           <artifactId>maven-clean-plugin</artifactId>
-          <version>3.0.0</version>
+          <version>3.1.0</version>
         </plugin>
         <!-- see http://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_maven-plugin_packaging -->
         <plugin>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.0.2</version>
+          <version>3.1.0</version>
         </plugin>
         <plugin>
           <artifactId>maven-compiler-plugin</artifactId>
@@ -124,11 +124,11 @@
         </plugin>
         <plugin>
           <artifactId>maven-plugin-plugin</artifactId>
-          <version>3.5.1</version>
+          <version>3.5.2</version>
         </plugin>
         <plugin>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.0.2</version>
+          <version>3.1.0</version>
         </plugin>
         <plugin>
           <artifactId>maven-install-plugin</artifactId>
@@ -140,7 +140,11 @@
         </plugin>
         <plugin>
           <artifactId>maven-invoker-plugin</artifactId>
-          <version>3.0.1</version>
+          <version>3.1.0</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>3.7.1</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -153,6 +157,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
+        <version>3.5.2</version>
         <configuration>
           <!-- <goalPrefix>maven-archetype-plugin</goalPrefix> -->
           <skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
