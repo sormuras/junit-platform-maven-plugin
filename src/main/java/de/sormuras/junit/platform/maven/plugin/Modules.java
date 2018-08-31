@@ -40,6 +40,23 @@ class Modules {
    *
    * <p>Defined by the relation of one {@code main} and one {@code test} module.
    *
+   * <pre><code>
+   *                          main plain    main module   main module
+   *                             ---            foo           bar
+   *
+   *     test plain  ---          0              2             2
+   *
+   *     test module foo          1              3             4
+   *
+   *     test module bar          1              4             3
+   *
+   *     0 = CLASSIC
+   *     1 = MAIN_CLASSIC_TEST_MODULE           (black-box test) // CLASSIC_MODULAR_TEST
+   *     2 = MAIN_MODULE_TEST_CLASSIC           (white-box test) // MODULAR_CLASSIC_TEST
+   *     3 = MAIN_MODULE_TEST_MODULE_SAME_NAME  (white-box test) // MODULAR_PATCHED_TEST
+   *     4 = MODULAR                            (black-box test) // MODULAR_BLACKBOX_TEST
+   * </code></pre>
+   *
    * @see <a href="https://stackoverflow.com/a/33627846/1431016">Access Modifier Table</a>
    */
   enum Mode {
@@ -50,8 +67,18 @@ class Modules {
     /**
      * Main module absent, test module present.
      *
-     * <p>This mode also to be selected when there is no main artifact available, i.e. main is
+     * <p>This mode is also to be selected when there is no main artifact available, i.e. main is
      * empty.
+     *
+     * <p>Note: A classic non-empty main source set is not supported by `maven-compiler-plugin` at
+     * the moment.
+     *
+     * <pre><code>
+     * Caused by: java.lang.UnsupportedOperationException:
+     *   Can't compile test sources when main sources are missing a module descriptor at
+     *   org.apache.maven.plugin.compiler.TestCompilerMojo.preparePaths (TestCompilerMojo.java:374)
+     *   ...
+     * </code></pre>
      */
     MAIN_CLASSIC_TEST_MODULE(Barrier.MODULE),
 
