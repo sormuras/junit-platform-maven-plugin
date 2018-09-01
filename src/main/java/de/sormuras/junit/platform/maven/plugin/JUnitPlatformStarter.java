@@ -114,6 +114,7 @@ class JUnitPlatformStarter implements IntSupplier {
     var mainModule = mojo.getModules().getMainModuleReference();
     var testModule = mojo.getModules().getTestModuleReference();
     cmd.addAll(mojo.getJavaOptions().getAdditionalOptions());
+    cmd.add("-enableassertions");
     if (mainModule.isPresent() || testModule.isPresent()) {
       cmd.add("--module-path");
       cmd.add(createPathArgument());
