@@ -21,13 +21,27 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import org.apache.maven.model.Build;
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.logging.MessageUtils;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResult;
+import org.eclipse.aether.resolution.DependencyRequest;
 
 /** Launch JUnit Platform Mojo. */
 @Mojo(
@@ -36,7 +50,10 @@ import org.apache.maven.shared.utils.logging.MessageUtils;
     threadSafe = true,
     requiresDependencyCollection = ResolutionScope.TEST,
     requiresDependencyResolution = ResolutionScope.TEST)
-public class JUnitPlatformMojo extends AbstractBaseMojo {
+public class JUnitPlatformMojo extends AbstractMojo {
+
+  /** Detected versions extracted from the project's dependencies. */
+  private Map<String, String> detectedVersions;
 
   @Parameter(defaultValue = "false")
   private boolean dryRun;
@@ -44,6 +61,24 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
   @Parameter private String javaExecutable;
 
   @Parameter private JavaOptions javaOptions = new JavaOptions();
+
+  /** The underlying Maven build model. */
+  @Parameter(defaultValue = "${project.build}", readonly = true, required = true)
+  private Build mavenBuild;
+
+  /** The underlying Maven project. */
+  @Parameter(defaultValue = "${project}", readonly = true, required = true)
+  private MavenProject mavenProject;
+
+  /** The current repository/network configuration of Maven. */
+  @Parameter(defaultValue = "${repositorySystemSession}", readonly = true, required = true)
+  private RepositorySystemSession mavenRepositorySession;
+
+  /** The entry point to Maven Artifact Resolver, i.e. the component doing all the work. */
+  @Component private RepositorySystem mavenResolver;
+
+  /** Module system helper. */
+  private Modules modules;
 
   @Parameter private List<String> overrideJavaOptions;
 
@@ -64,6 +99,10 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
 
   @Parameter private Map<String, String> versions = Map.of();
 
+  void debug(String format, Object... args) {
+    getLog().debug(String.format(format, args));
+  }
+
   public void execute() throws MojoFailureException {
     Log log = getLog();
     log.info("Launching JUnit Platform...");
@@ -73,12 +112,13 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
       return;
     }
 
-    if (Files.notExists(Paths.get(getMavenProject().getBuild().getTestOutputDirectory()))) {
+    if (Files.notExists(Paths.get(mavenBuild.getTestOutputDirectory()))) {
       log.info(MessageUtils.buffer().warning("Test output directory doesn't exist.").toString());
       return;
     }
 
-    initialize();
+    modules = initializeModules(mavenBuild);
+    detectedVersions = initializeDetectedVersions();
 
     log.debug("");
     log.debug("JUnit-related versions");
@@ -96,6 +136,25 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
     }
   }
 
+  String getDetectedVersion(String key) {
+    return detectedVersions.get(key);
+  }
+
+  /** Desired JUnit Jupiter version. */
+  String getJUnitJupiterVersion() {
+    return getVersion("junit.jupiter.version");
+  }
+
+  /** Desired JUnit Platform version. */
+  String getJUnitPlatformVersion() {
+    return getVersion("junit.platform.version");
+  }
+
+  /** Desired JUnit Vintage version. */
+  String getJUnitVintageVersion() {
+    return getVersion("junit.vintage.version");
+  }
+
   String getJavaExecutable() {
     if (javaExecutable != null) {
       return javaExecutable;
@@ -106,6 +165,14 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
 
   JavaOptions getJavaOptions() {
     return javaOptions;
+  }
+
+  MavenProject getMavenProject() {
+    return mavenProject;
+  }
+
+  Modules getModules() {
+    return modules;
   }
 
   Optional<List<String>> getOverrideJavaOptions() {
@@ -166,7 +233,7 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
     if (path.isAbsolute()) {
       return Optional.of(path);
     }
-    return Optional.of(Paths.get(getMavenProject().getBuild().getDirectory()).resolve(path));
+    return Optional.of(Paths.get(mavenBuild.getDirectory()).resolve(path));
   }
 
   /**
@@ -198,28 +265,107 @@ public class JUnitPlatformMojo extends AbstractBaseMojo {
     return Duration.ofSeconds(timeout);
   }
 
-  /** Desired JUnit Jupiter version. */
-  String getJUnitJupiterVersion() {
-    return getVersion("junit.jupiter.version");
-  }
-
-  /** Desired JUnit Platform version. */
-  String getJUnitPlatformVersion() {
-    return getVersion("junit.platform.version");
-  }
-
-  /** Desired JUnit Vintage version. */
-  String getJUnitVintageVersion() {
-    return getVersion("junit.vintage.version");
-  }
-
   /** Desired version. */
   String getVersion(String key) {
     return versions.getOrDefault(key, getDetectedVersion(key));
   }
 
+  private Map<String, String> initializeDetectedVersions() {
+    var map = mavenProject.getArtifactMap();
+
+    String jupiterVersion;
+    var jupiterEngine = map.get("org.junit.jupiter:junit-jupiter-engine");
+    if (jupiterEngine != null) {
+      jupiterVersion = jupiterEngine.getVersion();
+    } else {
+      var jupiterApi = map.get("org.junit.jupiter:junit-jupiter-api");
+      if (jupiterApi != null) {
+        jupiterVersion = jupiterApi.getVersion();
+      } else {
+        jupiterVersion = "5.3.0-RC1";
+      }
+    }
+
+    String vintageVersion;
+    var vintageEngine = map.get("org.junit.vintage:junit-vintage-engine");
+    if (vintageEngine != null) {
+      vintageVersion = vintageEngine.getVersion();
+    } else {
+      vintageVersion = "5.3.0-RC1";
+    }
+
+    String platformVersion;
+    var platformCommons = map.get("org.junit.platform:junit-platform-commons");
+    if (platformCommons != null) {
+      platformVersion = platformCommons.getVersion();
+    } else {
+      platformVersion = "1.3.0-RC1";
+    }
+
+    return Map.of(
+        "junit.jupiter.version", jupiterVersion,
+        "junit.vintage.version", vintageVersion,
+        "junit.platform.version", platformVersion);
+  }
+
+  private Modules initializeModules(Build build) {
+    var mainPath = Paths.get(build.getOutputDirectory());
+    var testPath = Paths.get(build.getTestOutputDirectory());
+    return new Modules(mainPath, testPath);
+  }
+
   /** Dry-run mode switch. */
   boolean isDryRun() {
     return dryRun;
+  }
+
+  void resolve(List<String> elements, String groupAndArtifact, String version) throws Exception {
+    var map = mavenProject.getArtifactMap();
+    if (map.containsKey(groupAndArtifact)) {
+      debug("Skip resolving '%s', because it is already mapped.", groupAndArtifact);
+      return;
+    }
+    var gav = groupAndArtifact + ":" + version;
+    debug("");
+    debug("Resolving '%s' and its transitive dependencies...", gav);
+    for (var resolved : resolve(gav)) {
+      var key = resolved.getGroupId() + ':' + resolved.getArtifactId();
+      if (map.containsKey(key)) {
+        // debug("  X %s // mapped by project", resolved);
+        continue;
+      }
+      var path = resolved.getFile().toPath().toAbsolutePath().normalize();
+      var element = path.toString();
+      if (elements.contains(element)) {
+        // debug("  X %s // already added", resolved);
+        continue;
+      }
+      debug(" -> %s", element);
+      elements.add(element);
+    }
+  }
+
+  private List<Artifact> resolve(String coordinates) throws Exception {
+    var repositories = mavenProject.getRemotePluginRepositories();
+    var artifact = new DefaultArtifact(coordinates);
+    // debug("Resolving artifact %s from %s...", artifact, repositories);
+    var artifactRequest = new ArtifactRequest();
+    artifactRequest.setArtifact(artifact);
+    artifactRequest.setRepositories(repositories);
+    // var resolved = mavenResolver.resolveArtifact(mavenRepositorySession, artifactRequest);
+    // debug("Resolved %s from %s", artifact, resolved.getRepository());
+    // debug("Stored %s to %s", artifact, resolved.getArtifact().getFile());
+    var collectRequest = new CollectRequest();
+    collectRequest.setRoot(new Dependency(artifact, ""));
+    collectRequest.setRepositories(repositories);
+    var dependencyRequest = new DependencyRequest(collectRequest, (all, ways) -> true);
+    // debug("Resolving dependencies %s...", dependencyRequest);
+    return mavenResolver
+        .resolveDependencies(mavenRepositorySession, dependencyRequest)
+        .getArtifactResults()
+        .stream()
+        .map(ArtifactResult::getArtifact)
+        // .peek(a -> debug("Artifact %s resolved to %s", a, a.getFile()))
+        .collect(Collectors.toList());
   }
 }
