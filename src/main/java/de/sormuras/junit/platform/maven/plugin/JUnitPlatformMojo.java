@@ -117,8 +117,10 @@ public class JUnitPlatformMojo extends AbstractMojo {
       return;
     }
 
-    modules = initializeModules(mavenBuild);
-    detectedVersions = initializeDetectedVersions();
+    var mainPath = Paths.get(mavenBuild.getOutputDirectory());
+    var testPath = Paths.get(mavenBuild.getTestOutputDirectory());
+    modules = new Modules(mainPath, testPath);
+    detectedVersions = Dependencies.createArtifactVersionMap(this::getArtifactVersionOrNull);
 
     log.debug("");
     log.debug("JUnit-related versions");
@@ -134,6 +136,14 @@ public class JUnitPlatformMojo extends AbstractMojo {
     if (result != 0) {
       throw new MojoFailureException("RED ALERT!");
     }
+  }
+
+  private String getArtifactVersionOrNull(String key) {
+    var artifact = mavenProject.getArtifactMap().get(key);
+    if (artifact == null) {
+      return null;
+    }
+    return artifact.getVersion();
   }
 
   String getDetectedVersion(String key) {
@@ -268,50 +278,6 @@ public class JUnitPlatformMojo extends AbstractMojo {
   /** Desired version. */
   String getVersion(String key) {
     return versions.getOrDefault(key, getDetectedVersion(key));
-  }
-
-  private Map<String, String> initializeDetectedVersions() {
-    var map = mavenProject.getArtifactMap();
-
-    String jupiterVersion;
-    var jupiterEngine = map.get("org.junit.jupiter:junit-jupiter-engine");
-    if (jupiterEngine != null) {
-      jupiterVersion = jupiterEngine.getVersion();
-    } else {
-      var jupiterApi = map.get("org.junit.jupiter:junit-jupiter-api");
-      if (jupiterApi != null) {
-        jupiterVersion = jupiterApi.getVersion();
-      } else {
-        jupiterVersion = "5.3.0-RC1";
-      }
-    }
-
-    String vintageVersion;
-    var vintageEngine = map.get("org.junit.vintage:junit-vintage-engine");
-    if (vintageEngine != null) {
-      vintageVersion = vintageEngine.getVersion();
-    } else {
-      vintageVersion = "5.3.0-RC1";
-    }
-
-    String platformVersion;
-    var platformCommons = map.get("org.junit.platform:junit-platform-commons");
-    if (platformCommons != null) {
-      platformVersion = platformCommons.getVersion();
-    } else {
-      platformVersion = "1.3.0-RC1";
-    }
-
-    return Map.of(
-        "junit.jupiter.version", jupiterVersion,
-        "junit.vintage.version", vintageVersion,
-        "junit.platform.version", platformVersion);
-  }
-
-  private Modules initializeModules(Build build) {
-    var mainPath = Paths.get(build.getOutputDirectory());
-    var testPath = Paths.get(build.getTestOutputDirectory());
-    return new Modules(mainPath, testPath);
   }
 
   /** Dry-run mode switch. */
