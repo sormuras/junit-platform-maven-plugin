@@ -14,19 +14,13 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
-import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_JUPITER_VERSION;
-import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_PLATFORM_VERSION;
-import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_VINTAGE_VERSION;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
@@ -40,13 +34,6 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
-import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.collection.CollectRequest;
-import org.eclipse.aether.graph.Dependency;
-import org.eclipse.aether.resolution.ArtifactRequest;
-import org.eclipse.aether.resolution.ArtifactResult;
-import org.eclipse.aether.resolution.DependencyRequest;
 
 /** Launch JUnit Platform Mojo. */
 @Mojo(
@@ -129,7 +116,7 @@ public class JUnitPlatformMojo extends AbstractMojo {
     var testPath = Paths.get(mavenBuild.getTestOutputDirectory());
     projectModules = new Modules(mainPath, testPath);
     projectVersions = Dependencies.createArtifactVersionMap(this::getArtifactVersionOrNull);
-    projectPaths = resolvePath();
+    projectPaths = new Resolver(this).createPaths();
 
     debug("");
     debug("Java module system");
@@ -171,6 +158,14 @@ public class JUnitPlatformMojo extends AbstractMojo {
 
   MavenProject getMavenProject() {
     return mavenProject;
+  }
+
+  RepositorySystem getMavenResolver() {
+    return mavenResolver;
+  }
+
+  RepositorySystemSession getMavenRepositorySession() {
+    return mavenRepositorySession;
   }
 
   Modules getProjectModules() {
@@ -280,99 +275,5 @@ public class JUnitPlatformMojo extends AbstractMojo {
   /** Dry-run mode switch. */
   boolean isDryRun() {
     return dryRun;
-  }
-
-  private void resolve(List<Path> paths, String groupAndArtifact, String version) throws Exception {
-    var map = mavenProject.getArtifactMap();
-    if (map.containsKey(groupAndArtifact)) {
-      debug("Skip resolving '%s', because it is already mapped.", groupAndArtifact);
-      return;
-    }
-    var gav = groupAndArtifact + ":" + version;
-    // debug("");
-    // debug("Resolving '%s' and its transitive dependencies...", gav);
-    for (var resolved : resolve(gav)) {
-      var key = resolved.getGroupId() + ':' + resolved.getArtifactId();
-      if (map.containsKey(key)) {
-        // debug("  X %s // mapped by project", resolved);
-        continue;
-      }
-      var path = resolved.getFile().toPath().toAbsolutePath().normalize();
-      if (paths.contains(path)) {
-        // debug("  X %s // already added", resolved);
-        continue;
-      }
-      // debug(" -> %s", path);
-      paths.add(path);
-    }
-  }
-
-  private List<Artifact> resolve(String coordinates) throws Exception {
-    var repositories = mavenProject.getRemotePluginRepositories();
-    var artifact = new DefaultArtifact(coordinates);
-    // debug("Resolving artifact %s from %s...", artifact, repositories);
-    var artifactRequest = new ArtifactRequest();
-    artifactRequest.setArtifact(artifact);
-    artifactRequest.setRepositories(repositories);
-    // var resolved = mavenResolver.resolveArtifact(mavenRepositorySession, artifactRequest);
-    // debug("Resolved %s from %s", artifact, resolved.getRepository());
-    // debug("Stored %s to %s", artifact, resolved.getArtifact().getFile());
-    var collectRequest = new CollectRequest();
-    collectRequest.setRoot(new Dependency(artifact, ""));
-    collectRequest.setRepositories(repositories);
-    var dependencyRequest = new DependencyRequest(collectRequest, (all, ways) -> true);
-    // debug("Resolving dependencies %s...", dependencyRequest);
-    return mavenResolver
-        .resolveDependencies(mavenRepositorySession, dependencyRequest)
-        .getArtifactResults()
-        .stream()
-        .map(ArtifactResult::getArtifact)
-        // .peek(a -> debug("Artifact %s resolved to %s", a, a.getFile()))
-        .collect(Collectors.toList());
-  }
-
-  List<Path> resolvePath() {
-    var paths = new ArrayList<Path>();
-    // test out
-    paths.add(Paths.get(mavenProject.getBuild().getTestOutputDirectory()));
-    // main out
-    paths.add(Paths.get(mavenProject.getBuild().getOutputDirectory()));
-    // deps from pom
-    for (var artifact : mavenProject.getArtifacts()) {
-      if (!artifact.getArtifactHandler().isAddedToClasspath()) {
-        continue;
-      }
-      var file = artifact.getFile();
-      if (file != null) {
-        paths.add(file.toPath());
-      }
-    }
-    try {
-      // deps from here (auto-complete)
-      var map = mavenProject.getArtifactMap();
-      // junit-jupiter-engine
-      var jupiterApi = map.get("org.junit.jupiter:junit-jupiter-api");
-      var jupiterEngine = "org.junit.jupiter:junit-jupiter-engine";
-      if (jupiterApi != null && !map.containsKey(jupiterEngine)) {
-        resolve(paths, jupiterEngine, getVersion(JUNIT_JUPITER_VERSION));
-      }
-      // junit-vintage-engine
-      var vintageApi = map.get("junit:junit");
-      var vintageEngine = "org.junit.vintage:junit-vintage-engine";
-      if (vintageApi != null && !map.containsKey(vintageEngine)) {
-        if (vintageApi.getVersion().equals("4.12")) {
-          resolve(paths, vintageEngine, getVersion(JUNIT_VINTAGE_VERSION));
-        }
-      }
-      // junit-platform-console
-      var platformConsole = "org.junit.platform:junit-platform-console";
-      if (!map.containsKey(platformConsole)) {
-        resolve(paths, platformConsole, getVersion(JUNIT_PLATFORM_VERSION));
-      }
-    } catch (Exception e) {
-      throw new IllegalStateException("Resolving path elements failed", e);
-    }
-    // Done.
-    return List.copyOf(paths);
   }
 }
