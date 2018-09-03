@@ -14,6 +14,8 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import static java.util.stream.Collectors.joining;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,10 +30,12 @@ class JUnitPlatformStarter implements IntSupplier {
 
   private final JUnitPlatformMojo mojo;
   private final MavenProject project;
+  private final Modules modules;
 
   JUnitPlatformStarter(JUnitPlatformMojo mojo) {
     this.mojo = mojo;
     this.project = mojo.getMavenProject();
+    this.modules = mojo.getProjectModules();
   }
 
   private void debug(String format, Object... args) {
@@ -111,8 +115,8 @@ class JUnitPlatformStarter implements IntSupplier {
   // https://docs.oracle.com/javase/10/tools/java.htm
   private void addJavaOptions(List<String> cmd) {
     var testOutput = project.getBuild().getTestOutputDirectory();
-    var mainModule = mojo.getModules().getMainModuleReference();
-    var testModule = mojo.getModules().getTestModuleReference();
+    var mainModule = modules.getMainModuleReference();
+    var testModule = modules.getTestModuleReference();
     cmd.addAll(mojo.getJavaOptions().getAdditionalOptions());
     cmd.add("-enableassertions");
     if (mainModule.isPresent() || testModule.isPresent()) {
@@ -163,8 +167,8 @@ class JUnitPlatformStarter implements IntSupplier {
               cmd.add(path.toString());
             });
 
-    var mainModule = mojo.getModules().getMainModuleReference();
-    var testModule = mojo.getModules().getTestModuleReference();
+    var mainModule = modules.getMainModuleReference();
+    var testModule = modules.getTestModuleReference();
     if (testModule.isPresent()) {
       cmd.add("--select-module");
       cmd.add(testModule.get().descriptor().name());
@@ -184,11 +188,11 @@ class JUnitPlatformStarter implements IntSupplier {
       return value;
     }
     // Or play it generic with "ALL-MODULE-PATH,ALL-DEFAULT"?
-    switch (mojo.getModules().getMode()) {
+    switch (modules.getMode()) {
       case MAIN_MODULE_TEST_CLASSIC:
-        return mojo.getModules().getMainModuleReference().orElseThrow().descriptor().name();
+        return modules.getMainModuleReference().orElseThrow().descriptor().name();
       default:
-        return mojo.getModules().getTestModuleReference().orElseThrow().descriptor().name();
+        return modules.getTestModuleReference().orElseThrow().descriptor().name();
     }
   }
 
@@ -239,43 +243,7 @@ class JUnitPlatformStarter implements IntSupplier {
   }
 
   private String createPathArgument() {
-    debug("");
-    debug("Creating path argument");
-
-    var elements = new ArrayList<String>();
-    try {
-      for (var element : project.getTestClasspathElements()) {
-        var path = Paths.get(element).toAbsolutePath().normalize();
-        if (Files.notExists(path)) {
-          debug("  X %s // doesn't exist", path);
-          continue;
-        }
-        debug(" -> %s", path);
-        elements.add(path.toString());
-      }
-      var map = project.getArtifactMap();
-      // junit-jupiter-engine
-      var jupiterApi = map.get("org.junit.jupiter:junit-jupiter-api");
-      var jupiterEngine = "org.junit.jupiter:junit-jupiter-engine";
-      if (jupiterApi != null && !map.containsKey(jupiterEngine)) {
-        mojo.resolve(elements, jupiterEngine, mojo.getJUnitJupiterVersion());
-      }
-      // junit-vintage-engine
-      var vintageApi = map.get("junit:junit");
-      var vintageEngine = "org.junit.vintage:junit-vintage-engine";
-      if (vintageApi != null && !map.containsKey(vintageEngine)) {
-        if (vintageApi.getVersion().equals("4.12")) {
-          mojo.resolve(elements, vintageEngine, mojo.getJUnitVintageVersion());
-        }
-      }
-      // junit-platform-console
-      var platformConsole = "org.junit.platform:junit-platform-console";
-      if (!map.containsKey(platformConsole)) {
-        mojo.resolve(elements, platformConsole, mojo.getJUnitPlatformVersion());
-      }
-    } catch (Exception e) {
-      throw new IllegalStateException("Resolving test class-path elements failed", e);
-    }
-    return String.join(File.pathSeparator, elements);
+    var delimiter = File.pathSeparator;
+    return mojo.getProjectPaths().stream().map(Object::toString).collect(joining(delimiter));
   }
 }

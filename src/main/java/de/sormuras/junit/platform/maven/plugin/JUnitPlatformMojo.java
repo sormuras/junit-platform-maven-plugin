@@ -14,10 +14,15 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_JUPITER_VERSION;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_PLATFORM_VERSION;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_VINTAGE_VERSION;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,9 +57,6 @@ import org.eclipse.aether.resolution.DependencyRequest;
     requiresDependencyResolution = ResolutionScope.TEST)
 public class JUnitPlatformMojo extends AbstractMojo {
 
-  /** Detected versions extracted from the project's dependencies. */
-  private Map<String, String> detectedVersions;
-
   @Parameter(defaultValue = "false")
   private boolean dryRun;
 
@@ -77,14 +79,20 @@ public class JUnitPlatformMojo extends AbstractMojo {
   /** The entry point to Maven Artifact Resolver, i.e. the component doing all the work. */
   @Component private RepositorySystem mavenResolver;
 
-  /** Module system helper. */
-  private Modules modules;
-
   @Parameter private List<String> overrideJavaOptions;
 
   @Parameter private List<String> overrideLauncherOptions;
 
   @Parameter private Map<String, String> parameters = Map.of();
+
+  /** Module system helper. */
+  private Modules projectModules;
+
+  /** Detected versions extracted from the project's dependencies. */
+  private Map<String, String> projectVersions;
+
+  /** Elements of the class- or module-path. */
+  private List<Path> projectPaths;
 
   @Parameter(defaultValue = "junit-platform/reports")
   private String reports;
@@ -119,18 +127,21 @@ public class JUnitPlatformMojo extends AbstractMojo {
 
     var mainPath = Paths.get(mavenBuild.getOutputDirectory());
     var testPath = Paths.get(mavenBuild.getTestOutputDirectory());
-    modules = new Modules(mainPath, testPath);
-    detectedVersions = Dependencies.createArtifactVersionMap(this::getArtifactVersionOrNull);
+    projectModules = new Modules(mainPath, testPath);
+    projectVersions = Dependencies.createArtifactVersionMap(this::getArtifactVersionOrNull);
+    projectPaths = resolvePath();
 
-    log.debug("");
-    log.debug("JUnit-related versions");
-    log.debug("  Platform  -> " + getJUnitPlatformVersion());
-    log.debug("  Jupiter   -> " + getJUnitJupiterVersion());
-    log.debug("  Vintage   -> " + getJUnitVintageVersion());
-    log.debug("Java module system");
-    log.debug("  main -> " + getModules().toStringMainModule());
-    log.debug("  test -> " + getModules().toStringTestModule());
-    log.debug("  mode -> " + getModules().getMode());
+    debug("");
+    debug("Java module system");
+    debug("  main -> %s", projectModules.toStringMainModule());
+    debug("  test -> %s", projectModules.toStringTestModule());
+    debug("  mode -> %s", projectModules.getMode());
+    debug("Detected versions");
+    Dependencies.forEachVersion(v -> debug("  %s = %s", v.getKey(), getVersion(v)));
+    debug("Dependency path (short)");
+    projectPaths.forEach(p -> debug("  %s", p.getFileName()));
+    debug("Dependency path (full path)");
+    projectPaths.forEach(p -> debug("  %s", p));
 
     int result = new JUnitPlatformStarter(this).getAsInt();
     if (result != 0) {
@@ -144,25 +155,6 @@ public class JUnitPlatformMojo extends AbstractMojo {
       return null;
     }
     return artifact.getVersion();
-  }
-
-  String getDetectedVersion(String key) {
-    return detectedVersions.get(key);
-  }
-
-  /** Desired JUnit Jupiter version. */
-  String getJUnitJupiterVersion() {
-    return getVersion("junit.jupiter.version");
-  }
-
-  /** Desired JUnit Platform version. */
-  String getJUnitPlatformVersion() {
-    return getVersion("junit.platform.version");
-  }
-
-  /** Desired JUnit Vintage version. */
-  String getJUnitVintageVersion() {
-    return getVersion("junit.vintage.version");
   }
 
   String getJavaExecutable() {
@@ -181,8 +173,12 @@ public class JUnitPlatformMojo extends AbstractMojo {
     return mavenProject;
   }
 
-  Modules getModules() {
-    return modules;
+  Modules getProjectModules() {
+    return projectModules;
+  }
+
+  List<Path> getProjectPaths() {
+    return projectPaths;
   }
 
   Optional<List<String>> getOverrideJavaOptions() {
@@ -276,8 +272,9 @@ public class JUnitPlatformMojo extends AbstractMojo {
   }
 
   /** Desired version. */
-  String getVersion(String key) {
-    return versions.getOrDefault(key, getDetectedVersion(key));
+  String getVersion(Dependencies.Version version) {
+    var defaultVersion = projectVersions.get(version.getKey());
+    return versions.getOrDefault(version.getKey(), defaultVersion);
   }
 
   /** Dry-run mode switch. */
@@ -285,15 +282,15 @@ public class JUnitPlatformMojo extends AbstractMojo {
     return dryRun;
   }
 
-  void resolve(List<String> elements, String groupAndArtifact, String version) throws Exception {
+  private void resolve(List<Path> paths, String groupAndArtifact, String version) throws Exception {
     var map = mavenProject.getArtifactMap();
     if (map.containsKey(groupAndArtifact)) {
       debug("Skip resolving '%s', because it is already mapped.", groupAndArtifact);
       return;
     }
     var gav = groupAndArtifact + ":" + version;
-    debug("");
-    debug("Resolving '%s' and its transitive dependencies...", gav);
+    // debug("");
+    // debug("Resolving '%s' and its transitive dependencies...", gav);
     for (var resolved : resolve(gav)) {
       var key = resolved.getGroupId() + ':' + resolved.getArtifactId();
       if (map.containsKey(key)) {
@@ -301,13 +298,12 @@ public class JUnitPlatformMojo extends AbstractMojo {
         continue;
       }
       var path = resolved.getFile().toPath().toAbsolutePath().normalize();
-      var element = path.toString();
-      if (elements.contains(element)) {
+      if (paths.contains(path)) {
         // debug("  X %s // already added", resolved);
         continue;
       }
-      debug(" -> %s", element);
-      elements.add(element);
+      // debug(" -> %s", path);
+      paths.add(path);
     }
   }
 
@@ -333,5 +329,50 @@ public class JUnitPlatformMojo extends AbstractMojo {
         .map(ArtifactResult::getArtifact)
         // .peek(a -> debug("Artifact %s resolved to %s", a, a.getFile()))
         .collect(Collectors.toList());
+  }
+
+  List<Path> resolvePath() {
+    var paths = new ArrayList<Path>();
+    // test out
+    paths.add(Paths.get(mavenProject.getBuild().getTestOutputDirectory()));
+    // main out
+    paths.add(Paths.get(mavenProject.getBuild().getOutputDirectory()));
+    // deps from pom
+    for (var artifact : mavenProject.getArtifacts()) {
+      if (!artifact.getArtifactHandler().isAddedToClasspath()) {
+        continue;
+      }
+      var file = artifact.getFile();
+      if (file != null) {
+        paths.add(file.toPath());
+      }
+    }
+    try {
+      // deps from here (auto-complete)
+      var map = mavenProject.getArtifactMap();
+      // junit-jupiter-engine
+      var jupiterApi = map.get("org.junit.jupiter:junit-jupiter-api");
+      var jupiterEngine = "org.junit.jupiter:junit-jupiter-engine";
+      if (jupiterApi != null && !map.containsKey(jupiterEngine)) {
+        resolve(paths, jupiterEngine, getVersion(JUNIT_JUPITER_VERSION));
+      }
+      // junit-vintage-engine
+      var vintageApi = map.get("junit:junit");
+      var vintageEngine = "org.junit.vintage:junit-vintage-engine";
+      if (vintageApi != null && !map.containsKey(vintageEngine)) {
+        if (vintageApi.getVersion().equals("4.12")) {
+          resolve(paths, vintageEngine, getVersion(JUNIT_VINTAGE_VERSION));
+        }
+      }
+      // junit-platform-console
+      var platformConsole = "org.junit.platform:junit-platform-console";
+      if (!map.containsKey(platformConsole)) {
+        resolve(paths, platformConsole, getVersion(JUNIT_PLATFORM_VERSION));
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException("Resolving path elements failed", e);
+    }
+    // Done.
+    return List.copyOf(paths);
   }
 }
