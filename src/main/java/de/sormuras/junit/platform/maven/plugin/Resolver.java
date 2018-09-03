@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.artifact.Artifact;
@@ -39,117 +40,132 @@ import org.eclipse.aether.resolution.DependencyResolutionException;
 /** Runtime artifact resolver helper. */
 class Resolver {
 
-  class PathsBuilder {
+  private class PathsBuilder {
 
-    private final List<Path> elements = new ArrayList<>();
-    private final MavenProject project = mojo.getMavenProject();
+    final List<Path> paths = new ArrayList<>();
 
-    private void append(Path path) {
+    void append(Path path) {
       if (Files.notExists(path)) {
         // debug("  X %s // does not exist", path);
         return;
       }
-      if (elements.contains(path)) {
+      if (paths.contains(path)) {
         // debug("  X %s // already added", path);
         return;
       }
       // debug(" -> %s", path);
-      elements.add(path);
+      paths.add(path);
     }
 
-    private void append(String first, String... more) {
+    void append(String first, String... more) {
       append(Paths.get(first, more));
     }
 
-    List<Path> build() {
-      append(project.getBuild().getTestOutputDirectory());
-      append(project.getBuild().getOutputDirectory());
-
-      // deps from pom
-      for (var artifact : project.getArtifacts()) {
-        if (!artifact.getArtifactHandler().isAddedToClasspath()) {
-          continue;
-        }
-        var file = artifact.getFile();
-        if (file != null) {
-          append(file.toPath());
-        }
-      }
-
-      // deps from here (auto-complete)
+    void append(GroupArtifact ga) {
       try {
-        // junit-jupiter-engine
-        if (contains(JUNIT_JUPITER_API)) {
-          resolve(JUNIT_JUPITER_ENGINE);
-        }
-        // junit-vintage-engine
-        var junit = project.getArtifactMap().get("junit:junit");
-        if (junit != null && "4.12".equals(junit.getVersion())) {
-          resolve(JUNIT_VINTAGE_ENGINE);
-        }
-        // junit-platform-console
-        resolve(JUNIT_PLATFORM_CONSOLE);
+        resolve(ga, this::append);
       } catch (DependencyResolutionException e) {
-        throw new IllegalStateException("Resolving path elements failed", e);
-      }
-
-      return List.copyOf(elements);
-    }
-
-    private boolean contains(Dependencies.GroupArtifact ga) {
-      return project.getArtifactMap().containsKey(ga.toIdentifier());
-    }
-
-    private void resolve(GroupArtifact ga) throws DependencyResolutionException {
-      if (contains(ga)) {
-        // debug("Skip resolving '%s', because it is already mapped.", ga);
-        return;
-      }
-      var gav = ga.toIdentifier() + ":" + mojo.version(ga.getVersion());
-      // debug("");
-      // debug("Resolving '%s' and its transitive dependencies...", gav);
-      for (var resolved : resolve(gav)) {
-        var key = resolved.getGroupId() + ':' + resolved.getArtifactId();
-        if (project.getArtifactMap().containsKey(key)) {
-          // debug("  X %s // mapped by project", resolved);
-          continue;
-        }
-        append(resolved.getFile().toPath().toAbsolutePath().normalize());
+        mojo.getLog().warn("Resolving " + ga + " failed", e);
       }
     }
 
-    private List<Artifact> resolve(String coordinates) throws DependencyResolutionException {
-      var repositories = project.getRemotePluginRepositories();
-      var artifact = new DefaultArtifact(coordinates);
-      // debug("Resolving artifact %s from %s...", artifact, repositories);
-      var artifactRequest = new ArtifactRequest();
-      artifactRequest.setArtifact(artifact);
-      artifactRequest.setRepositories(repositories);
-      // var resolved = mavenResolver.resolveArtifact(mavenRepositorySession, artifactRequest);
-      // debug("Resolved %s from %s", artifact, resolved.getRepository());
-      // debug("Stored %s to %s", artifact, resolved.getArtifact().getFile());
-      var collectRequest = new CollectRequest();
-      collectRequest.setRoot(new Dependency(artifact, ""));
-      collectRequest.setRepositories(repositories);
-      var dependencyRequest = new DependencyRequest(collectRequest, (all, ways) -> true);
-      var session = mojo.getMavenRepositorySession();
-      // debug("Resolving dependencies %s...", dependencyRequest);
-      return mojo.getMavenResolver()
-          .resolveDependencies(session, dependencyRequest)
-          .getArtifactResults()
-          .stream()
-          .map(ArtifactResult::getArtifact)
-          // .peek(a -> debug("Artifact %s resolved to %s", a, a.getFile()))
-          .collect(Collectors.toList());
+    List<Path> build() {
+      return List.copyOf(paths);
     }
   }
 
   private final JUnitPlatformMojo mojo;
   private final List<Path> paths;
+  private final MavenProject project;
 
   Resolver(JUnitPlatformMojo mojo) {
     this.mojo = mojo;
-    this.paths = new PathsBuilder().build();
+    this.project = mojo.getMavenProject();
+    this.paths = buildPaths();
+  }
+
+  private List<Path> buildPaths() {
+    var builder = new PathsBuilder();
+
+    builder.append(project.getBuild().getTestOutputDirectory());
+    builder.append(project.getBuild().getOutputDirectory());
+
+    // deps from pom
+    for (var artifact : project.getArtifacts()) {
+      if (!artifact.getArtifactHandler().isAddedToClasspath()) {
+        continue;
+      }
+      var file = artifact.getFile();
+      if (file != null) {
+        builder.append(file.toPath());
+      }
+    }
+
+    // deps from here (auto-complete)
+
+    if (contains(JUNIT_JUPITER_API)) {
+      builder.append(JUNIT_JUPITER_ENGINE);
+    }
+
+    var junit = project.getArtifactMap().get("junit:junit");
+    if (junit != null && "4.12".equals(junit.getVersion())) {
+      builder.append(JUNIT_VINTAGE_ENGINE);
+    }
+
+    builder.append(JUNIT_PLATFORM_CONSOLE);
+
+    return builder.build();
+  }
+
+  private boolean contains(GroupArtifact ga) {
+    return contains(ga.toIdentifier());
+  }
+
+  private boolean contains(String ga) {
+    return project.getArtifactMap().containsKey(ga);
+  }
+
+  private void resolve(GroupArtifact ga, Consumer<Path> list) throws DependencyResolutionException {
+    if (contains(ga)) {
+      // debug("Skip resolving '%s', because it is already mapped.", ga);
+      return;
+    }
+    var gav = ga.toIdentifier() + ":" + mojo.version(ga.getVersion());
+    // debug("");
+    // debug("Resolving '%s' and its transitive dependencies...", gav);
+    for (var resolved : resolve(gav)) {
+      var key = resolved.getGroupId() + ':' + resolved.getArtifactId();
+      if (contains(key)) {
+        // debug("  X %s // mapped by project", resolved);
+        continue;
+      }
+      list.accept(resolved.getFile().toPath().toAbsolutePath().normalize());
+    }
+  }
+
+  private List<Artifact> resolve(String coordinates) throws DependencyResolutionException {
+    var repositories = project.getRemotePluginRepositories();
+    var artifact = new DefaultArtifact(coordinates);
+    // debug("Resolving artifact %s from %s...", artifact, repositories);
+    var artifactRequest = new ArtifactRequest();
+    artifactRequest.setArtifact(artifact);
+    artifactRequest.setRepositories(repositories);
+    // var resolved = mavenResolver.resolveArtifact(mavenRepositorySession, artifactRequest);
+    // debug("Resolved %s from %s", artifact, resolved.getRepository());
+    // debug("Stored %s to %s", artifact, resolved.getArtifact().getFile());
+    var collectRequest = new CollectRequest();
+    collectRequest.setRoot(new Dependency(artifact, ""));
+    collectRequest.setRepositories(repositories);
+    var dependencyRequest = new DependencyRequest(collectRequest, (all, ways) -> true);
+    var session = mojo.getMavenRepositorySession();
+    // debug("Resolving dependencies %s...", dependencyRequest);
+    return mojo.getMavenResolver()
+        .resolveDependencies(session, dependencyRequest)
+        .getArtifactResults()
+        .stream()
+        .map(ArtifactResult::getArtifact)
+        // .peek(a -> debug("Artifact %s resolved to %s", a, a.getFile()))
+        .collect(Collectors.toList());
   }
 
   List<Path> getPaths() {
