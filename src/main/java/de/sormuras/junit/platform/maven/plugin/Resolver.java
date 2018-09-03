@@ -14,10 +14,11 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
-import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_JUPITER_VERSION;
-import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_PLATFORM_VERSION;
-import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_VINTAGE_VERSION;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_JUPITER_ENGINE;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_PLATFORM_CONSOLE;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_VINTAGE_ENGINE;
 
+import de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -31,26 +32,34 @@ import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
 
 /** Runtime artifact resolver helper. */
 class Resolver {
 
   private final JUnitPlatformMojo mojo;
-  private final MavenProject mavenProject;
+  private final MavenProject project;
+  private final List<Path> paths;
 
   Resolver(JUnitPlatformMojo mojo) {
     this.mojo = mojo;
-    this.mavenProject = mojo.getMavenProject();
+    this.project = mojo.getMavenProject();
+    this.paths = new ArrayList<>();
+
+    initializePaths();
   }
 
-  List<Path> createPaths() {
-    var paths = new ArrayList<Path>();
+  List<Path> getPaths() {
+    return List.copyOf(paths);
+  }
+
+  private void initializePaths() {
     // test out
-    paths.add(Paths.get(mavenProject.getBuild().getTestOutputDirectory()));
+    paths.add(Paths.get(project.getBuild().getTestOutputDirectory()));
     // main out
-    paths.add(Paths.get(mavenProject.getBuild().getOutputDirectory()));
+    paths.add(Paths.get(project.getBuild().getOutputDirectory()));
     // deps from pom
-    for (var artifact : mavenProject.getArtifacts()) {
+    for (var artifact : project.getArtifacts()) {
       if (!artifact.getArtifactHandler().isAddedToClasspath()) {
         continue;
       }
@@ -61,40 +70,39 @@ class Resolver {
     }
     try {
       // deps from here (auto-complete)
-      var map = mavenProject.getArtifactMap();
+      var map = project.getArtifactMap();
       // junit-jupiter-engine
       var jupiterApi = map.get("org.junit.jupiter:junit-jupiter-api");
       var jupiterEngine = "org.junit.jupiter:junit-jupiter-engine";
       if (jupiterApi != null && !map.containsKey(jupiterEngine)) {
-        resolve(paths, jupiterEngine, mojo.getVersion(JUNIT_JUPITER_VERSION));
+        resolve(JUNIT_JUPITER_ENGINE);
       }
       // junit-vintage-engine
       var vintageApi = map.get("junit:junit");
       var vintageEngine = "org.junit.vintage:junit-vintage-engine";
       if (vintageApi != null && !map.containsKey(vintageEngine)) {
         if (vintageApi.getVersion().equals("4.12")) {
-          resolve(paths, vintageEngine, mojo.getVersion(JUNIT_VINTAGE_VERSION));
+          resolve(JUNIT_VINTAGE_ENGINE);
         }
       }
       // junit-platform-console
       var platformConsole = "org.junit.platform:junit-platform-console";
       if (!map.containsKey(platformConsole)) {
-        resolve(paths, platformConsole, mojo.getVersion(JUNIT_PLATFORM_VERSION));
+        resolve(JUNIT_PLATFORM_CONSOLE);
       }
-    } catch (Exception e) {
+    } catch (DependencyResolutionException e) {
       throw new IllegalStateException("Resolving path elements failed", e);
     }
-    // Done.
-    return List.copyOf(paths);
   }
 
-  private void resolve(List<Path> paths, String groupAndArtifact, String version) throws Exception {
-    var map = mavenProject.getArtifactMap();
-    if (map.containsKey(groupAndArtifact)) {
-      mojo.debug("Skip resolving '%s', because it is already mapped.", groupAndArtifact);
+  private void resolve(GroupArtifact grar) throws DependencyResolutionException {
+    var map = project.getArtifactMap();
+    var ga = grar.toIdentifier();
+    if (map.containsKey(ga)) {
+      mojo.debug("Skip resolving '%s', because it is already mapped.", grar);
       return;
     }
-    var gav = groupAndArtifact + ":" + version;
+    var gav = ga + ":" + mojo.version(grar.getVersion());
     // debug("");
     // debug("Resolving '%s' and its transitive dependencies...", gav);
     for (var resolved : resolve(gav)) {
@@ -113,8 +121,8 @@ class Resolver {
     }
   }
 
-  private List<Artifact> resolve(String coordinates) throws Exception {
-    var repositories = mavenProject.getRemotePluginRepositories();
+  private List<Artifact> resolve(String coordinates) throws DependencyResolutionException {
+    var repositories = project.getRemotePluginRepositories();
     var artifact = new DefaultArtifact(coordinates);
     // debug("Resolving artifact %s from %s...", artifact, repositories);
     var artifactRequest = new ArtifactRequest();

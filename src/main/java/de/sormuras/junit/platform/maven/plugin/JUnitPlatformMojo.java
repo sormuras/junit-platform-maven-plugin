@@ -74,12 +74,10 @@ public class JUnitPlatformMojo extends AbstractMojo {
 
   /** Module system helper. */
   private Modules projectModules;
-
-  /** Detected versions extracted from the project's dependencies. */
-  private Map<String, String> projectVersions;
-
   /** Elements of the class- or module-path. */
   private List<Path> projectPaths;
+  /** Detected versions extracted from the project's dependencies. */
+  private Map<String, String> projectVersions;
 
   @Parameter(defaultValue = "junit-platform/reports")
   private String reports;
@@ -116,7 +114,7 @@ public class JUnitPlatformMojo extends AbstractMojo {
     var testPath = Paths.get(mavenBuild.getTestOutputDirectory());
     projectModules = new Modules(mainPath, testPath);
     projectVersions = Dependencies.createArtifactVersionMap(this::getArtifactVersionOrNull);
-    projectPaths = new Resolver(this).createPaths();
+    projectPaths = new Resolver(this).getPaths();
 
     debug("");
     debug("Java module system");
@@ -124,7 +122,7 @@ public class JUnitPlatformMojo extends AbstractMojo {
     debug("  test -> %s", projectModules.toStringTestModule());
     debug("  mode -> %s", projectModules.getMode());
     debug("Detected versions");
-    Dependencies.forEachVersion(v -> debug("  %s = %s", v.getKey(), getVersion(v)));
+    Dependencies.forEachVersion(v -> debug("  %s = %s", v.getKey(), version(v)));
     debug("Dependency path (short)");
     projectPaths.forEach(p -> debug("  %s", p.getFileName()));
     debug("Dependency path (full path)");
@@ -266,14 +264,14 @@ public class JUnitPlatformMojo extends AbstractMojo {
     return Duration.ofSeconds(timeout);
   }
 
-  /** Desired version. */
-  String getVersion(Dependencies.Version version) {
-    var defaultVersion = projectVersions.get(version.getKey());
-    return versions.getOrDefault(version.getKey(), defaultVersion);
-  }
-
   /** Dry-run mode switch. */
   boolean isDryRun() {
     return dryRun;
+  }
+
+  /** Desired version. */
+  String version(Dependencies.Version version) {
+    var defaultVersion = projectVersions.get(version.getKey());
+    return versions.getOrDefault(version.getKey(), defaultVersion);
   }
 }
