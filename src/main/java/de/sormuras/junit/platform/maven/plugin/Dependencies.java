@@ -14,14 +14,16 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
-import static de.sormuras.junit.platform.maven.plugin.Dependencies.Unit.JUNIT_JUPITER_API;
-import static de.sormuras.junit.platform.maven.plugin.Dependencies.Unit.JUNIT_JUPITER_ENGINE;
-import static de.sormuras.junit.platform.maven.plugin.Dependencies.Unit.JUNIT_PLATFORM_COMMONS;
-import static de.sormuras.junit.platform.maven.plugin.Dependencies.Unit.JUNIT_VINTAGE_ENGINE;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_JUPITER_API;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_JUPITER_ENGINE;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_PLATFORM_COMMONS;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_VINTAGE_ENGINE;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 /** Dependency resolution helper. */
@@ -32,8 +34,8 @@ class Dependencies {
     withNextVersion:
     for (var version : Version.values()) {
       var versionKey = version.getKey();
-      for (var unit : version.getUnits()) {
-        var artifactVersion = versionOperator.apply(unit.toIdentifier());
+      for (var groupArtifact : version.getGroupArtifacts()) {
+        var artifactVersion = versionOperator.apply(groupArtifact.toIdentifier());
         if (artifactVersion != null) {
           result.put(versionKey, artifactVersion);
           continue withNextVersion;
@@ -44,8 +46,12 @@ class Dependencies {
     return result;
   }
 
+  static void forEachVersion(Consumer<Version> versionConsumer) {
+    Arrays.stream(Version.values()).sorted().forEach(versionConsumer);
+  }
+
   /** Maven group and artifact coordinates. */
-  enum Unit {
+  enum GroupArtifact {
     JUNIT_JUPITER_API("org.junit.jupiter", "junit-jupiter-api"),
 
     JUNIT_JUPITER_ENGINE("org.junit.jupiter", "junit-jupiter-engine"),
@@ -57,7 +63,7 @@ class Dependencies {
     private final String artifact;
     private final String group;
 
-    Unit(String group, String artifact) {
+    GroupArtifact(String group, String artifact) {
       this.group = group;
       this.artifact = artifact;
     }
@@ -85,16 +91,16 @@ class Dependencies {
 
     private final String key;
     private final String defaultVersion;
-    private final List<Unit> units;
+    private final List<GroupArtifact> groupArtifacts;
 
-    Version(String defaultVersion, Unit... units) {
+    Version(String defaultVersion, GroupArtifact... groupArtifacts) {
       this.key = name().toLowerCase().replace('_', '.');
       this.defaultVersion = defaultVersion;
-      this.units = List.of(units);
+      this.groupArtifacts = List.of(groupArtifacts);
     }
 
-    List<Unit> getUnits() {
-      return units;
+    List<GroupArtifact> getGroupArtifacts() {
+      return groupArtifacts;
     }
 
     String getKey() {
