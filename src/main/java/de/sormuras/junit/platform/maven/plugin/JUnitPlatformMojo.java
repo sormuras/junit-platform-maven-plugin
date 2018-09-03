@@ -44,11 +44,14 @@ import org.eclipse.aether.RepositorySystemSession;
     requiresDependencyResolution = ResolutionScope.TEST)
 public class JUnitPlatformMojo extends AbstractMojo {
 
+  /** Dry-run mode switch. */
   @Parameter(defaultValue = "false")
   private boolean dryRun;
 
+  /** System-specific path to the Java executable. */
   @Parameter private String javaExecutable;
 
+  /** Customized Java command line options. */
   @Parameter private JavaOptions javaOptions = new JavaOptions();
 
   /** The underlying Maven build model. */
@@ -66,30 +69,83 @@ public class JUnitPlatformMojo extends AbstractMojo {
   /** The entry point to Maven Artifact Resolver, i.e. the component doing all the work. */
   @Component private RepositorySystem mavenResolver;
 
+  /** Override <strong>all</strong> Java command line options. */
   @Parameter private List<String> overrideJavaOptions;
 
+  /** Override <strong>all</strong> JUnict Platform Console Launcher options. */
   @Parameter private List<String> overrideLauncherOptions;
 
+  /**
+   * Launcher configuration parameters.
+   *
+   * <p>Set a configuration parameter for test discovery and execution.
+   *
+   * <h3>Console Launcher equivalent</h3>
+   *
+   * {@code --config <key=value>}
+   *
+   * @see <a
+   *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-config-params">Configuration
+   *     Parameters</a>
+   */
   @Parameter private Map<String, String> parameters = Map.of();
 
   /** Module system helper. */
   private Modules projectModules;
+
   /** Elements of the class- or module-path. */
   private List<Path> projectPaths;
+
   /** Detected versions extracted from the project's dependencies. */
   private Map<String, String> projectVersions;
 
+  /**
+   * Directory for storing reports, like test result files, or empty to disable reports.
+   *
+   * <h3>Console Launcher equivalent</h3>
+   *
+   * {@code --reports-dir <String>}
+   *
+   * @see #getReportsPath()
+   */
   @Parameter(defaultValue = "junit-platform/reports")
   private String reports;
 
+  /**
+   * Skip execution of this plugin.
+   *
+   * @see #isDryRun()
+   */
   @Parameter(defaultValue = "false")
   private boolean skip;
 
+  /**
+   * Tags or tag expressions to include only tests whose tags match.
+   *
+   * <p>All tags and expressions will be combined using {@code OR} semantics.
+   *
+   * <h3>Console Launcher equivalent</h3>
+   *
+   * {@code --include-tag <String>}
+   *
+   * @see <a
+   *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-tag-expressions">Tag
+   *     Expressions</a>
+   * @see <a
+   *     href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering">Tagging
+   *     and Filtering</a>
+   */
   @Parameter private List<String> tags = List.of();
 
+  /** Global timeout duration in seconds. */
   @Parameter(defaultValue = "100")
   private long timeout;
 
+  /**
+   * Custom version map.
+   *
+   * @see Dependencies.Version
+   */
   @Parameter private Map<String, String> versions = Map.of();
 
   void debug(String format, Object... args) {
@@ -158,20 +214,12 @@ public class JUnitPlatformMojo extends AbstractMojo {
     return mavenProject;
   }
 
-  RepositorySystem getMavenResolver() {
-    return mavenResolver;
-  }
-
   RepositorySystemSession getMavenRepositorySession() {
     return mavenRepositorySession;
   }
 
-  Modules getProjectModules() {
-    return projectModules;
-  }
-
-  List<Path> getProjectPaths() {
-    return projectPaths;
+  RepositorySystem getMavenResolver() {
+    return mavenResolver;
   }
 
   Optional<List<String>> getOverrideJavaOptions() {
@@ -182,33 +230,18 @@ public class JUnitPlatformMojo extends AbstractMojo {
     return Optional.ofNullable(overrideLauncherOptions);
   }
 
-  /**
-   * Launcher configuration parameters.
-   *
-   * <p>Set a configuration parameter for test discovery and execution.
-   *
-   * <h3>Console Launcher equivalent</h3>
-   *
-   * {@code --config <key=value>}
-   *
-   * @see <a
-   *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-config-params">Configuration
-   *     Parameters</a>
-   */
   Map<String, String> getParameters() {
     return parameters;
   }
 
-  /**
-   * Directory for storing reports, like test result files.
-   *
-   * <h3>Console Launcher equivalent</h3>
-   *
-   * {@code --reports-dir <String>}
-   *
-   * @return path to reports directory, may be empty
-   * @see #getReportsPath()
-   */
+  Modules getProjectModules() {
+    return projectModules;
+  }
+
+  List<Path> getProjectPaths() {
+    return projectPaths;
+  }
+
   String getReports() {
     return reports;
   }
@@ -235,41 +268,19 @@ public class JUnitPlatformMojo extends AbstractMojo {
     return Optional.of(Paths.get(mavenBuild.getDirectory()).resolve(path));
   }
 
-  /**
-   * Tags or tag expressions to include only tests whose tags match.
-   *
-   * <p>All tags and expressions will be combined using {@code OR} semantics.
-   *
-   * <h3>Console Launcher equivalent</h3>
-   *
-   * {@code --include-tag <String>}
-   *
-   * @see <a
-   *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-tag-expressions">Tag
-   *     Expressions</a>
-   * @see <a
-   *     href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering">Tagging
-   *     and Filtering</a>
-   */
   List<String> getTags() {
     return tags;
   }
 
-  /**
-   * Global timeout duration in seconds.
-   *
-   * @return timeout duration in seconds
-   */
   Duration getTimeout() {
     return Duration.ofSeconds(timeout);
   }
 
-  /** Dry-run mode switch. */
   boolean isDryRun() {
     return dryRun;
   }
 
-  /** Desired version. */
+  /** Lookup version as a {@link String}. */
   String version(Dependencies.Version version) {
     var defaultVersion = projectVersions.get(version.getKey());
     return versions.getOrDefault(version.getKey(), defaultVersion);
