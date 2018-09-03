@@ -23,7 +23,7 @@ For example, if you want to write tests using the Jupiter API, you'll need the [
   <dependency>
     <groupId>org.junit.jupiter</groupId>
     <artifactId>junit-jupiter-api</artifactId>
-    <version>5.3.0-RC1</version>
+    <version>5.3.0</version>
     <scope>test</scope>
   </dependency>
 </dependencies>
