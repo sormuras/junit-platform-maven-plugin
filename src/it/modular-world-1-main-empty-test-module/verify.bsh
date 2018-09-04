@@ -24,7 +24,7 @@ String[] emptyFiles = new String[] {
 String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
 String[] snippets = new String[] {
   "[INFO] Launching JUnit Platform...",
-  "[DEBUG] Detected versions",
+  "[DEBUG] Versions",
   "[DEBUG]   junit.jupiter.version = " + junitJupiterVersion,
   "[DEBUG]   junit.platform.version = " + junitPlatformVersion,
   "[DEBUG]   junit.vintage.version = " + junitVintageVersion,
