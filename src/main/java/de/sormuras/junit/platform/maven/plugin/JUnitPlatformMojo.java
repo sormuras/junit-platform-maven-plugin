@@ -246,10 +246,6 @@ public class JUnitPlatformMojo extends AbstractMojo {
     return projectPaths;
   }
 
-  String getReports() {
-    return reports;
-  }
-
   /**
    * Optional path to directory for storing reports.
    *
@@ -258,10 +254,8 @@ public class JUnitPlatformMojo extends AbstractMojo {
    * reports.
    *
    * @return path to reports directory, may be empty
-   * @see #getReports()
    */
   Optional<Path> getReportsPath() {
-    var reports = getReports();
     if (reports.trim().isEmpty()) { // .isBlank()
       return Optional.empty();
     }
