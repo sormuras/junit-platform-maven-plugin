@@ -46,14 +46,14 @@ class Resolver {
 
     void append(Path path) {
       if (Files.notExists(path)) {
-        // debug("  X %s // does not exist", path);
+        verbose("  X %s // does not exist", path);
         return;
       }
       if (paths.contains(path)) {
-        // debug("  X %s // already added", path);
+        verbose("  X %s // already added", path);
         return;
       }
-      // debug(" -> %s", path);
+      verbose(" -> %s", path);
       paths.add(path);
     }
 
@@ -87,10 +87,11 @@ class Resolver {
   private List<Path> buildPaths() {
     var builder = new PathsBuilder();
 
+    // Append test and main output directories
     builder.append(project.getBuild().getTestOutputDirectory());
     builder.append(project.getBuild().getOutputDirectory());
 
-    // deps from pom
+    // Append all user-defined dependencies
     for (var artifact : project.getArtifacts()) {
       if (!artifact.getArtifactHandler().isAddedToClasspath()) {
         continue;
@@ -101,17 +102,14 @@ class Resolver {
       }
     }
 
-    // deps from here (auto-complete)
-
+    // Now append required artifacts by resolving "missing" artifacts...
     if (contains(JUNIT_JUPITER_API)) {
       builder.append(JUNIT_JUPITER_ENGINE);
     }
-
     var junit = project.getArtifactMap().get("junit:junit");
     if (junit != null && "4.12".equals(junit.getVersion())) {
       builder.append(JUNIT_VINTAGE_ENGINE);
     }
-
     builder.append(JUNIT_PLATFORM_CONSOLE);
 
     return builder.build();
@@ -127,16 +125,16 @@ class Resolver {
 
   private void resolve(GroupArtifact ga, Consumer<Path> list) throws DependencyResolutionException {
     if (contains(ga)) {
-      // debug("Skip resolving '%s', because it is already mapped.", ga);
+      verbose("Skip resolving '%s', because it is already mapped.", ga);
       return;
     }
     var gav = ga.toIdentifier() + ":" + mojo.version(ga.getVersion());
-    // debug("");
-    // debug("Resolving '%s' and its transitive dependencies...", gav);
+    verbose("");
+    verbose("Resolving '%s' and its transitive dependencies...", gav);
     for (var resolved : resolve(gav)) {
       var key = resolved.getGroupId() + ':' + resolved.getArtifactId();
       if (contains(key)) {
-        // debug("  X %s // mapped by project", resolved);
+        verbose("  X %s // mapped by project", resolved);
         continue;
       }
       list.accept(resolved.getFile().toPath().toAbsolutePath().normalize());
@@ -146,29 +144,35 @@ class Resolver {
   private List<Artifact> resolve(String coordinates) throws DependencyResolutionException {
     var repositories = project.getRemotePluginRepositories();
     var artifact = new DefaultArtifact(coordinates);
-    // debug("Resolving artifact %s from %s...", artifact, repositories);
+    verbose("Resolving artifact %s from %s...", artifact, repositories);
     var artifactRequest = new ArtifactRequest();
     artifactRequest.setArtifact(artifact);
     artifactRequest.setRepositories(repositories);
-    // var resolved = mavenResolver.resolveArtifact(mavenRepositorySession, artifactRequest);
-    // debug("Resolved %s from %s", artifact, resolved.getRepository());
-    // debug("Stored %s to %s", artifact, resolved.getArtifact().getFile());
+    // var resolved = mojo.getMavenResolver().resolveArtifact(session, artifactRequest);
+    // verbose("Resolved %s from %s", artifact, resolved.getRepository());
+    // verbose("Stored %s to %s", artifact, resolved.getArtifact().getFile());
     var collectRequest = new CollectRequest();
     collectRequest.setRoot(new Dependency(artifact, ""));
     collectRequest.setRepositories(repositories);
     var dependencyRequest = new DependencyRequest(collectRequest, (all, ways) -> true);
     var session = mojo.getMavenRepositorySession();
-    // debug("Resolving dependencies %s...", dependencyRequest);
+    verbose("Resolving dependencies %s...", dependencyRequest);
     return mojo.getMavenResolver()
         .resolveDependencies(session, dependencyRequest)
         .getArtifactResults()
         .stream()
         .map(ArtifactResult::getArtifact)
-        // .peek(a -> debug("Artifact %s resolved to %s", a, a.getFile()))
+        .peek(a -> verbose("Artifact %s resolved to %s", a, a.getFile()))
         .collect(Collectors.toList());
   }
 
   List<Path> getPaths() {
     return paths;
+  }
+
+  private void verbose(String format, Object... args) {
+    if (mojo.isVerbose()) {
+      mojo.getLog().debug(String.format(format, args));
+    }
   }
 }

@@ -138,6 +138,9 @@ public class JUnitPlatformMojo extends AbstractMojo {
   @Parameter(defaultValue = "100")
   private long timeout;
 
+  @Parameter(defaultValue = "false")
+  private boolean verbose;
+
   /**
    * Custom version map.
    *
@@ -275,6 +278,10 @@ public class JUnitPlatformMojo extends AbstractMojo {
 
   boolean isDryRun() {
     return dryRun;
+  }
+
+  boolean isVerbose() {
+    return verbose;
   }
 
   /** Lookup version as a {@link String}. */
