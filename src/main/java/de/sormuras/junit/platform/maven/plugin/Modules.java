@@ -16,6 +16,7 @@ package de.sormuras.junit.platform.maven.plugin;
 
 import static java.util.stream.Collectors.joining;
 
+import de.sormuras.junit.platform.maven.plugin.testing.TestMode;
 import java.lang.module.FindException;
 import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleFinder;
@@ -26,149 +27,21 @@ import java.util.Set;
 
 class Modules {
 
-  /** Describes the barrier or boundary at which tests may operate. */
-  enum Barrier {
-    /** Test code may only access exported public types. */
-    MODULE,
-
-    /** Test code may access package-level types. */
-    PACKAGE
-  }
-
-  /**
-   * Test-run mode.
-   *
-   * <p>Defined by the relation of one {@code main} and one {@code test} module.
-   *
-   * <pre><code>
-   *                          main plain    main module   main module
-   *                             ---            foo           bar
-   *
-   *     test plain  ---          0              2             2
-   *
-   *     test module foo          1              3             4
-   *
-   *     test module bar          1              4             3
-   *
-   *     0 = CLASSIC
-   *     1 = MAIN_CLASSIC_TEST_MODULE           (black-box test) // CLASSIC_MODULAR_TEST
-   *     2 = MAIN_MODULE_TEST_CLASSIC           (white-box test) // MODULAR_CLASSIC_TEST
-   *     3 = MAIN_MODULE_TEST_MODULE_SAME_NAME  (white-box test) // MODULAR_PATCHED_TEST
-   *     4 = MODULAR                            (black-box test) // MODULAR_BLACKBOX_TEST
-   * </code></pre>
-   *
-   * @see <a href="https://stackoverflow.com/a/33627846/1431016">Access Modifier Table</a>
-   */
-  enum Mode {
-
-    /** No modules at all, fall-back to the class-path. */
-    CLASSIC(Barrier.PACKAGE),
-
-    /**
-     * Main module absent, test module present.
-     *
-     * <p>This mode is also to be selected when there is no main artifact available, i.e. main is
-     * empty.
-     *
-     * <p>Note: A classic non-empty main source set is not supported by `maven-compiler-plugin` at
-     * the moment.
-     *
-     * <pre><code>
-     * Caused by: java.lang.UnsupportedOperationException:
-     *   Can't compile test sources when main sources are missing a module descriptor at
-     *   org.apache.maven.plugin.compiler.TestCompilerMojo.preparePaths (TestCompilerMojo.java:374)
-     *   ...
-     * </code></pre>
-     */
-    MAIN_CLASSIC_TEST_MODULE(Barrier.MODULE),
-
-    /**
-     * Main module present, test module absent.
-     *
-     * <p>White-box testing by patching tests into the main module at test-runtime.
-     *
-     * <p>This mode intentionally by-passes the modular barrier to allow access to internal types.
-     */
-    MAIN_MODULE_TEST_CLASSIC(Barrier.PACKAGE),
-
-    /**
-     * Main module present, test module present: <strong>same</strong> module name.
-     *
-     * <p>White-box testing by patching main types into the test module at compile-runtime.
-     *
-     * <p>This mode intentionally by-passes the modular barrier to allow access to internal types.
-     */
-    MAIN_MODULE_TEST_MODULE_SAME_NAME(Barrier.PACKAGE),
-
-    /**
-     * Main module present, test module present: <strong>different</strong> module name.
-     *
-     * <p>Black-box testing the main module, adhering to its exported API.
-     */
-    MODULAR(Barrier.MODULE);
-
-    private final Barrier barrier;
-
-    Mode(Barrier barrier) {
-      this.barrier = barrier;
-    }
-
-    @Override
-    public String toString() {
-      return name() + " [barrier=" + barrier + "]";
-    }
-
-    static Mode of(String main, String test) {
-      if (main == null) {
-        if (test == null) { // trivial case: no modules declared at all
-          return CLASSIC;
-        }
-        return MAIN_CLASSIC_TEST_MODULE; // only test module present
-      }
-      if (test == null) { // only main module is present
-        return MAIN_MODULE_TEST_CLASSIC;
-      }
-      if (main.equals(test)) { // same module name
-        return MAIN_MODULE_TEST_MODULE_SAME_NAME;
-      }
-      return MODULAR; // true-modular testing, no patching involved
-    }
-  }
-
   private final ModuleReference mainModuleReference;
   private final ModuleReference testModuleReference;
-  private final Mode mode;
+  private final TestMode mode;
 
   Modules(Path mainPath, Path testPath) {
     this.mainModuleReference = getSingleModuleReferenceOrNull(mainPath);
     this.testModuleReference = getSingleModuleReferenceOrNull(testPath);
-    this.mode =
-        Mode.of(getModuleNameOrNull(mainModuleReference), getModuleNameOrNull(testModuleReference));
+    this.mode = TestMode.of(getName(mainModuleReference), getName(testModuleReference));
   }
 
-  Mode getMode() {
-    return mode;
-  }
-
-  Optional<ModuleReference> getMainModuleReference() {
-    return Optional.ofNullable(mainModuleReference);
-  }
-
-  Optional<ModuleReference> getTestModuleReference() {
-    return Optional.ofNullable(testModuleReference);
-  }
-
-  @Override
-  public String toString() {
-    return String.format("Modules [main=%s, test=%s]", toStringMainModule(), toStringTestModule());
-  }
-
-  String toStringMainModule() {
-    return toString(mainModuleReference);
-  }
-
-  String toStringTestModule() {
-    return toString(testModuleReference);
+  private static String getName(ModuleReference reference) {
+    if (reference == null) {
+      return null;
+    }
+    return reference.descriptor().name();
   }
 
   static ModuleReference getSingleModuleReferenceOrNull(Path path) {
@@ -194,13 +67,6 @@ class Modules {
     }
   }
 
-  private static String getModuleNameOrNull(ModuleReference reference) {
-    if (reference == null) {
-      return null;
-    }
-    return reference.descriptor().name();
-  }
-
   private static String toString(ModuleReference reference) {
     if (reference == null) {
       return "<empty>";
@@ -223,5 +89,30 @@ class Modules {
     builder.append(" packages=").append(module.packages());
     builder.append(" }");
     return builder.toString();
+  }
+
+  TestMode getMode() {
+    return mode;
+  }
+
+  Optional<ModuleReference> getMainModuleReference() {
+    return Optional.ofNullable(mainModuleReference);
+  }
+
+  Optional<ModuleReference> getTestModuleReference() {
+    return Optional.ofNullable(testModuleReference);
+  }
+
+  @Override
+  public String toString() {
+    return String.format("Modules [main=%s, test=%s]", toStringMainModule(), toStringTestModule());
+  }
+
+  String toStringMainModule() {
+    return toString(mainModuleReference);
+  }
+
+  String toStringTestModule() {
+    return toString(testModuleReference);
   }
 }
