@@ -234,11 +234,11 @@ class JUnitPlatformStarter implements IntSupplier {
     return modules;
   }
 
-  private String createConfigArgument(String key, String value) {
+  private static String createConfigArgument(String key, String value) {
     return "--config=\"" + key + "\"=\"" + value + "\"";
   }
 
-  private String createTagArgument(String tag) {
+  private static String createTagArgument(String tag) {
     return "--include-tag=\"" + tag + "\"";
   }
 
