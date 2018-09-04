@@ -24,14 +24,12 @@ import java.util.Optional;
 import org.apache.maven.model.Build;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 
@@ -152,17 +150,26 @@ public class JUnitPlatformMojo extends AbstractMojo {
     getLog().debug(String.format(format, args));
   }
 
+  private void dumpProperties() {
+    debug("");
+    debug("Java module system");
+    debug("  main -> %s", projectModules.toStringMainModule());
+    debug("  test -> %s", projectModules.toStringTestModule());
+    debug("  mode -> %s", projectModules.getMode());
+    debug("Versions");
+    debug("  java.version = %s (%s)", System.getProperty("java.version"), Runtime.version());
+    Dependencies.forEachVersion(v -> debug("  %s = %s", v.getKey(), version(v)));
+    debug("Dependency path (short)");
+    projectPaths.forEach(p -> debug("  %s", p.getFileName()));
+    debug("Dependency path (full path)");
+    projectPaths.forEach(p -> debug("  %s", p));
+  }
+
   public void execute() throws MojoFailureException {
-    Log log = getLog();
-    log.info("Launching JUnit Platform...");
+    getLog().info("Launching JUnit Platform...");
 
     if (skip) {
-      log.info(MessageUtils.buffer().warning("JUnit Platform execution skipped.").toString());
-      return;
-    }
-
-    if (Files.notExists(Paths.get(mavenBuild.getTestOutputDirectory()))) {
-      log.info(MessageUtils.buffer().warning("Test output directory doesn't exist.").toString());
+      getLog().info("JUnit Platform execution skipped.");
       return;
     }
 
@@ -172,17 +179,14 @@ public class JUnitPlatformMojo extends AbstractMojo {
     projectVersions = Dependencies.createArtifactVersionMap(this::getArtifactVersionOrNull);
     projectPaths = new Resolver(this).getPaths();
 
-    debug("");
-    debug("Java module system");
-    debug("  main -> %s", projectModules.toStringMainModule());
-    debug("  test -> %s", projectModules.toStringTestModule());
-    debug("  mode -> %s", projectModules.getMode());
-    debug("Detected versions");
-    Dependencies.forEachVersion(v -> debug("  %s = %s", v.getKey(), version(v)));
-    debug("Dependency path (short)");
-    projectPaths.forEach(p -> debug("  %s", p.getFileName()));
-    debug("Dependency path (full path)");
-    projectPaths.forEach(p -> debug("  %s", p));
+    if (getLog().isDebugEnabled()) {
+      dumpProperties();
+    }
+
+    if (Files.notExists(testPath)) {
+      getLog().info("Test output directory doesn't exist.");
+      return;
+    }
 
     int result = new JUnitPlatformStarter(this).getAsInt();
     if (result != 0) {
