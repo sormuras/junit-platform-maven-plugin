@@ -57,8 +57,7 @@ public class JUnitPlatformMojo extends AbstractMojo {
   private Build mavenBuild;
 
   /** The underlying Maven project. */
-  @Parameter(defaultValue = "${project}", readonly = true, required = true)
-  private MavenProject mavenProject;
+  @Component private MavenProject mavenProject;
 
   /** The current repository/network configuration of Maven. */
   @Parameter(defaultValue = "${repositorySystemSession}", readonly = true, required = true)
@@ -70,7 +69,7 @@ public class JUnitPlatformMojo extends AbstractMojo {
   /** Override <strong>all</strong> Java command line options. */
   @Parameter private List<String> overrideJavaOptions;
 
-  /** Override <strong>all</strong> JUnict Platform Console Launcher options. */
+  /** Override <strong>all</strong> JUnit Platform Console Launcher options. */
   @Parameter private List<String> overrideLauncherOptions;
 
   /**
