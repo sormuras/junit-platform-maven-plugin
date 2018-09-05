@@ -57,7 +57,8 @@ public class JUnitPlatformMojo extends AbstractMojo {
   private Build mavenBuild;
 
   /** The underlying Maven project. */
-  @Component private MavenProject mavenProject;
+  @Parameter(defaultValue = "${project}", readonly = true, required = true)
+  private MavenProject mavenProject;
 
   /** The current repository/network configuration of Maven. */
   @Parameter(defaultValue = "${repositorySystemSession}", readonly = true, required = true)
