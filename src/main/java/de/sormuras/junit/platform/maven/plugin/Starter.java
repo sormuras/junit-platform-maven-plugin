@@ -25,13 +25,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.IntSupplier;
 import org.apache.maven.project.MavenProject;
 
-class JUnitPlatformStarter implements IntSupplier {
+/** Starts an external Java process to launch the JUnit Platform. */
+class Starter implements IntSupplier {
 
   private final JUnitPlatformMojo mojo;
   private final MavenProject project;
   private final Modules modules;
 
-  JUnitPlatformStarter(JUnitPlatformMojo mojo) {
+  Starter(JUnitPlatformMojo mojo) {
     this.mojo = mojo;
     this.project = mojo.getMavenProject();
     this.modules = mojo.getProjectModules();

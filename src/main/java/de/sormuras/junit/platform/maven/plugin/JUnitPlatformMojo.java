@@ -191,7 +191,7 @@ public class JUnitPlatformMojo extends AbstractMojo {
       return;
     }
 
-    int result = new JUnitPlatformStarter(this).getAsInt();
+    int result = new Starter(this).getAsInt();
     if (result != 0) {
       throw new MojoFailureException("RED ALERT!");
     }
