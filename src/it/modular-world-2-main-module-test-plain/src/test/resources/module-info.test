@@ -1,0 +1,7 @@
+// "requires org.junit.jupiter.api"
+--add-reads
+  foo=org.junit.jupiter.api
+
+// allow deep reflection for test discovery
+--add-opens
+  foo/foo=org.junit.platform.commons
