@@ -40,16 +40,21 @@ class Patcher {
 
     var descriptor = modules.getMainModuleReference().orElseThrow().descriptor();
     var name = descriptor.name();
+
+    mojo.debug("");
+    mojo.debug("Patching tests into main module %s <- ", name, testOutput);
     cmd.add("--patch-module");
     cmd.add(name + "=" + testOutput);
 
     // Apply user-defined command line options
     if (Files.exists(moduleInfoTestPath)) {
+      mojo.debug("Using lines of '%s' to patch module %s...", moduleInfoTestPath, name);
       try (var lines = Files.lines(moduleInfoTestPath)) {
         lines
             .map(String::trim)
             .filter(line -> !line.isEmpty())
             .filter(line -> !line.startsWith("//"))
+            .peek(line -> mojo.debug("  %s", line))
             .forEach(cmd::add);
       } catch (IOException e) {
         throw new UncheckedIOException("Reading " + moduleInfoTestPath + " failed", e);
@@ -57,7 +62,8 @@ class Patcher {
       return;
     }
 
-    // Apply best-effort command line options...
+    // Apply best-effort
+    mojo.debug("Adding best-effort command line options to patch module %s...", name);
     var addReads = createAddReadsModules();
     addReads.forEach(
         module -> {
