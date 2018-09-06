@@ -46,6 +46,9 @@ public class JUnitPlatformMojo extends AbstractMojo {
   @Parameter(defaultValue = "false")
   private boolean dryRun;
 
+  /** Customized file names. */
+  @Parameter private FileNames fileNames = new FileNames();
+
   /** System-specific path to the Java executable. */
   @Parameter private String javaExecutable;
 
@@ -153,12 +156,17 @@ public class JUnitPlatformMojo extends AbstractMojo {
     getLog().debug(String.format(format, args));
   }
 
-  private void dumpProperties() {
+  private void dumpParameters() {
     debug("");
     debug("Java module system");
     debug("  main -> %s", projectModules.toStringMainModule());
     debug("  test -> %s", projectModules.toStringTestModule());
     debug("  mode -> %s", projectModules.getMode());
+    debug("File names");
+    debug("  console-launcher.cmd.log = %s", fileNames.getConsoleLauncherCmdLog());
+    debug("  console-launcher.err.log = %s", fileNames.getConsoleLauncherErrLog());
+    debug("  console-launcher.out.log = %s", fileNames.getConsoleLauncherOutLog());
+    debug("  module-info.test = %s", fileNames.getModuleInfoTest());
     debug("Versions");
     debug("  java.version = %s (%s)", System.getProperty("java.version"), Runtime.version());
     Dependencies.forEachVersion(v -> debug("  %s = %s", v.getKey(), version(v)));
@@ -183,7 +191,7 @@ public class JUnitPlatformMojo extends AbstractMojo {
     projectPaths = new Resolver(this).getPaths();
 
     if (getLog().isDebugEnabled()) {
-      dumpProperties();
+      dumpParameters();
     }
 
     if (Files.notExists(testPath)) {
@@ -203,6 +211,10 @@ public class JUnitPlatformMojo extends AbstractMojo {
       return null;
     }
     return artifact.getVersion();
+  }
+
+  FileNames getFileNames() {
+    return fileNames;
   }
 
   String getJavaExecutable() {

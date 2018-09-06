@@ -45,10 +45,11 @@ class Starter implements IntSupplier {
   @Override
   public int getAsInt() {
     var log = mojo.getLog();
+    var names = mojo.getFileNames();
     var target = Paths.get(project.getBuild().getDirectory()).resolve("junit-platform");
-    var cmdPath = target.resolve("console-launcher.cmd.log");
-    var errorPath = target.resolve("console-launcher.err.log");
-    var outputPath = target.resolve("console-launcher.out.log");
+    var cmdPath = target.resolve(names.getConsoleLauncherCmdLog());
+    var errorPath = target.resolve(names.getConsoleLauncherErrLog());
+    var outputPath = target.resolve(names.getConsoleLauncherOutLog());
 
     // Prepare the process builder
     var builder = new ProcessBuilder();

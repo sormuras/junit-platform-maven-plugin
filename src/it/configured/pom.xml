@@ -35,6 +35,9 @@
             <junit.jupiter.execution.parallel.enabled>true</junit.jupiter.execution.parallel.enabled>
             <ninety.nine>99</ninety.nine>
           </parameters>
+          <fileNames>
+            <moduleInfoTest>module-info.patch</moduleInfoTest>
+          </fileNames>
         </configuration>
         <executions>
           <execution>

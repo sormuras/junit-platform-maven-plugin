@@ -36,7 +36,7 @@ class Patcher {
 
   void patch(List<String> cmd) {
     var testOutput = project.getBuild().getTestOutputDirectory();
-    var testConfig = Paths.get(testOutput, "module-info.test");
+    var moduleInfoTestPath = Paths.get(testOutput, mojo.getFileNames().getModuleInfoTest());
 
     var descriptor = modules.getMainModuleReference().orElseThrow().descriptor();
     var name = descriptor.name();
@@ -44,15 +44,15 @@ class Patcher {
     cmd.add(name + "=" + testOutput);
 
     // Apply user-defined command line options
-    if (Files.exists(testConfig)) {
-      try (var lines = Files.lines(testConfig)) {
+    if (Files.exists(moduleInfoTestPath)) {
+      try (var lines = Files.lines(moduleInfoTestPath)) {
         lines
             .map(String::trim)
             .filter(line -> !line.isEmpty())
             .filter(line -> !line.startsWith("//"))
             .forEach(cmd::add);
       } catch (IOException e) {
-        throw new UncheckedIOException("Reading " + testConfig + " failed", e);
+        throw new UncheckedIOException("Reading " + moduleInfoTestPath + " failed", e);
       }
       return;
     }
