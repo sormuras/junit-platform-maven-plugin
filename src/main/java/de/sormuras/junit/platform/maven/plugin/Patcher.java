@@ -42,7 +42,7 @@ class Patcher {
     var name = descriptor.name();
 
     mojo.debug("");
-    mojo.debug("Patching tests into main module %s <- ", name, testOutput);
+    mojo.debug("Patching tests into main module %s <- %s", name, testOutput);
     cmd.add("--patch-module");
     cmd.add(name + "=" + testOutput);
 
