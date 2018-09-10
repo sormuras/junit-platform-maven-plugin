@@ -181,7 +181,7 @@ class Starter implements IntSupplier {
     }
     // Or play it generic with "ALL-MODULE-PATH,ALL-DEFAULT"?
     switch (modules.getMode()) {
-      case MAIN_MODULE_TEST_CLASSIC:
+      case MODULAR_PATCHED_TEST_RUNTIME:
         return modules.getMainModuleReference().orElseThrow().descriptor().name();
       default:
         return modules.getTestModuleReference().orElseThrow().descriptor().name();

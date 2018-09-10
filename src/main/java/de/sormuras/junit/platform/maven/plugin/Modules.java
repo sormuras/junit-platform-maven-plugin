@@ -16,7 +16,6 @@ package de.sormuras.junit.platform.maven.plugin;
 
 import static java.util.stream.Collectors.joining;
 
-import de.sormuras.junit.platform.maven.plugin.testing.TestMode;
 import java.lang.module.FindException;
 import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleFinder;
