@@ -103,8 +103,15 @@ class Starter implements IntSupplier {
         return -2;
       }
       var exitValue = process.exitValue();
-      Files.readAllLines(outputPath).forEach(exitValue == 0 ? log::info : log::error);
-      Files.readAllLines(errorPath).forEach(exitValue == 0 ? log::warn : log::error);
+      try {
+        Files.readAllLines(outputPath)
+            .stream()
+            .limit(500)
+            .forEach(exitValue == 0 ? log::info : log::error);
+        Files.readAllLines(errorPath).forEach(exitValue == 0 ? log::warn : log::error);
+      } catch (IOException e) {
+        log.warn("Reading output/error logs failed", e);
+      }
       return exitValue;
     } catch (IOException | InterruptedException e) {
       log.error("Executing process failed", e);
