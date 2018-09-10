@@ -119,6 +119,7 @@ class Starter implements IntSupplier {
     var testModule = modules.getTestModuleReference();
     cmd.addAll(mojo.getJavaOptions().getAdditionalOptions());
     cmd.add("-enableassertions");
+    cmd.add("-Dfile.encoding=UTF-8");
     if (mainModule.isPresent() || testModule.isPresent()) {
       cmd.add("--module-path");
       cmd.add(createPathArgument());
