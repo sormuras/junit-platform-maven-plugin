@@ -150,6 +150,8 @@ class Starter implements IntSupplier {
     cmd.add("--disable-ansi-colors");
     cmd.add("--details");
     cmd.add("tree");
+    cmd.add("--details-theme");
+    cmd.add("ascii");
     mojo.getTags().forEach(tag -> cmd.add(createTagArgument(tag)));
     mojo.getParameters().forEach((key, value) -> cmd.add(createConfigArgument(key, value)));
     mojo.getReportsPath()
