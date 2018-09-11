@@ -17,23 +17,26 @@ package de.sormuras.junit.platform.maven.plugin;
 /**
  * Test-run mode.
  *
- * <p>Defined by the relation of one {@code main} and one {@code test} module name.
+ * <p>The test-run mode is defined by the relation of one {@code main} and one {@code test} module
+ * name.
+ *
+ * <ul>
+ *   <li>{@code C = CLASSIC}
+ *       <p>no modules available
+ *   <li>{@code M = MODULAR}
+ *       <p>main 'module foo' and test 'module bar' OR main lacks module and test 'module any'
+ *   <li>{@code A = MODULAR_PATCHED_TEST_COMPILE}
+ *       <p>main 'module foo' and test 'module foo'
+ *   <li>{@code B = MODULAR_PATCHED_TEST_RUNTIME}
+ *       <p>main 'module foo' and test lacks module
+ * </ul>
  *
  * <pre><code>
- *                          main plain    main module   main module
- *                             ---            foo           bar
- *
- *     test plain  ---          0              3             3
- *
- *     test module foo          1              2             1
- *
- *     test module bar          1              1             2
- *
- *     0 = CLASSIC                      // no modules available
- *     1 = MODULAR                      // main lacks module, test 'module any'
- *     1 = MODULAR                      // main 'module foo', test 'module bar'
- *     2 = MODULAR_PATCHED_TEST_COMPILE // main 'module foo', test 'module foo'
- *     3 = MODULAR_PATCHED_TEST_RUNTIME // main 'module foo', test lacks module
+ *                      main plain    main module   main module
+ *                         ---            foo           bar
+ * test plain  ---          C              B             B
+ * test module foo          M              A             M
+ * test module bar          M              M             A
  * </code></pre>
  *
  * @see <a href="https://stackoverflow.com/a/33627846/1431016">Access Modifier Table</a>
@@ -86,7 +89,7 @@ public enum TestMode {
       if (testAbsent) { // trivial case: no modules declared at all
         return CLASSIC;
       }
-      return MODULAR; // only test module is present
+      return MODULAR; // only test module is present, no patching involved
     }
     if (testAbsent) { // only main module is present
       return MODULAR_PATCHED_TEST_RUNTIME;
