@@ -91,11 +91,11 @@ class Dependencies {
 
   /** Maven artifact version defaults. */
   enum Version {
-    JUNIT_JUPITER_VERSION("5.3.0", JUNIT_JUPITER_API, JUNIT_JUPITER_ENGINE),
+    JUNIT_JUPITER_VERSION("5.3.1", JUNIT_JUPITER_API, JUNIT_JUPITER_ENGINE),
 
-    JUNIT_PLATFORM_VERSION("1.3.0", JUNIT_PLATFORM_COMMONS),
+    JUNIT_PLATFORM_VERSION("1.3.1", JUNIT_PLATFORM_COMMONS),
 
-    JUNIT_VINTAGE_VERSION("5.3.0", JUNIT_VINTAGE_ENGINE);
+    JUNIT_VINTAGE_VERSION("5.3.1", JUNIT_VINTAGE_ENGINE);
 
     private final String key;
     private final String defaultVersion;
