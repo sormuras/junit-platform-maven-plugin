@@ -32,6 +32,7 @@ import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
@@ -142,7 +143,9 @@ class Resolver {
   }
 
   private List<Artifact> resolve(String coordinates) throws DependencyResolutionException {
-    var repositories = project.getRemotePluginRepositories();
+    var repositories = new ArrayList<RemoteRepository>();
+    repositories.addAll(project.getRemotePluginRepositories());
+    repositories.addAll(project.getRemoteProjectRepositories());
     var artifact = new DefaultArtifact(coordinates);
     verbose("Resolving artifact %s from %s...", artifact, repositories);
     var artifactRequest = new ArtifactRequest();
