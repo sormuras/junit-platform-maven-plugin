@@ -39,7 +39,7 @@ package de.sormuras.junit.platform.maven.plugin;
  * test module bar          M              M             A
  * </code></pre>
  *
- * @see <a href="https://stackoverflow.com/a/33627846/1431016">Access Modifier Table</a>
+ * @see <a href="https://sormuras.github.io/blog/2018-09-11-testing-in-the-modular-world">Testing In The Modular World</a>
  */
 public enum TestMode {
 
@@ -76,7 +76,7 @@ public enum TestMode {
   MODULAR_PATCHED_TEST_RUNTIME;
 
   /**
-   * Get test mode based on two module names.
+   * Returns the test mode constant based on two specified module names.
    *
    * @param main name of the main module
    * @param test name of the test module
