@@ -72,6 +72,12 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
+        <!-- Doesn't work here: jqwik wins the race and pulls 1.2.0 in... -->
+        <!--<configuration>-->
+          <!--<versions>-->
+            <!--<junit.platform.version>${junit.platform.version}</junit.platform.version>-->
+          <!--</versions>-->
+        <!--</configuration>-->
         <executions>
           <execution>
             <goals>
