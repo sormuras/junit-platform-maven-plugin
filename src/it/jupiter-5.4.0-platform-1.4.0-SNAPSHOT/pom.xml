@@ -40,8 +40,6 @@
         <configuration>
           <versions>
             <!-- Help to auto-detection of versions, by setting them here. -->
-            <junit.jupiter.version>5.4.0-SNAPSHOT</junit.jupiter.version>
-            <junit.platform.version>1.4.0-SNAPSHOT</junit.platform.version>
             <junit.vintage.version>5.4.0-SNAPSHOT</junit.vintage.version>
           </versions>
         </configuration>

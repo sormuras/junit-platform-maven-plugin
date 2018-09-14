@@ -210,7 +210,7 @@ public class JUnitPlatformMojo extends AbstractMojo {
     if (artifact == null) {
       return null;
     }
-    return artifact.getVersion();
+    return artifact.getBaseVersion();
   }
 
   FileNames getFileNames() {
