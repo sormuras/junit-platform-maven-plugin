@@ -18,6 +18,7 @@
     <module>application</module>
     <module>tool</module>
     <module>verification</module>
+    <module>with spaces in path</module>
   </modules>
 
   <dependencies>

@@ -14,7 +14,6 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
@@ -45,7 +44,7 @@ class Patcher {
     mojo.debug("");
     mojo.debug("Patching tests into main module %s <- '%s'", name, testOutput);
     cmd.add("--patch-module");
-    cmd.add(createPatchModuleArgument(name));
+    cmd.add(name + '=' + testOutput);
 
     // Apply user-defined command line options
     if (Files.exists(moduleInfoTestPath)) {
@@ -117,14 +116,5 @@ class Patcher {
     }
 
     return modules;
-  }
-
-  private String createPatchModuleArgument(String name) {
-    var testOutput = project.getBuild().getTestOutputDirectory();
-    // On Windows and path with spaces? Wrap path in double quotes...
-    if (File.pathSeparatorChar == ';' && testOutput.indexOf(' ') >= 0) {
-      return name + '=' + '"' + testOutput + '"';
-    }
-    return name + '=' + testOutput;
   }
 }
