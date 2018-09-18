@@ -39,7 +39,8 @@ package de.sormuras.junit.platform.maven.plugin;
  * test module bar          M              M             A
  * </code></pre>
  *
- * @see <a href="https://sormuras.github.io/blog/2018-09-11-testing-in-the-modular-world">Testing In The Modular World</a>
+ * @see <a href="https://sormuras.github.io/blog/2018-09-11-testing-in-the-modular-world">Testing In
+ *     The Modular World</a>
  */
 public enum TestMode {
 

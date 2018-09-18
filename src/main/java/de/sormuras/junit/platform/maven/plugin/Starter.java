@@ -200,6 +200,9 @@ class Starter implements IntSupplier {
 
   private String createPathArgument() {
     var delimiter = File.pathSeparator;
-    return mojo.getProjectPaths().stream().map(Object::toString).collect(joining(delimiter));
+    return mojo.getProjectPaths()
+        .stream()
+        .map(Object::toString)
+        .collect(joining(delimiter, "\"", "\""));
   }
 }
