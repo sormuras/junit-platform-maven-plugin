@@ -44,9 +44,8 @@ class Patcher {
 
     mojo.debug("");
     mojo.debug("Patching tests into main module %s <- '%s'", name, testOutput);
-    char quoteChar = File.pathSeparatorChar == ';' ? '"' : '\'';
     cmd.add("--patch-module");
-    cmd.add(name + '=' + quoteChar + testOutput + quoteChar);
+    cmd.add(createPatchModuleArgument(name));
 
     // Apply user-defined command line options
     if (Files.exists(moduleInfoTestPath)) {
@@ -118,5 +117,14 @@ class Patcher {
     }
 
     return modules;
+  }
+
+  private String createPatchModuleArgument(String name) {
+    var testOutput = project.getBuild().getTestOutputDirectory();
+    // On Windows and path with spaces? Wrap path in double quotes...
+    if (File.pathSeparatorChar == ';' && testOutput.indexOf(' ') >= 0) {
+      return name + '=' + '"' + testOutput + '"';
+    }
+    return name + '=' + testOutput;
   }
 }
