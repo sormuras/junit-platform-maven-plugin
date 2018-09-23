@@ -63,6 +63,13 @@
       <groupId>de.sormuras</groupId>
       <artifactId>brahms</artifactId>
       <version>${brahms.version}</version>
+      <!-- Depends on 1.3.0, but we need 1.3.1 or higher -->
+      <exclusions>
+        <exclusion>
+          <groupId>org.junit.platform</groupId>
+          <artifactId>junit-platform-engine</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
@@ -72,7 +79,7 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
-        <!-- Doesn't work here: jqwik wins the race and pulls 1.2.0 in... -->
+        <!-- Doesn't work here: jqwik and others win the race and pulls 1.2.0 in... -->
         <!--<configuration>-->
           <!--<versions>-->
             <!--<junit.platform.version>${junit.platform.version}</junit.platform.version>-->
