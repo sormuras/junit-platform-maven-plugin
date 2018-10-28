@@ -18,7 +18,7 @@ Maven Plugin launching the JUnit Platform
 Using this plugin requires at least:
 
 * [Apache Maven 3.3.9](https://maven.apache.org)
-* [Java 10](http://jdk.java.net/10)
+* [Java 11](http://jdk.java.net/11)
 
 ## Usage with Jupiter
 
@@ -70,6 +70,25 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
 
 </plugin>
 ```
+
+## `module-info.test` support
+
+This plugin also integrates additional compiler flags specified in a `module-info.test` file.
+For example, if your tests need to access types from a module shipping with the JDK (here: `java.scripting`).
+Note that each non-comment line represents a single argument that is passed to the compiler as an option.
+
+```text
+// Make module visible.
+--add-modules
+  java.scripting
+
+// Same as "requires java.scripting" in a regular module descriptor.
+--add-reads
+  greeter.provider=java.scripting
+```
+
+
+See `src/it/modular-world-2-main-module-test-plain` for details.
 
 ## Contribution policy
 
