@@ -17,9 +17,12 @@ package de.sormuras.junit.platform.maven.plugin;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
 import org.apache.maven.project.MavenProject;
 
 class Patcher {
@@ -36,7 +39,6 @@ class Patcher {
 
   void patch(List<String> cmd) {
     var testOutput = project.getBuild().getTestOutputDirectory();
-    var moduleInfoTestPath = Paths.get(testOutput, mojo.getFileNames().getModuleInfoTest());
 
     var descriptor = modules.getMainModuleReference().orElseThrow().descriptor();
     var name = descriptor.name();
@@ -47,22 +49,17 @@ class Patcher {
     cmd.add(name + '=' + testOutput);
 
     // Apply user-defined command line options
-    if (Files.exists(moduleInfoTestPath)) {
+    var testSource = project.getBuild().getTestSourceDirectory();
+    var roots = Set.of(Paths.get(testSource), Paths.get(testOutput));
+    var moduleInfoTest = mojo.getFileNames().resolveModuleInfoTest(roots);
+    if (moduleInfoTest.isPresent()) {
+      var moduleInfoTestPath = moduleInfoTest.get();
       mojo.debug("Using lines of '%s' to patch module %s...", moduleInfoTestPath, name);
-      try (var lines = Files.lines(moduleInfoTestPath)) {
-        lines
-            .map(String::trim)
-            .filter(line -> !line.isEmpty())
-            .filter(line -> !line.startsWith("//"))
-            .peek(line -> mojo.debug("  %s", line))
-            .forEach(cmd::add);
-      } catch (IOException e) {
-        throw new UncheckedIOException("Reading " + moduleInfoTestPath + " failed", e);
-      }
+      appendModuleInfoTestArguments(moduleInfoTestPath, cmd::add);
       return;
     }
 
-    // Apply best-effort
+    // Apply best-effort options...
     mojo.debug("Adding best-effort command line options to patch module %s...", name);
     var addReads = createAddReadsModules();
     addReads.forEach(
@@ -77,6 +74,19 @@ class Patcher {
         cmd.add("--add-opens");
         cmd.add(name + "/" + pack + "=" + module);
       }
+    }
+  }
+
+  private void appendModuleInfoTestArguments(Path moduleInfoTestPath, Consumer<String> consume) {
+    try (var lines = Files.lines(moduleInfoTestPath)) {
+      lines
+          .map(String::trim)
+          .filter(line -> !line.isEmpty())
+          .filter(line -> !line.startsWith("//"))
+          .peek(line -> mojo.debug("  %s", line))
+          .forEach(consume);
+    } catch (IOException e) {
+      throw new UncheckedIOException("Reading " + moduleInfoTestPath + " failed", e);
     }
   }
 

@@ -14,6 +14,10 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Optional;
+import java.util.Set;
 import java.util.StringJoiner;
 import org.apache.maven.plugins.annotations.Parameter;
 
@@ -39,6 +43,16 @@ public class FileNames {
 
   String getModuleInfoTest() {
     return moduleInfoTest;
+  }
+
+  Optional<Path> resolveModuleInfoTest(Set<Path> roots) {
+    for (var root : roots) {
+      var candidate = root.resolve(getModuleInfoTest());
+      if (Files.exists(candidate)) {
+        return Optional.of(candidate);
+      }
+    }
+    return Optional.empty();
   }
 
   @Override
