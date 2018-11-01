@@ -57,13 +57,6 @@
     </repository>
   </distributionManagement>
 
-  <pluginRepositories>
-    <pluginRepository>
-      <id>staged-releases</id>
-      <url>https://repository.apache.org/content/repositories/maven-1462</url>
-    </pluginRepository>
-  </pluginRepositories>
-
   <dependencies>
     <!-- Provided dependencies. -->
     <dependency>
