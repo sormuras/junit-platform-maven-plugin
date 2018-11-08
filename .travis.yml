@@ -1,10 +1,6 @@
-sudo: false
-
+dist: xenial
 language: java
 jdk: openjdk11
-
-before_install:
-- unset _JAVA_OPTIONS
 
 script:
 - mvn -Prun-its verify
