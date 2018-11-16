@@ -13,6 +13,8 @@ Maven Plugin launching the JUnit Platform
 * Auto-load well-known engine implementations at test runtime: users only have to depend on `junit-jupiter-api`, the Jupiter TestEngine is provided.
 * Support _white-box_ and _black-box_ testing when writing modularized projects.
 
+Idea of this plugin is presented by @sandermak at Devoxx 2018: https://youtu.be/l4Dk7EF-oYc?t=2346
+
 ## Prequisites
 
 Using this plugin requires at least:
@@ -86,7 +88,6 @@ Note that each non-comment line represents a single argument that is passed to t
 --add-reads
   greeter.provider=java.scripting
 ```
-
 
 See `src/it/modular-world-2-main-module-test-plain` for details.
 
