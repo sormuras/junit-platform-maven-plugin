@@ -4,8 +4,10 @@ language: java
 before_install:
 - unset _JAVA_OPTIONS
 
+install: true
+
 script:
-- mvn -Prun-its verify
+- mvn -Prun-its -X verify
 
 after_success:
 - tail -200 target/it/multiple-engines/build.log

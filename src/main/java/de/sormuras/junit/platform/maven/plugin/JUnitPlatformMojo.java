@@ -21,12 +21,16 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.maven.AbstractMavenLifecycleParticipant;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
-import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.ContextEnabled;
+import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
@@ -34,13 +38,15 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 
 /** Launch JUnit Platform Mojo. */
-@Mojo(
+@org.apache.maven.plugins.annotations.Mojo(
     name = "launch-junit-platform",
     defaultPhase = LifecyclePhase.TEST,
     threadSafe = true,
     requiresDependencyCollection = ResolutionScope.TEST,
     requiresDependencyResolution = ResolutionScope.TEST)
-public class JUnitPlatformMojo extends AbstractMojo {
+@org.codehaus.plexus.component.annotations.Component(role = AbstractMavenLifecycleParticipant.class)
+public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
+    implements Mojo, ContextEnabled {
 
   /** Dry-run mode switch. */
   @Parameter(defaultValue = "false")
@@ -151,6 +157,44 @@ public class JUnitPlatformMojo extends AbstractMojo {
    * @see Dependencies.Version
    */
   @Parameter private Map<String, String> versions = Map.of();
+
+  private Log log;
+  private Map pluginContext;
+
+  public void setLog(Log log) {
+    this.log = log;
+  }
+
+  public Log getLog() {
+    if (this.log == null) {
+      this.log = new SystemStreamLog();
+    }
+
+    return this.log;
+  }
+
+  public Map getPluginContext() {
+    return this.pluginContext;
+  }
+
+  public void setPluginContext(Map pluginContext) {
+    this.pluginContext = pluginContext;
+  }
+
+  @Override
+  public void afterSessionStart(MavenSession session) {
+    debug("afterSessionStart(%s)", session);
+  }
+
+  @Override
+  public void afterSessionEnd(MavenSession session) {
+    debug("afterSessionEnd(%s)", session);
+  }
+
+  @Override
+  public void afterProjectsRead(MavenSession session) {
+    debug("afterProjectsRead(%s)", session);
+  }
 
   void debug(String format, Object... args) {
     getLog().debug(String.format(format, args));
