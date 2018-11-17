@@ -7,7 +7,7 @@ before_install:
 install: true
 
 script:
-- mvn -Prun-its -X verify
+- mvn -Prun-its -U -X verify
 
 after_success:
 - tail -200 target/it/multiple-engines/build.log
