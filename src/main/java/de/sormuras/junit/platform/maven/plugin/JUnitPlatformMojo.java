@@ -20,10 +20,14 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginContainer;
+import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.ContextEnabled;
 import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.MojoFailureException;
@@ -182,18 +186,51 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
   }
 
   @Override
-  public void afterSessionStart(MavenSession session) {
-    debug("afterSessionStart(%s)", session);
-  }
-
-  @Override
-  public void afterSessionEnd(MavenSession session) {
-    debug("afterSessionEnd(%s)", session);
-  }
-
-  @Override
   public void afterProjectsRead(MavenSession session) {
     debug("afterProjectsRead(%s)", session);
+
+    for (var project : session.getProjects()) {
+
+      debug("project = " + project.getName() + " // " + project);
+
+      var thisPlugin =
+          getPluginByGAFromContainer(
+              "de.sormuras:junit-platform-maven-plugin", project.getModel().getBuild());
+
+      if (thisPlugin == null) {
+        continue;
+      }
+
+      var surefirePlugin =
+          getPluginByGAFromContainer(
+              "org.apache.maven.plugins:maven-surefire-plugin", project.getModel().getBuild());
+      if (surefirePlugin != null) {
+        surefirePlugin.getExecutions().clear();
+      }
+
+      getLog().info("thisPlugin = " + thisPlugin);
+
+      var execution = new PluginExecution();
+      execution.setId("injected-junit-platform-maven-plugin");
+      execution.getGoals().add("launch-junit-platform");
+      execution.setPhase("test");
+      execution.setConfiguration(thisPlugin.getConfiguration());
+      thisPlugin.getExecutions().add(execution);
+    }
+  }
+
+  private Plugin getPluginByGAFromContainer(String ga, PluginContainer container) {
+    Plugin result = null;
+    for (Plugin plugin : container.getPlugins()) {
+      debug(" - " + plugin + " // " + plugin.getGroupId() + ':' + plugin.getArtifactId());
+      if (Objects.equals(ga, plugin.getGroupId() + ':' + plugin.getArtifactId())) {
+        if (result != null) {
+          throw new IllegalStateException("The build contains multiple versions of plugin " + ga);
+        }
+        result = plugin;
+      }
+    }
+    return result;
   }
 
   void debug(String format, Object... args) {

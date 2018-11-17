@@ -21,27 +21,13 @@
   </dependencies>
 
   <build>
-    <extensions>
-      <extension>
+    <plugins>
+      <plugin>
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <version>@project.version@</version>
-      </extension>
-    </extensions>
-    <!--<plugins>-->
-      <!--<plugin>-->
-        <!--<groupId>@project.groupId@</groupId>-->
-        <!--<artifactId>@project.artifactId@</artifactId>-->
-        <!--<version>@project.version@</version>-->
-        <!--<extensions>true</extensions>-->
-        <!--<executions>-->
-          <!--<execution>-->
-            <!--<goals>-->
-              <!--<goal>launch-junit-platform</goal>-->
-            <!--</goals>-->
-          <!--</execution>-->
-        <!--</executions>-->
-      <!--</plugin>-->
-    <!--</plugins>-->
+        <extensions>true</extensions>
+      </plugin>
+    </plugins>
   </build>
 </project>
