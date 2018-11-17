@@ -19,7 +19,3 @@ after_failure:
 - tail -200 target/it/modular-world-2-main-module-test-plain/build.log
 - tail -200 target/it/multiple-engines/build.log
 - tail -200 target/it/timeout/build.log
-
-cache:
-  directories:
-  - $HOME/.m2
