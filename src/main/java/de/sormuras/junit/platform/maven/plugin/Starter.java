@@ -132,7 +132,7 @@ class Starter implements IntSupplier {
       cmd.add(createPathArgument());
       cmd.add("--add-modules");
       cmd.add(createAddModulesArgument());
-      if (mainModule.isPresent() && !testModule.isPresent()) {
+      if (mainModule.isPresent() && testModule.isEmpty()) {
         new Patcher(mojo).patch(cmd);
       }
       cmd.add("--module");
