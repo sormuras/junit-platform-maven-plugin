@@ -20,13 +20,11 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
-import org.apache.maven.model.PluginContainer;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.ContextEnabled;
 import org.apache.maven.plugin.Mojo;
@@ -187,50 +185,35 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
 
   @Override
   public void afterProjectsRead(MavenSession session) {
-    debug("afterProjectsRead(%s)", session);
-
+    debug("Preparing Lifecycle for %s", session);
     for (var project : session.getProjects()) {
-
-      debug("project = " + project.getName() + " // " + project);
-
-      var thisPlugin =
-          getPluginByGAFromContainer(
-              "de.sormuras:junit-platform-maven-plugin", project.getModel().getBuild());
-
-      if (thisPlugin == null) {
-        continue;
-      }
-
-      var surefirePlugin =
-          getPluginByGAFromContainer(
-              "org.apache.maven.plugins:maven-surefire-plugin", project.getModel().getBuild());
-      if (surefirePlugin != null) {
-        surefirePlugin.getExecutions().clear();
-      }
-
-      getLog().info("thisPlugin = " + thisPlugin);
-
-      var execution = new PluginExecution();
-      execution.setId("injected-junit-platform-maven-plugin");
-      execution.getGoals().add("launch-junit-platform");
-      execution.setPhase("test");
-      execution.setConfiguration(thisPlugin.getConfiguration());
-      thisPlugin.getExecutions().add(execution);
+      var thisPlugin = findPlugin(project, "de.sormuras:junit-platform-maven-plugin");
+      thisPlugin.ifPresent(plugin -> injectThisPluginIntoTestExecutionPhase(project, plugin));
     }
   }
 
-  private Plugin getPluginByGAFromContainer(String ga, PluginContainer container) {
-    Plugin result = null;
-    for (Plugin plugin : container.getPlugins()) {
-      debug(" - " + plugin + " // " + plugin.getGroupId() + ':' + plugin.getArtifactId());
-      if (Objects.equals(ga, plugin.getGroupId() + ':' + plugin.getArtifactId())) {
-        if (result != null) {
-          throw new IllegalStateException("The build contains multiple versions of plugin " + ga);
-        }
-        result = plugin;
-      }
-    }
-    return result;
+  private void injectThisPluginIntoTestExecutionPhase(MavenProject project, Plugin thisPlugin) {
+    debug("  Inject JUnit Platform Plugin to phase 'test' of project '%s'", project.getName());
+    var execution = new PluginExecution();
+    execution.setId("injected-junit-platform-maven-plugin");
+    execution.getGoals().add("launch-junit-platform");
+    execution.setPhase("test");
+    execution.setConfiguration(thisPlugin.getConfiguration());
+    thisPlugin.getExecutions().add(execution);
+
+    debug("  Clear Surefire executions", project.getName());
+    var surefirePlugin = findPlugin(project, "org.apache.maven.plugins:maven-surefire-plugin");
+    surefirePlugin.ifPresent(surefire -> surefire.getExecutions().clear());
+  }
+
+  private Optional<Plugin> findPlugin(MavenProject project, String ga) {
+    return project
+        .getModel()
+        .getBuild()
+        .getPlugins()
+        .stream()
+        .filter(plugin -> ga.equals(plugin.getGroupId() + ':' + plugin.getArtifactId()))
+        .findFirst();
   }
 
   void debug(String format, Object... args) {
