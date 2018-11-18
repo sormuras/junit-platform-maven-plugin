@@ -13,7 +13,7 @@ Maven Plugin launching the JUnit Platform
 * Auto-load well-known engine implementations at test runtime: users only have to depend on `junit-jupiter-api`, the Jupiter TestEngine is provided.
 * Support _white-box_ and _black-box_ testing when writing modularized projects.
 
-Idea of this plugin is presented by [Sander Mak](https://github.com/sandermak) at Devoxx 2018: https://youtu.be/l4Dk7EF-oYc?t=2346
+Idea of this plugin was presented by [Sander Mak](https://github.com/sandermak) at Devoxx 2018: https://youtu.be/l4Dk7EF-oYc?t=2346
 
 ## Prequisites
 
@@ -42,34 +42,10 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
 
 ```xml
 <plugin>
-
   <groupId>de.sormuras</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>${version}</version>
-  
-  <!-- Configure the plugin. -->
-  <configuration>
-    <timeout>99</timeout>
-    <reports>custom-reports-directory</reports>
-    <tags>
-      <tag>foo</tag>
-      <tag>bar</tag>
-      <tag><![CDATA[(a | b) & (c | !d)]]></tag>
-    </tags>
-    <parameters>
-      <ninety.nine>99</ninety.nine>
-    </parameters>
-  </configuration>
-  
-  <!-- Bind and execute the plugin to the test phase. -->
-  <executions>
-    <execution>
-      <goals>
-        <goal>launch-junit-platform</goal>
-      </goals>
-    </execution>
-  </executions>
-
+  <version>0.11.0</version>  
+  <extensions>true</extensions> <!-- Necessary to execute it in 'test' phase. -->
 </plugin>
 ```
 
