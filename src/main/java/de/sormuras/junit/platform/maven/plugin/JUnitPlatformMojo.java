@@ -340,7 +340,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
    * @return path to reports directory, may be empty
    */
   Optional<Path> getReportsPath() {
-    if (reports.trim().isEmpty()) { // .isBlank()
+    if (reports.isBlank()) {
       return Optional.empty();
     }
     Path path = Paths.get(reports);
