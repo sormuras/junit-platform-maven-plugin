@@ -25,7 +25,6 @@
       <plugin>
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
-        <version>@project.version@</version>
         <configuration>
           <tags>
             <tag>foo</tag>
@@ -39,13 +38,6 @@
             <moduleInfoTest>module-info.patch</moduleInfoTest>
           </fileNames>
         </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>launch-junit-platform</goal>
-            </goals>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>

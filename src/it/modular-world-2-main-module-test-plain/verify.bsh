@@ -54,7 +54,8 @@ String[] snippets = new String[] {
 
 String[] badSnippets = new String[] {
   "[WARNING]",
-  "[ERROR]"
+  "[ERROR]",
+  "[INFO] --- maven-surefire-plugin:2.12.4:test (default-test)"
 };
 
 //
