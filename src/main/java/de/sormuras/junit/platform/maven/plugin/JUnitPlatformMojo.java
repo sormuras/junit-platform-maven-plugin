@@ -20,13 +20,21 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import org.apache.maven.AbstractMavenLifecycleParticipant;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
-import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginContainer;
+import org.apache.maven.model.PluginExecution;
+import org.apache.maven.plugin.ContextEnabled;
+import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
@@ -34,13 +42,15 @@ import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 
 /** Launch JUnit Platform Mojo. */
-@Mojo(
+@org.apache.maven.plugins.annotations.Mojo(
     name = "launch-junit-platform",
     defaultPhase = LifecyclePhase.TEST,
     threadSafe = true,
     requiresDependencyCollection = ResolutionScope.TEST,
     requiresDependencyResolution = ResolutionScope.TEST)
-public class JUnitPlatformMojo extends AbstractMojo {
+@org.codehaus.plexus.component.annotations.Component(role = AbstractMavenLifecycleParticipant.class)
+public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
+    implements Mojo, ContextEnabled {
 
   /** Dry-run mode switch. */
   @Parameter(defaultValue = "false")
@@ -151,6 +161,77 @@ public class JUnitPlatformMojo extends AbstractMojo {
    * @see Dependencies.Version
    */
   @Parameter private Map<String, String> versions = Map.of();
+
+  private Log log;
+  private Map pluginContext;
+
+  public void setLog(Log log) {
+    this.log = log;
+  }
+
+  public Log getLog() {
+    if (this.log == null) {
+      this.log = new SystemStreamLog();
+    }
+
+    return this.log;
+  }
+
+  public Map getPluginContext() {
+    return this.pluginContext;
+  }
+
+  public void setPluginContext(Map pluginContext) {
+    this.pluginContext = pluginContext;
+  }
+
+  @Override
+  public void afterProjectsRead(MavenSession session) {
+    debug("afterProjectsRead(%s)", session);
+
+    for (var project : session.getProjects()) {
+
+      debug("project = " + project.getName() + " // " + project);
+
+      var thisPlugin =
+          getPluginByGAFromContainer(
+              "de.sormuras:junit-platform-maven-plugin", project.getModel().getBuild());
+
+      if (thisPlugin == null) {
+        continue;
+      }
+
+      var surefirePlugin =
+          getPluginByGAFromContainer(
+              "org.apache.maven.plugins:maven-surefire-plugin", project.getModel().getBuild());
+      if (surefirePlugin != null) {
+        surefirePlugin.getExecutions().clear();
+      }
+
+      getLog().info("thisPlugin = " + thisPlugin);
+
+      var execution = new PluginExecution();
+      execution.setId("injected-junit-platform-maven-plugin");
+      execution.getGoals().add("launch-junit-platform");
+      execution.setPhase("test");
+      execution.setConfiguration(thisPlugin.getConfiguration());
+      thisPlugin.getExecutions().add(execution);
+    }
+  }
+
+  private Plugin getPluginByGAFromContainer(String ga, PluginContainer container) {
+    Plugin result = null;
+    for (Plugin plugin : container.getPlugins()) {
+      debug(" - " + plugin + " // " + plugin.getGroupId() + ':' + plugin.getArtifactId());
+      if (Objects.equals(ga, plugin.getGroupId() + ':' + plugin.getArtifactId())) {
+        if (result != null) {
+          throw new IllegalStateException("The build contains multiple versions of plugin " + ga);
+        }
+        result = plugin;
+      }
+    }
+    return result;
+  }
 
   void debug(String format, Object... args) {
     getLog().debug(String.format(format, args));

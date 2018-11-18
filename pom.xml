@@ -93,6 +93,14 @@
     </dependency>
   </dependencies>
 
+  <pluginRepositories>
+    <pluginRepository>
+      <id>oss.sonatype.org</id>
+      <snapshots><enabled>true</enabled></snapshots>
+      <url>https://oss.sonatype.org/content/repositories/plexus-snapshots</url>
+    </pluginRepository>
+  </pluginRepositories>
+
   <build>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
       <plugins>
@@ -149,7 +157,7 @@
             <configuration>
               <rules>
                 <requireJavaVersion>
-                  <version>[10,)</version>
+                  <version>[11,)</version>
                 </requireJavaVersion>
               </rules>
             </configuration>
@@ -215,6 +223,19 @@
             <id>attach-sources</id>
             <goals>
               <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-component-metadata</artifactId>
+        <version>1.8-SNAPSHOT</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>generate-metadata</goal>
+              <goal>generate-test-metadata</goal>
             </goals>
           </execution>
         </executions>
