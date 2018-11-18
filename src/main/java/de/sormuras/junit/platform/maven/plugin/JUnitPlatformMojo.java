@@ -14,6 +14,8 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_PLATFORM_VERSION;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -187,7 +189,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
   public void afterProjectsRead(MavenSession session) {
     debug("Preparing Lifecycle for %s", session);
     for (var project : session.getProjects()) {
-      var thisPlugin = findPlugin(project, "de.sormuras:junit-platform-maven-plugin");
+      var thisPlugin = findPlugin(project, "de.sormuras", "junit-platform-maven-plugin");
       thisPlugin.ifPresent(plugin -> injectThisPluginIntoTestExecutionPhase(project, plugin));
     }
   }
@@ -202,18 +204,20 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
     thisPlugin.getExecutions().add(execution);
 
     debug("  Clear Surefire executions", project.getName());
-    var surefirePlugin = findPlugin(project, "org.apache.maven.plugins:maven-surefire-plugin");
+    var surefirePlugin = findPlugin(project, "org.apache.maven.plugins", "maven-surefire-plugin");
     surefirePlugin.ifPresent(surefire -> surefire.getExecutions().clear());
   }
 
-  private Optional<Plugin> findPlugin(MavenProject project, String ga) {
-    return project
-        .getModel()
-        .getBuild()
-        .getPlugins()
+  private Optional<Plugin> findPlugin(MavenProject project, String group, String artifact) {
+    var plugins = project.getModel().getBuild().getPlugins();
+    return plugins
         .stream()
-        .filter(plugin -> ga.equals(plugin.getGroupId() + ':' + plugin.getArtifactId()))
-        .findFirst();
+        .filter(plugin -> group.equals(plugin.getGroupId()))
+        .filter(plugin -> artifact.equals(plugin.getArtifactId()))
+        .reduce(
+            (u, v) -> {
+              throw new IllegalStateException("Plugin is not unique: " + artifact);
+            });
   }
 
   void debug(String format, Object... args) {
@@ -241,7 +245,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
   }
 
   public void execute() throws MojoFailureException {
-    getLog().info("Launching JUnit Platform...");
+    debug("Executing JUnitPlatformMojo...");
 
     if (skip) {
       getLog().info("JUnit Platform execution skipped.");
@@ -254,6 +258,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
     projectVersions = Dependencies.createArtifactVersionMap(this::getArtifactVersionOrNull);
     projectPaths = new Resolver(this).getPaths();
 
+    getLog().info("Launching JUnit Platform " + version(JUNIT_PLATFORM_VERSION) + "...");
     if (getLog().isDebugEnabled()) {
       dumpParameters();
     }
