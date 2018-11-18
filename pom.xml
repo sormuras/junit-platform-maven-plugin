@@ -39,6 +39,10 @@
       <name>Benedikt Ritter</name>
       <id>britter</id>
     </developer>
+    <developer>
+      <name>Karl Heinz Marbaise</name>
+      <id>khmarbaise</id>
+    </developer>
   </developers>
 
   <licenses>
