@@ -165,10 +165,12 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
   private Log log;
   private Map pluginContext;
 
+  @Override
   public void setLog(Log log) {
     this.log = log;
   }
 
+  @Override
   public Log getLog() {
     if (this.log == null) {
       this.log = new SystemStreamLog();
@@ -177,10 +179,12 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
     return this.log;
   }
 
+  @Override
   public Map getPluginContext() {
     return this.pluginContext;
   }
 
+  @Override
   public void setPluginContext(Map pluginContext) {
     this.pluginContext = pluginContext;
   }
@@ -244,6 +248,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
     projectPaths.forEach(p -> debug("  %s", p));
   }
 
+  @Override
   public void execute() throws MojoFailureException {
     debug("Executing JUnitPlatformMojo...");
 
