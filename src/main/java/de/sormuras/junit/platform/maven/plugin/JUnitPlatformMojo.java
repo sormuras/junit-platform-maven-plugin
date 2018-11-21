@@ -28,7 +28,6 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
-import org.apache.maven.plugin.ContextEnabled;
 import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
@@ -49,8 +48,7 @@ import org.eclipse.aether.RepositorySystemSession;
     requiresDependencyCollection = ResolutionScope.TEST,
     requiresDependencyResolution = ResolutionScope.TEST)
 @org.codehaus.plexus.component.annotations.Component(role = AbstractMavenLifecycleParticipant.class)
-public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
-    implements Mojo, ContextEnabled {
+public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant implements Mojo {
 
   /** Dry-run mode switch. */
   @Parameter(defaultValue = "false")
@@ -163,7 +161,6 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
   @Parameter private Map<String, String> versions = Map.of();
 
   private Log log;
-  private Map pluginContext;
 
   @Override
   public void setLog(Log log) {
@@ -180,18 +177,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
   }
 
   @Override
-  public Map getPluginContext() {
-    return this.pluginContext;
-  }
-
-  @Override
-  public void setPluginContext(Map pluginContext) {
-    this.pluginContext = pluginContext;
-  }
-
-  @Override
   public void afterProjectsRead(MavenSession session) {
-    debug("Preparing Lifecycle for %s", session);
     for (var project : session.getProjects()) {
       var thisPlugin = findPlugin(project, "de.sormuras", "junit-platform-maven-plugin");
       thisPlugin.ifPresent(plugin -> injectThisPluginIntoTestExecutionPhase(project, plugin));
@@ -199,7 +185,6 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
   }
 
   private void injectThisPluginIntoTestExecutionPhase(MavenProject project, Plugin thisPlugin) {
-    debug("  Inject JUnit Platform Plugin to phase 'test' of project '%s'", project.getName());
     var execution = new PluginExecution();
     execution.setId("injected-junit-platform-maven-plugin");
     execution.getGoals().add("launch-junit-platform");
@@ -207,7 +192,6 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant
     execution.setConfiguration(thisPlugin.getConfiguration());
     thisPlugin.getExecutions().add(execution);
 
-    debug("  Clear Surefire executions", project.getName());
     var surefirePlugin = findPlugin(project, "org.apache.maven.plugins", "maven-surefire-plugin");
     surefirePlugin.ifPresent(surefire -> surefire.getExecutions().clear());
   }
