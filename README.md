@@ -1,6 +1,7 @@
 # JUnit Platform Maven Plugin
  
-[![jdk11](https://img.shields.io/badge/jdk-11-blue.svg)](http://jdk.java.net/11)
+[![jdk11](https://img.shields.io/badge/java-8-lightgray.svg)](http://jdk.java.net/8)
+[![jdk11](https://img.shields.io/badge/java-11-blue.svg)](http://jdk.java.net/11)
 [![travis](https://travis-ci.com/sormuras/junit-platform-maven-plugin.svg?branch=master)](https://travis-ci.com/sormuras/junit-platform-maven-plugin)
 [![experimental](https://img.shields.io/badge/api-experimental-yellow.svg)](https://javadoc.io/doc/de.sormuras/junit-platform-maven-plugin)
 [![central](https://img.shields.io/maven-central/v/de.sormuras/junit-platform-maven-plugin.svg)](https://search.maven.org/artifact/de.sormuras/junit-platform-maven-plugin)
