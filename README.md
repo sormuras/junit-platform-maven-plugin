@@ -44,7 +44,7 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
 <plugin>
   <groupId>de.sormuras</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>0.11.0</version>  
+  <version>0.11.1</version>  
   <extensions>true</extensions> <!-- Necessary to execute it in 'test' phase. -->
 </plugin>
 ```
