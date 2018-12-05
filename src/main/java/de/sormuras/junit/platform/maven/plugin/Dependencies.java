@@ -30,12 +30,12 @@ import java.util.function.UnaryOperator;
 class Dependencies {
 
   static Map<String, String> createArtifactVersionMap(UnaryOperator<String> versionOperator) {
-    var result = new HashMap<String, String>();
+    Map<String, String> result = new HashMap<>();
     withNextVersion:
-    for (var version : Version.values()) {
-      var versionKey = version.getKey();
-      for (var groupArtifact : version.getGroupArtifacts()) {
-        var artifactVersion = versionOperator.apply(groupArtifact.toIdentifier());
+    for (Version version : Version.values()) {
+      String versionKey = version.getKey();
+      for (GroupArtifact groupArtifact : version.getGroupArtifacts()) {
+        String artifactVersion = versionOperator.apply(groupArtifact.toIdentifier());
         if (artifactVersion != null) {
           result.put(versionKey, artifactVersion);
           continue withNextVersion;
@@ -104,7 +104,7 @@ class Dependencies {
     Version(String defaultVersion, GroupArtifact... groupArtifacts) {
       this.key = name().toLowerCase().replace('_', '.');
       this.defaultVersion = defaultVersion;
-      this.groupArtifacts = List.of(groupArtifacts);
+      this.groupArtifacts = Arrays.asList(groupArtifacts);
     }
 
     List<GroupArtifact> getGroupArtifacts() {
