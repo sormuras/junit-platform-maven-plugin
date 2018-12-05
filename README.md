@@ -1,12 +1,34 @@
 # JUnit Platform Maven Plugin
  
-[![jdk11](https://img.shields.io/badge/java-8-lightgray.svg)](http://jdk.java.net/8)
+[![jdk8](https://img.shields.io/badge/java-8-lightgray.svg)](http://jdk.java.net/8)
 [![jdk11](https://img.shields.io/badge/java-11-blue.svg)](http://jdk.java.net/11)
 [![travis](https://travis-ci.com/sormuras/junit-platform-maven-plugin.svg?branch=master)](https://travis-ci.com/sormuras/junit-platform-maven-plugin)
 [![experimental](https://img.shields.io/badge/api-experimental-yellow.svg)](https://javadoc.io/doc/de.sormuras/junit-platform-maven-plugin)
 [![central](https://img.shields.io/maven-central/v/de.sormuras/junit-platform-maven-plugin.svg)](https://search.maven.org/artifact/de.sormuras/junit-platform-maven-plugin)
 
 Maven Plugin launching the JUnit Platform
+
+# R E L A U N C H
+
+_[Make Java 8 baseline](https://github.com/sormuras/junit-platform-maven-plugin/issues/10) in progress..._
+
+New version will be `0.811.0`.
+Current `master` is available via [JitPack](https://jitpack.io/#sormuras/junit-platform-maven-plugin):
+
+```xml
+<pluginRepositories>
+    <pluginRepository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </pluginRepository>
+</pluginRepositories>
+
+<dependency>
+    <groupId>com.github.sormuras</groupId>
+    <artifactId>junit-platform-maven-plugin</artifactId>
+    <version>master-SNAPSHOT</version>
+</dependency>
+```
 
 ## Goals
 
@@ -21,7 +43,7 @@ Idea of this plugin was presented by [Sander Mak](https://github.com/sandermak) 
 Using this plugin requires at least:
 
 * [Apache Maven 3.3.9](https://maven.apache.org)
-* [Java 11](http://jdk.java.net/11)
+* [Java 8](http://jdk.java.net/8)
 
 ## Usage with Jupiter
 
