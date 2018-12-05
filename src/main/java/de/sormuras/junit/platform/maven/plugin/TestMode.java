@@ -84,8 +84,8 @@ public enum TestMode {
    * @return test mode constant based on both names
    */
   public static TestMode of(String main, String test) {
-    var mainAbsent = main == null || main.isBlank();
-    var testAbsent = test == null || test.isBlank();
+    boolean mainAbsent = main == null || main.trim().isEmpty();
+    boolean testAbsent = test == null || test.trim().isEmpty();
     if (mainAbsent) {
       if (testAbsent) { // trivial case: no modules declared at all
         return CLASSIC;

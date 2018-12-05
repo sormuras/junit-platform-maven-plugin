@@ -12,17 +12,22 @@ String[] files = new String[] {
   // compile: test
   "target/test-classes/BasicTests.class",
   // test: junit-platform
+/*
   "target/junit-platform/console-launcher.cmd.log",
   "target/junit-platform/console-launcher.out.log"
+*/
 };
 
 String[] emptyFiles = new String[] {
+/*
   "target/junit-platform/console-launcher.err.log"
+*/
 };
 
 String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
 String[] snippets = new String[] {
-  "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
+  "[INFO] Launching JUnit Platform...",
+/*
   "[DEBUG] Versions",
   "[DEBUG]   junit.jupiter.version = " + junitJupiterVersion,
   "[DEBUG]   junit.platform.version = " + junitPlatformVersion,
@@ -43,6 +48,7 @@ String[] snippets = new String[] {
   "[INFO] [         0 tests aborted         ]",
   "[INFO] [         1 tests successful      ]",
   "[INFO] [         0 tests failed          ]",
+*/
   "[INFO] BUILD SUCCESS"
 };
 
