@@ -14,6 +14,14 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_JUPITER_API;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_JUPITER_ENGINE;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_PLATFORM_COMMONS;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_PLATFORM_CONSOLE;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.GroupArtifact.JUNIT_VINTAGE_ENGINE;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_JUPITER_VERSION;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_PLATFORM_VERSION;
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_VINTAGE_VERSION;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
@@ -28,7 +36,7 @@ class DependenciesTests {
   private static final int SIZE = 3;
 
   @Test
-  void forEachVersionCallsThePassedVisitorThreeTimes() {
+  void forEachVersionCallsThePassedVisitorEveryTimes() {
     List<Dependencies.Version> versions = new ArrayList<>();
     Dependencies.forEachVersion(versions::add);
     assertEquals(SIZE, versions.size(), "versions=" + versions);
@@ -63,5 +71,14 @@ class DependenciesTests {
     assertEquals("a", map.get("junit.platform.version"));
     assertEquals("b", map.get("junit.jupiter.version"));
     assertEquals("c", map.get("junit.vintage.version"));
+  }
+
+  @Test
+  void versionOfGroupArtifactsDoMatch() {
+    assertSame(JUNIT_PLATFORM_VERSION, JUNIT_PLATFORM_COMMONS.getVersion());
+    assertSame(JUNIT_PLATFORM_VERSION, JUNIT_PLATFORM_CONSOLE.getVersion());
+    assertSame(JUNIT_JUPITER_VERSION, JUNIT_JUPITER_API.getVersion());
+    assertSame(JUNIT_JUPITER_VERSION, JUNIT_JUPITER_ENGINE.getVersion());
+    assertSame(JUNIT_VINTAGE_VERSION, JUNIT_VINTAGE_ENGINE.getVersion());
   }
 }
