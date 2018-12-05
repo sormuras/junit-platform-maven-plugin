@@ -20,7 +20,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
@@ -47,6 +46,10 @@ import org.eclipse.aether.RepositorySystemSession;
 @org.codehaus.plexus.component.annotations.Component(role = AbstractMavenLifecycleParticipant.class)
 public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant implements Mojo {
 
+  /** Skip execution of this plugin. */
+  @Parameter(defaultValue = "false")
+  private boolean skip;
+
   /** Dry-run mode discovers tests but does not execute them. */
   @Parameter(defaultValue = "false")
   private boolean dryRun;
@@ -66,14 +69,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   /** The entry point to Maven Artifact Resolver, i.e. the component doing all the work. */
   @Component private RepositorySystem mavenResolver;
 
-  /**
-   * Skip execution of this plugin.
-   *
-   * @see #isDryRun()
-   */
-  @Parameter(defaultValue = "false")
-  private boolean skip;
-
+  /** The log instance passed in via setter. */
   private Log log;
 
   @Override
@@ -86,8 +82,15 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     if (this.log == null) {
       this.log = new SystemStreamLog();
     }
-
     return this.log;
+  }
+
+  void debug(String format, Object... args) {
+    getLog().debug(String.format(format, args));
+  }
+
+  void info(String format, Object... args) {
+    getLog().info(String.format(format, args));
   }
 
   @Override
@@ -124,38 +127,26 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
             });
   }
 
-  void debug(String format, Object... args) {
-    getLog().debug(String.format(format, args));
-  }
-
   @Override
   public void execute() throws MojoFailureException {
     debug("Executing JUnitPlatformMojo...");
 
     if (skip) {
-      getLog().info("JUnit Platform execution skipped.");
+      info("JUnit Platform execution skipped.");
       return;
     }
 
     Path testPath = Paths.get(mavenBuild.getTestOutputDirectory());
 
-    getLog().info("Launching JUnit Platform...");
+    info("Launching JUnit Platform...");
     if (getLog().isDebugEnabled()) {
       debug("  testPath %s", testPath);
     }
 
     if (Files.notExists(testPath)) {
-      getLog().info("Test output directory doesn't exist.");
+      info("Test output directory doesn't exist.");
       return;
     }
-  }
-
-  private String getArtifactVersionOrNull(String key) {
-    Artifact artifact = mavenProject.getArtifactMap().get(key);
-    if (artifact == null) {
-      return null;
-    }
-    return artifact.getBaseVersion();
   }
 
   MavenProject getMavenProject() {
