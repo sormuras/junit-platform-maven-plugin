@@ -20,9 +20,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.IntSupplier;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
@@ -226,10 +228,14 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     debug("Versions");
     debug("  java.version = %s (%s)", System.getProperty("java.version"), Runtime.version());
     Dependencies.forEachVersion(v -> debug("  %s = %s", v.getKey(), version(v)));
-    debug("Dependency path (short)");
-    projectPaths.forEach(p -> debug("  %s", p.getFileName()));
-    debug("Dependency path (full path)");
-    projectPaths.forEach(p -> debug("  %s", p));
+    debugPath("Dependency", projectPaths);
+  }
+
+  void debugPath(String caption, Collection<Path> paths) {
+    debug(caption + " (short)");
+    paths.forEach(p -> debug("  %s", p.getFileName()));
+    debug(caption + " (full)");
+    paths.forEach(p -> debug("  %s", p));
   }
 
   @Override
@@ -257,9 +263,19 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       return;
     }
 
-    int result = new Starter(this).getAsInt();
+    int result = createStarter().getAsInt();
     if (result != 0) {
       throw new MojoFailureException("RED ALERT!");
+    }
+  }
+
+  private IntSupplier createStarter() {
+    //noinspection SwitchStatementWithTooFewBranches
+    switch (parameters.getOrDefault("starter", "default")) {
+      case "separating":
+        return new SeparatingStarter(this);
+      default:
+        return new Starter(this);
     }
   }
 
