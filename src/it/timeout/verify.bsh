@@ -22,7 +22,7 @@ String[] emptyFiles = new String[] {
 
 String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
 String[] snippets = new String[] {
-  "[INFO] Launching JUnit Platform 1.3.1...",
+  "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
   "[ERROR] Global timeout of 2 seconds reached.",
   "[ERROR] Killing process #",
   "[INFO] BUILD FAILURE"
