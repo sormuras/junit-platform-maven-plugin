@@ -45,6 +45,15 @@ Using this plugin requires at least:
 * [Apache Maven 3.3.9](https://maven.apache.org)
 * [Java 8](http://jdk.java.net/8)
 
+## ClassLoader Layout
+
+1. Java `AppClassLoader`
+2. Maven/ClassRealm _Thread Context Class Loader_
+3. Main `target/classes` + _main dependencies_
+4. Test `target/test-classes` + _test dependencies_
+5. Platform + Engines
+6. _Manager?_
+
 ## Usage with Jupiter
 
 Add test compile dependencies into the `pom.xml`.
@@ -90,9 +99,11 @@ Note that each non-comment line represents a single argument that is passed to t
 
 See `src/it/modular-world-2-main-module-test-plain` for details.
 
-## Contribution policy
+## Contribution Policy
 
-Contributions via GitHub pull requests are gladly accepted from their original author. Along with any pull requests, please state that the contribution is your original work and that you license the work to the project under the project's open source license. Whether or not you state this explicitly, by submitting any copyrighted material via pull request, email, or other means you agree to license the material under the project's open source license and warrant that you have the legal authority to do so.
+Contributions via GitHub pull requests are gladly accepted from their original author.
+Along with any pull requests, please state that the contribution is your original work and that you license the work to the project under the project's open source license.
+Whether or not you state this explicitly, by submitting any copyrighted material via pull request, email, or other means you agree to license the material under the project's open source license and warrant that you have the legal authority to do so.
 
 ## License
 
