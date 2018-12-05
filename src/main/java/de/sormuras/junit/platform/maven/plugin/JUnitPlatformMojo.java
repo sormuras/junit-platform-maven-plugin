@@ -245,7 +245,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     var testPath = Paths.get(mavenBuild.getTestOutputDirectory());
     projectModules = new Modules(mainPath, testPath);
     projectVersions = Dependencies.createArtifactVersionMap(this::getArtifactVersionOrNull);
-    projectPaths = new Resolver(this).getPaths();
+    projectPaths = new Resolver(this).buildPaths();
 
     getLog().info("Launching JUnit Platform " + version(JUNIT_PLATFORM_VERSION) + "...");
     if (getLog().isDebugEnabled()) {

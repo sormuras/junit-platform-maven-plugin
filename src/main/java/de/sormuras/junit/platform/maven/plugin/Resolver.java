@@ -76,16 +76,14 @@ class Resolver {
   }
 
   private final JUnitPlatformMojo mojo;
-  private final List<Path> paths;
   private final MavenProject project;
 
   Resolver(JUnitPlatformMojo mojo) {
     this.mojo = mojo;
     this.project = mojo.getMavenProject();
-    this.paths = buildPaths();
   }
 
-  private List<Path> buildPaths() {
+  List<Path> buildPaths() {
     var builder = new PathsBuilder();
 
     // Append test and main output directories
@@ -142,7 +140,7 @@ class Resolver {
     }
   }
 
-  private List<Artifact> resolve(String coordinates) throws DependencyResolutionException {
+  List<Artifact> resolve(String coordinates) throws DependencyResolutionException {
     var repositories = new ArrayList<RemoteRepository>();
     repositories.addAll(project.getRemotePluginRepositories());
     repositories.addAll(project.getRemoteProjectRepositories());
@@ -167,10 +165,6 @@ class Resolver {
         .map(ArtifactResult::getArtifact)
         .peek(a -> verbose("Artifact %s resolved to %s", a, a.getFile()))
         .collect(Collectors.toList());
-  }
-
-  List<Path> getPaths() {
-    return paths;
   }
 
   private void verbose(String format, Object... args) {
