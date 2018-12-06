@@ -57,23 +57,28 @@ public class Verifier {
 
   public Verifier verifyBadLines() {
     System.out.printf("Verifying build.log doesn't contain bad lines...%n");
-    for (int i = 0; i < buildLogLines.size(); i++) {
-      String line = buildLogLines.get(0);
+    int size = buildLogLines.size();
+    for (int i = 0; i < size; i++) {
+      String line = buildLogLines.get(i);
       if (line.startsWith("[ERROR]")) {
         ok = false;
         err("Log line %d contains an error marker: %s", i, line);
+        continue;
       }
       if (line.startsWith("[WARNING]")) {
         ok = false;
         err("Log line %d contains a warning marker: %s", i, line);
+        continue;
       }
       if (line.startsWith("[INFO] --- maven-surefire-plugin:2.12.4:test (default-test)")) {
         ok = false;
         err("Log line %d contains Surefire's default execution marker: %s", i, line);
+        //noinspection UnnecessaryContinue
+        continue;
       }
     }
     if (ok) {
-      out("No marker found in %d build log lines", buildLogLines.size());
+      out("No marker found in %d build log lines", size);
     }
     return this;
   }
