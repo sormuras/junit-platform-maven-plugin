@@ -23,12 +23,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 
 class Isolator {
 
@@ -41,7 +39,7 @@ class Isolator {
   }
 
   ClassLoader createClassLoader()
-      throws DependencyResolutionRequiredException, DependencyResolutionException {
+      throws DependencyResolutionRequiredException, ArtifactResolutionException {
     Set<Path> mainPaths =
         mojo.getMavenProject()
             .getCompileClasspathElements()
@@ -58,10 +56,12 @@ class Isolator {
     testPaths.removeAll(mainPaths);
 
     Set<Path> platformPaths = new LinkedHashSet<>();
-    List<Artifact> managers =
-        resolver.resolve(
-            "com.github.sormuras.junit-platform-manager:junit-platform-manager:master-SNAPSHOT");
-    platformPaths.add(managers.get(0).getFile().toPath());
+    platformPaths.add(
+        resolver
+            .resolve(
+                "com.github.sormuras.junit-platform-manager:junit-platform-manager:master-SNAPSHOT")
+            .getFile()
+            .toPath());
 
     platformPaths.removeAll(mainPaths);
     platformPaths.removeAll(testPaths);

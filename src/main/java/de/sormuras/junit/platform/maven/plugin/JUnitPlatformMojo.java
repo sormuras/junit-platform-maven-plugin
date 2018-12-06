@@ -41,7 +41,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
-import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 
 /** Launch JUnit Platform Mojo. */
 @org.apache.maven.plugins.annotations.Mojo(
@@ -152,8 +152,6 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     }
 
     Dependencies dependencies = new Dependencies(this);
-    Resolver resolver = new Resolver(this);
-    Isolator isolator = new Isolator(this, resolver);
 
     info("Launching JUnit Platform " + dependencies.version(JUNIT_PLATFORM_VERSION) + "...");
     if (getLog().isDebugEnabled()) {
@@ -175,13 +173,15 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       return;
     }
 
+    Resolver resolver = new Resolver(this);
+    Isolator isolator = new Isolator(this, resolver);
     try {
       ClassLoader loader = isolator.createClassLoader();
       debug("execution class loader parents = %s", walk(loader));
     } catch (DependencyResolutionRequiredException e) {
       throw new MojoFailureException("Resolution required!", e);
-    } catch (DependencyResolutionException e) {
-      throw new MojoFailureException("Resolution failed!", e);
+    } catch (ArtifactResolutionException e) {
+      throw new MojoFailureException("Artifact resolution failed!", e);
     }
   }
 

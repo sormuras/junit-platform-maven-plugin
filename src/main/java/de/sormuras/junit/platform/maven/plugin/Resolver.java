@@ -24,6 +24,7 @@ import org.eclipse.aether.collection.CollectRequest;
 import org.eclipse.aether.graph.Dependency;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
 import org.eclipse.aether.resolution.DependencyRequest;
 import org.eclipse.aether.resolution.DependencyResolutionException;
@@ -31,25 +32,20 @@ import org.eclipse.aether.resolution.DependencyResolutionException;
 class Resolver {
 
   private final JUnitPlatformMojo mojo;
+  private final List<RemoteRepository> repositories;
 
   Resolver(JUnitPlatformMojo mojo) {
     this.mojo = mojo;
-  }
-
-  List<Artifact> resolve(String coordinates) throws DependencyResolutionException {
-    List<RemoteRepository> repositories = new ArrayList<>();
+    this.repositories = new ArrayList<>();
     repositories.addAll(mojo.getMavenProject().getRemotePluginRepositories());
     repositories.addAll(mojo.getMavenProject().getRemoteProjectRepositories());
+  }
+
+  List<Artifact> resolve(String coordinates, String scope) throws DependencyResolutionException {
     DefaultArtifact artifact = new DefaultArtifact(coordinates);
     mojo.debug("Resolving artifact %s from %s...", artifact, repositories);
-    ArtifactRequest artifactRequest = new ArtifactRequest();
-    artifactRequest.setArtifact(artifact);
-    artifactRequest.setRepositories(repositories);
-    // Artifact resolved = mojo.getMavenResolver().resolveArtifact(session, artifactRequest);
-    // debug("Resolved %s from %s", artifact, resolved.getRepository());
-    // debug("Stored %s to %s", artifact, resolved.getArtifact().getFile());
     CollectRequest collectRequest = new CollectRequest();
-    collectRequest.setRoot(new Dependency(artifact, ""));
+    collectRequest.setRoot(new Dependency(artifact, scope));
     collectRequest.setRepositories(repositories);
     DependencyRequest dependencyRequest =
         new DependencyRequest(collectRequest, (all, ways) -> true);
@@ -62,5 +58,18 @@ class Resolver {
         .map(ArtifactResult::getArtifact)
         .peek(a -> mojo.debug("Artifact %s resolved to %s", a, a.getFile()))
         .collect(Collectors.toList());
+  }
+
+  Artifact resolve(String coordinates) throws ArtifactResolutionException {
+    DefaultArtifact artifact = new DefaultArtifact(coordinates);
+    mojo.debug("Resolving artifact %s from %s...", artifact, repositories);
+    ArtifactRequest artifactRequest = new ArtifactRequest();
+    artifactRequest.setArtifact(artifact);
+    artifactRequest.setRepositories(repositories);
+    ArtifactResult resolved =
+        mojo.getMavenResolver().resolveArtifact(mojo.getMavenRepositorySession(), artifactRequest);
+    mojo.debug("Resolved %s from %s", artifact, resolved.getRepository());
+    mojo.debug("Stored %s to %s", artifact, resolved.getArtifact().getFile());
+    return resolved.getArtifact();
   }
 }
