@@ -14,12 +14,18 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_PLATFORM_VERSION;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
@@ -35,6 +41,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.resolution.DependencyResolutionException;
 
 /** Launch JUnit Platform Mojo. */
 @org.apache.maven.plugins.annotations.Mojo(
@@ -53,6 +60,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   /** Dry-run mode discovers tests but does not execute them. */
   @Parameter(defaultValue = "false")
   private boolean dryRun;
+
+  /** Custom version map. */
+  @Parameter private Map<String, String> versions = Collections.emptyMap();
 
   /** The underlying Maven build model. */
   @Parameter(defaultValue = "${project.build}", readonly = true, required = true)
@@ -87,6 +97,11 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   void debug(String format, Object... args) {
     getLog().debug(String.format(format, args));
+  }
+
+  void debug(String caption, Collection<Path> paths) {
+    debug(caption);
+    paths.forEach(path -> debug("  %-50s -> %s", path.getFileName(), path));
   }
 
   void info(String format, Object... args) {
@@ -136,16 +151,37 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       return;
     }
 
-    Path testPath = Paths.get(mavenBuild.getTestOutputDirectory());
+    Dependencies dependencies = new Dependencies(this);
+    Resolver resolver = new Resolver(this);
+    Isolator isolator = new Isolator(this, resolver);
 
-    info("Launching JUnit Platform...");
+    info("Launching JUnit Platform " + dependencies.version(JUNIT_PLATFORM_VERSION) + "...");
     if (getLog().isDebugEnabled()) {
-      debug("  testPath %s", testPath);
+      debug("Paths");
+      debug("  java.home = %s", System.getProperty("java.home"));
+      debug("  user.dir = %s", System.getProperty("user.dir"));
+      debug("  ${project.basedir} = %s", mavenProject.getBasedir());
+      debug("  class loader parents = %s", walk(getClass().getClassLoader()));
+      debug("${project.artifactMap}");
+      mavenProject.getArtifactMap().forEach((k, a) -> debug("  %-50s -> %s", k, a));
+      debug("Versions");
+      debug("  java.version = %s", System.getProperty("java.version"));
+      debug("  java.class.version = %s", System.getProperty("java.class.version"));
+      Dependencies.forEachVersion(v -> debug("  %s = %s", v.getKey(), dependencies.version(v)));
     }
 
-    if (Files.notExists(testPath)) {
+    if (Files.notExists(Paths.get(mavenBuild.getTestOutputDirectory()))) {
       info("Test output directory doesn't exist.");
       return;
+    }
+
+    try {
+      ClassLoader loader = isolator.createClassLoader();
+      debug("execution class loader parents = %s", walk(loader));
+    } catch (DependencyResolutionRequiredException e) {
+      throw new MojoFailureException("Resolution required!", e);
+    } catch (DependencyResolutionException e) {
+      throw new MojoFailureException("Resolution failed!", e);
     }
   }
 
@@ -161,7 +197,19 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     return mavenResolver;
   }
 
+  Map<String, String> getVersions() {
+    return versions;
+  }
+
   boolean isDryRun() {
     return dryRun;
+  }
+
+  private static String walk(ClassLoader loader) {
+    ClassLoader tccl = Thread.currentThread().getContextClassLoader();
+    if (loader == tccl) {
+      return "TCCL(" + loader + ")";
+    }
+    return "Loader(" + loader + ") -> " + walk(loader.getParent());
   }
 }

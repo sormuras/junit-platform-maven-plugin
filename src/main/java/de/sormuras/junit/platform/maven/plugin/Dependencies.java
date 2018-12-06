@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
+import org.apache.maven.artifact.Artifact;
 
 /** Dependency resolution helper. */
 class Dependencies {
@@ -118,5 +119,27 @@ class Dependencies {
     String getDefaultVersion() {
       return defaultVersion;
     }
+  }
+
+  private final JUnitPlatformMojo mojo;
+  private final Map<String, String> versions;
+
+  Dependencies(JUnitPlatformMojo mojo) {
+    this.mojo = mojo;
+    this.versions = createArtifactVersionMap(this::artifactVersionOrNull);
+  }
+
+  private String artifactVersionOrNull(String key) {
+    Artifact artifact = mojo.getMavenProject().getArtifactMap().get(key);
+    if (artifact == null) {
+      return null;
+    }
+    return artifact.getBaseVersion();
+  }
+
+  /** Lookup version as a {@link String}. */
+  String version(Version version) {
+    String detectedVersion = versions.get(version.getKey());
+    return mojo.getVersions().getOrDefault(version.getKey(), detectedVersion);
   }
 }
