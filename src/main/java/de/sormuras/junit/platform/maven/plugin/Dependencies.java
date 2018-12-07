@@ -61,6 +61,8 @@ class Dependencies {
 
     JUNIT_PLATFORM_CONSOLE("org.junit.platform", "junit-platform-console", "JUNIT_PLATFORM"),
 
+    JUNIT_PLATFORM_LAUNCHER("org.junit.platform", "junit-platform-launcher", "JUNIT_PLATFORM"),
+
     JUNIT_VINTAGE_ENGINE("org.junit.vintage", "junit-vintage-engine", "JUNIT_VINTAGE");
 
     private final String artifact;
