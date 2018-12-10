@@ -14,11 +14,12 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import static de.sormuras.junit.platform.isolator.Version.JUNIT_JUPITER_VERSION;
 import static de.sormuras.junit.platform.isolator.Version.JUNIT_PLATFORM_VERSION;
+import static de.sormuras.junit.platform.isolator.Version.JUNIT_VINTAGE_VERSION;
 
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.Isolator;
-import de.sormuras.junit.platform.isolator.Version;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -182,7 +183,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       debug("Versions");
       debug("  java.version = %s", System.getProperty("java.version"));
       debug("  java.class.version = %s", System.getProperty("java.class.version"));
-      Version.forEach(v -> debug("  %s = %s", v.getKey(), driver.version(v)));
+      debug("  %s = %s", JUNIT_JUPITER_VERSION.getKey(), driver.version(JUNIT_JUPITER_VERSION));
+      debug("  %s = %s", JUNIT_PLATFORM_VERSION.getKey(), driver.version(JUNIT_PLATFORM_VERSION));
+      debug("  %s = %s", JUNIT_VINTAGE_VERSION.getKey(), driver.version(JUNIT_VINTAGE_VERSION));
     }
 
     if (Files.notExists(Paths.get(mavenBuild.getTestOutputDirectory()))) {

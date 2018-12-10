@@ -334,8 +334,8 @@
                             <cloneAllFiles>true</cloneAllFiles>
                             <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                             <pomIncludes>
-                                <!--<pomInclude>**/basic/pom.xml</pomInclude>-->
-                                <!--<pomInclude>**/jupiter-5*-platform-1*/pom.xml</pomInclude>-->
+                                <pomInclude>**/basic/pom.xml</pomInclude>
+                                <pomInclude>**/jupiter-5*-platform-1*/pom.xml</pomInclude>
                                 <pomInclude>**/separating-starter/pom.xml</pomInclude>
                             </pomIncludes>
                             <postBuildHookScript>verify</postBuildHookScript>
