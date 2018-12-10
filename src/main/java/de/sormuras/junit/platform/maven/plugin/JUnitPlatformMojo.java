@@ -14,18 +14,22 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
-import static de.sormuras.junit.platform.maven.plugin.Dependencies.Version.JUNIT_PLATFORM_VERSION;
+import static de.sormuras.junit.platform.isolator.Version.JUNIT_PLATFORM_VERSION;
 
+import de.sormuras.junit.platform.isolator.Configuration;
+import de.sormuras.junit.platform.isolator.Isolator;
+import de.sormuras.junit.platform.isolator.Version;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
@@ -41,7 +45,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
-import org.eclipse.aether.resolution.ArtifactResolutionException;
 
 /** Launch JUnit Platform Mojo. */
 @org.apache.maven.plugins.annotations.Mojo(
@@ -99,13 +102,17 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     getLog().debug(String.format(format, args));
   }
 
-  void debug(String caption, Collection<Path> paths) {
+  private void debug(String caption, Collection<Path> paths) {
     debug(caption);
     paths.forEach(path -> debug("  %-50s -> %s", path.getFileName(), path));
   }
 
   void info(String format, Object... args) {
     getLog().info(String.format(format, args));
+  }
+
+  void warn(String format, Object... args) {
+    getLog().warn(String.format(format, args));
   }
 
   @Override
@@ -151,9 +158,14 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       return;
     }
 
-    Dependencies dependencies = new Dependencies(this);
+    // Configuration
+    Set<String> set = new HashSet<>();
+    set.add(mavenBuild.getTestOutputDirectory());
+    Configuration configuration =
+        new Configuration().setDryRun(isDryRun()).setSelectedClassPathRoots(set);
+    MavenDriver driver = new MavenDriver(this, configuration);
 
-    info("Launching JUnit Platform " + dependencies.version(JUNIT_PLATFORM_VERSION) + "...");
+    info("Launching JUnit Platform " + driver.version(JUNIT_PLATFORM_VERSION) + "...");
     if (getLog().isDebugEnabled()) {
       debug("Paths");
       debug("  java.home = %s", System.getProperty("java.home"));
@@ -161,11 +173,16 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       debug("  ${project.basedir} = %s", mavenProject.getBasedir());
       debug("  class loader parents = %s", walk(getClass().getClassLoader()));
       debug("${project.artifactMap}");
-      mavenProject.getArtifactMap().forEach((k, a) -> debug("  %-50s -> %s", k, a));
+      mavenProject
+          .getArtifactMap()
+          .keySet()
+          .stream()
+          .sorted()
+          .forEach(k -> debug("  %-50s -> %s", k, mavenProject.getArtifactMap().get(k)));
       debug("Versions");
       debug("  java.version = %s", System.getProperty("java.version"));
       debug("  java.class.version = %s", System.getProperty("java.class.version"));
-      Dependencies.forEachVersion(v -> debug("  %s = %s", v.getKey(), dependencies.version(v)));
+      Version.forEach(v -> debug("  %s = %s", v.getKey(), driver.version(v)));
     }
 
     if (Files.notExists(Paths.get(mavenBuild.getTestOutputDirectory()))) {
@@ -173,15 +190,17 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       return;
     }
 
-    Resolver resolver = new Resolver(this);
-    Isolator isolator = new Isolator(this, resolver);
+    if (getLog().isDebugEnabled()) {
+      debug("Paths");
+      driver.paths().forEach(this::debug);
+    }
+
     try {
-      ClassLoader loader = isolator.createClassLoader();
-      debug("execution class loader parents = %s", walk(loader));
-    } catch (DependencyResolutionRequiredException e) {
-      throw new MojoFailureException("Resolution required!", e);
-    } catch (ArtifactResolutionException e) {
-      throw new MojoFailureException("Artifact resolution failed!", e);
+      Isolator isolator = new Isolator(driver);
+      int exitCode = isolator.evaluate(configuration);
+      info("Manager returned %d", exitCode);
+    } catch (Exception e) {
+      throw new MojoFailureException("Calling manager failed!", e);
     }
   }
 
@@ -209,6 +228,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     ClassLoader tccl = Thread.currentThread().getContextClassLoader();
     if (loader == tccl) {
       return "TCCL(" + loader + ")";
+    }
+    if (loader == null) {
+      return "<null>";
     }
     return "Loader(" + loader + ") -> " + walk(loader.getParent());
   }

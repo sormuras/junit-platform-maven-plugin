@@ -64,7 +64,15 @@
         </repository>
     </distributionManagement>
 
-
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <dependencies>
         <!-- Provided dependencies. -->
@@ -93,11 +101,18 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Main dependencies. -->
+        <!-- Main P R O V I D E D dependencies. -->
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-launcher</artifactId>
             <version>${junit.platform.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.sormuras.junit-platform-isolator</groupId>
+            <artifactId>junit-platform-isolator</artifactId>
+            <version>master-SNAPSHOT</version>
         </dependency>
 
         <!-- Test dependencies. -->
@@ -271,10 +286,10 @@
             </plugin>
             <!-- Use our own dog food, should point to the latest published version... -->
             <!--<plugin>-->
-                <!--<groupId>de.sormuras</groupId>-->
-                <!--<artifactId>junit-platform-maven-plugin</artifactId>-->
-                <!--<version>0.811.0</version>-->
-                <!--<extensions>true</extensions>-->
+            <!--<groupId>de.sormuras</groupId>-->
+            <!--<artifactId>junit-platform-maven-plugin</artifactId>-->
+            <!--<version>0.811.0</version>-->
+            <!--<extensions>true</extensions>-->
             <!--</plugin>-->
         </plugins>
     </build>
@@ -319,8 +334,9 @@
                             <cloneAllFiles>true</cloneAllFiles>
                             <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                             <pomIncludes>
-                                <pomInclude>**/basic/pom.xml</pomInclude>
-                                <pomInclude>**/jupiter-5*-platform-1*/pom.xml</pomInclude>
+                                <!--<pomInclude>**/basic/pom.xml</pomInclude>-->
+                                <!--<pomInclude>**/jupiter-5*-platform-1*/pom.xml</pomInclude>-->
+                                <pomInclude>**/separating-starter/pom.xml</pomInclude>
                             </pomIncludes>
                             <postBuildHookScript>verify</postBuildHookScript>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
