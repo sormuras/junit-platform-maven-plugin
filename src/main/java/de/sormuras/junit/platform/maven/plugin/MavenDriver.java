@@ -176,18 +176,18 @@ class MavenDriver implements Driver {
   private List<Artifact> resolve(String coordinates, String scope, DependencyFilter filter)
       throws RepositoryException {
     DefaultArtifact artifact = new DefaultArtifact(coordinates);
-    debug("Resolving artifact %s from %s...", artifact, repositories);
+    debug("Resolving artifact {0} from {1}...", artifact, repositories);
     CollectRequest collectRequest = new CollectRequest();
     collectRequest.setRoot(new Dependency(artifact, scope));
     collectRequest.setRepositories(repositories);
     DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, filter);
-    debug("Resolving dependencies %s...", dependencyRequest);
+    debug("Resolving dependencies {0}...", dependencyRequest);
     return repositorySystem
         .resolveDependencies(session, dependencyRequest)
         .getArtifactResults()
         .stream()
         .map(ArtifactResult::getArtifact)
-        .peek(a -> debug("Artifact %s resolved to %s", a, a.getFile()))
+        .peek(a -> debug("Artifact {0} resolved to {1}", a, a.getFile()))
         .collect(Collectors.toList());
   }
 }

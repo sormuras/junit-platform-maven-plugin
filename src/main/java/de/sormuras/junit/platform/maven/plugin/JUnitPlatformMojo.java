@@ -14,15 +14,15 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
-import static de.sormuras.junit.platform.isolator.Version.JUNIT_JUPITER_VERSION;
 import static de.sormuras.junit.platform.isolator.Version.JUNIT_PLATFORM_VERSION;
-import static de.sormuras.junit.platform.isolator.Version.JUNIT_VINTAGE_VERSION;
 
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.Isolator;
+import de.sormuras.junit.platform.isolator.Version;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -100,20 +100,20 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   }
 
   void debug(String format, Object... args) {
-    getLog().debug(String.format(format, args));
+    getLog().debug(MessageFormat.format(format, args));
   }
 
   private void debug(String caption, Collection<Path> paths) {
     debug(caption);
-    paths.forEach(path -> debug("  %-50s -> %s", path.getFileName(), path));
+    paths.forEach(path -> debug(String.format("  %-50s -> %s", path.getFileName(), path)));
   }
 
   void info(String format, Object... args) {
-    getLog().info(String.format(format, args));
+    getLog().info(MessageFormat.format(format, args));
   }
 
   void warn(String format, Object... args) {
-    getLog().warn(String.format(format, args));
+    getLog().warn(MessageFormat.format(format, args));
   }
 
   @Override
@@ -173,27 +173,27 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     info("Launching JUnit Platform " + driver.version(JUNIT_PLATFORM_VERSION) + "...");
     if (getLog().isDebugEnabled()) {
       debug("Paths");
-      debug("  java.home = %s", System.getProperty("java.home"));
-      debug("  user.dir = %s", System.getProperty("user.dir"));
-      debug("  ${project.basedir} = %s", mavenProject.getBasedir());
-      debug("  class loader parents = %s", walk(getClass().getClassLoader()));
-      debug("${project.artifactMap}");
+      debug("  java.home = {0}", System.getProperty("java.home"));
+      debug("  user.dir = {0}", System.getProperty("user.dir"));
+      debug("  project.basedir = {0}", mavenProject.getBasedir());
+      debug("  class loader = {0}", getClass().getClassLoader());
+      debug("  context loader = {0}", Thread.currentThread().getContextClassLoader());
+      debug("Artifacts");
       mavenProject
           .getArtifactMap()
           .keySet()
           .stream()
           .sorted()
-          .forEach(k -> debug("  %-50s -> %s", k, mavenProject.getArtifactMap().get(k)));
+          .forEach(
+              k -> debug(String.format("  %-50s -> %s", k, mavenProject.getArtifactMap().get(k))));
       debug("Versions");
-      debug("  java.version = %s", System.getProperty("java.version"));
-      debug("  java.class.version = %s", System.getProperty("java.class.version"));
-      debug("  %s = %s", JUNIT_JUPITER_VERSION.getKey(), driver.version(JUNIT_JUPITER_VERSION));
-      debug("  %s = %s", JUNIT_PLATFORM_VERSION.getKey(), driver.version(JUNIT_PLATFORM_VERSION));
-      debug("  %s = %s", JUNIT_VINTAGE_VERSION.getKey(), driver.version(JUNIT_VINTAGE_VERSION));
+      debug("  java.version = {0}", System.getProperty("java.version"));
+      debug("  java.class.version = {0}", System.getProperty("java.class.version"));
+      Version.forEach(v -> debug("  {0} = {1}", v.getKey(), driver.version(v)));
     }
 
     if (Files.notExists(Paths.get(mavenBuild.getTestOutputDirectory()))) {
-      info("Test output directory doesn't exist.");
+      info("Test output directory does not exist.");
       return;
     }
 
@@ -205,7 +205,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     try {
       Isolator isolator = new Isolator(driver);
       int exitCode = isolator.evaluate(configuration);
-      info("Manager returned %d", exitCode);
+      info("Manager returned {0}", exitCode);
     } catch (Exception e) {
       throw new MojoFailureException("Calling manager failed!", e);
     }
