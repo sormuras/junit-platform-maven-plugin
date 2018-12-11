@@ -99,7 +99,11 @@ class MavenDriver implements Driver {
   }
 
   public boolean contains(GroupArtifact groupArtifact) {
-    return mojo.getMavenProject().getArtifactMap().containsKey(groupArtifact.toString());
+    return contains(groupArtifact.toString());
+  }
+
+  public boolean contains(String groupArtifact) {
+    return mojo.getMavenProject().getArtifactMap().containsKey(groupArtifact);
   }
 
   /** Resolve artifact and its transitive dependencies. */
@@ -145,6 +149,9 @@ class MavenDriver implements Driver {
       Set<Path> launcherPaths = new LinkedHashSet<>();
       if (contains(JUNIT_JUPITER_API) && !contains(JUNIT_JUPITER_ENGINE)) {
         launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE.toString(this::version)));
+      }
+      if (contains("junit:junit") && !contains(JUNIT_VINTAGE_ENGINE)) {
+        launcherPaths.addAll(resolve(JUNIT_VINTAGE_ENGINE.toString(this::version)));
       }
       if (!contains(JUNIT_PLATFORM_LAUNCHER)) {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER.toString(this::version)));
