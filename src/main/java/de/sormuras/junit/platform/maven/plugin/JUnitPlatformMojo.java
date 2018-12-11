@@ -59,15 +59,15 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   /** Skip execution of this plugin. */
   @Parameter(defaultValue = "false")
-  private boolean skip;
+  private boolean skip = false;
 
   /** Isolate artifacts in separated class loaders. */
   @Parameter(defaultValue = "true")
-  private boolean isolate;
+  private boolean isolate = true;
 
   /** Dry-run mode discovers tests but does not execute them. */
   @Parameter(defaultValue = "false")
-  private boolean dryRun;
+  private boolean dryRun = false;
 
   /** Custom version map. */
   @Parameter private Map<String, String> versions = Collections.emptyMap();
