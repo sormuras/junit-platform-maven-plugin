@@ -1,0 +1,29 @@
+import it.Verifier;
+
+Verifier verifier = new Verifier(basedir.toPath());
+
+verifier.verifyBadLines();
+
+verifier.verifyReadable(new String[] {
+  "pom.xml",
+  "target/test-classes/junit/jupiter/JUnit5Tests.class",
+  "target/test-classes/junit/vintage/JUnit3Test.class",
+  "target/test-classes/junit/vintage/JUnit4Test.class"
+});
+
+verifier.verifyNotExists(new String[] {
+  "target/classes",
+  "target/surefire-reports"
+});
+
+verifier.verifyLogMatches(new String[] {
+  ">> BEGIN >>",
+  "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
+  ">> Platform executes tests...>>",
+  "\\Q[INFO] Successfully executed 3 test(s) in \\E.+ ms",
+  ">> More summary lines... >>",
+  "[INFO] BUILD SUCCESS",
+  ">> END. >>"
+});
+
+return verifier.isOk();

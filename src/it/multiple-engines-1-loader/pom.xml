@@ -9,7 +9,7 @@
     <version>0</version>
   </parent>
 
-  <artifactId>multiple-engines</artifactId>
+  <artifactId>multiple-engines-1-loader</artifactId>
 
   <dependencies>
 
@@ -63,6 +63,7 @@
       <groupId>de.sormuras</groupId>
       <artifactId>brahms</artifactId>
       <version>${brahms.version}</version>
+      <scope>test</scope>
       <!-- Depends on 1.3.0, but we need 1.3.1 or higher -->
       <exclusions>
         <exclusion>
@@ -78,6 +79,9 @@
       <plugin>
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
+        <configuration>
+          <isolate>false</isolate>
+        </configuration>
         <!-- Doesn't work here: jqwik and others win the race and pulls 1.2.0 in... -->
         <!--<configuration>-->
           <!--<versions>-->
