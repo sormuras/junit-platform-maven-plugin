@@ -112,7 +112,7 @@
         <dependency>
             <groupId>com.github.sormuras.junit-platform-isolator</groupId>
             <artifactId>junit-platform-isolator</artifactId>
-            <version>master-SNAPSHOT</version>
+            <version>v1.0.0-M1</version>
         </dependency>
 
         <!-- Test dependencies. -->
