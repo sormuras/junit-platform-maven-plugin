@@ -64,16 +64,6 @@
         </repository>
     </distributionManagement>
 
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
-
     <dependencies>
         <!-- Provided dependencies. -->
         <dependency>
@@ -110,9 +100,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.github.sormuras.junit-platform-isolator</groupId>
+            <groupId>de.sormuras</groupId> <!-- de.sormuras.junit-platform-isolator -->
             <artifactId>junit-platform-isolator</artifactId>
-            <version>v1.0.0-M1</version>
+            <version>1.0.0-M1</version>
         </dependency>
 
         <!-- Test dependencies. -->

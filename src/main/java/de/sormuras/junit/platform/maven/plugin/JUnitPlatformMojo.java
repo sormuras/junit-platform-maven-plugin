@@ -168,8 +168,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     set.add(mavenBuild.getTestOutputDirectory());
     Configuration configuration =
         new Configuration()
-            .setWorkerCoordinates(
-                "com.github.sormuras.junit-platform-isolator:junit-platform-isolator-worker:v1.0.0-M1")
+            .setWorkerCoordinates("de.sormuras:junit-platform-isolator-worker:1.0.0-M1")
             .setDryRun(isDryRun())
             .setSelectedClassPathRoots(set);
     MavenDriver driver = new MavenDriver(this, configuration);
