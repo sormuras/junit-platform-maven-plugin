@@ -61,6 +61,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   @Parameter(defaultValue = "false")
   private boolean skip;
 
+  /** Isolate artifacts in separated class loaders. */
+  @Parameter(defaultValue = "true")
+  private boolean isolate;
+
   /** Dry-run mode discovers tests but does not execute them. */
   @Parameter(defaultValue = "false")
   private boolean dryRun;
@@ -155,7 +159,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     debug("Executing JUnitPlatformMojo...");
 
     if (skip) {
-      info("JUnit Platform execution skipped.");
+      info("JUnit Platform Plugin execution skipped.");
       return;
     }
 
@@ -231,14 +235,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     return dryRun;
   }
 
-  private static String walk(ClassLoader loader) {
-    ClassLoader tccl = Thread.currentThread().getContextClassLoader();
-    if (loader == tccl) {
-      return "TCCL(" + loader + ")";
-    }
-    if (loader == null) {
-      return "<null>";
-    }
-    return "Loader(" + loader + ") -> " + walk(loader.getParent());
+  boolean isIsolate() {
+    return isolate;
   }
 }

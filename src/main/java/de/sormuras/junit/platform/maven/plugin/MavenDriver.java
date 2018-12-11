@@ -17,6 +17,7 @@ package de.sormuras.junit.platform.maven.plugin;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_JUPITER_API;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_JUPITER_ENGINE;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_LAUNCHER;
+import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_VINTAGE_ENGINE;
 
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.Driver;
@@ -170,6 +171,17 @@ class MavenDriver implements Driver {
     paths.get("worker").removeAll(paths.get("test"));
 
     paths.get("worker").removeAll(paths.get("launcher"));
+
+    //
+    // Throw all path elements into a single set?
+    //
+    if (!mojo.isIsolate()) {
+      Set<Path> allPaths = new LinkedHashSet<>();
+      paths.values().forEach(allPaths::addAll);
+      paths.clear();
+      paths.put("all", allPaths);
+    }
+
     return paths;
   }
 
