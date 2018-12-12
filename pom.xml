@@ -100,9 +100,9 @@
         </dependency>
 
         <dependency>
-            <groupId>de.sormuras</groupId> <!-- de.sormuras.junit-platform-isolator -->
+            <groupId>de.sormuras.junit-platform-isolator</groupId>
             <artifactId>junit-platform-isolator</artifactId>
-            <version>1.0.0-M1</version>
+            <version>1.0.0-M2</version>
         </dependency>
 
         <!-- Test dependencies. -->
