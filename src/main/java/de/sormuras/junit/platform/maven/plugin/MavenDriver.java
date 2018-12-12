@@ -147,14 +147,14 @@ class MavenDriver implements Driver {
     //
     try {
       Set<Path> launcherPaths = new LinkedHashSet<>();
+      if (!contains(JUNIT_PLATFORM_LAUNCHER)) {
+        launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER.toString(this::version)));
+      }
       if (contains(JUNIT_JUPITER_API) && !contains(JUNIT_JUPITER_ENGINE)) {
         launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE.toString(this::version)));
       }
       if (contains("junit:junit") && !contains(JUNIT_VINTAGE_ENGINE)) {
         launcherPaths.addAll(resolve(JUNIT_VINTAGE_ENGINE.toString(this::version)));
-      }
-      if (!contains(JUNIT_PLATFORM_LAUNCHER)) {
-        launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER.toString(this::version)));
       }
       paths.put("launcher", launcherPaths);
 
