@@ -161,7 +161,7 @@ class MavenDriver implements Driver {
       //
       // Worker + Manager
       //
-      Set<Path> workerPaths = resolve(configuration.getWorkerCoordinates());
+      Set<Path> workerPaths = resolve(configuration.basic().getWorkerCoordinates());
       paths.put("worker", workerPaths);
     } catch (Exception e) {
       throw new RuntimeException("Resolution failed!", e);

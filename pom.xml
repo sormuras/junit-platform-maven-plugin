@@ -102,7 +102,7 @@
         <dependency>
             <groupId>de.sormuras.junit-platform-isolator</groupId>
             <artifactId>junit-platform-isolator</artifactId>
-            <version>1.0.0-M2</version>
+            <version>1.0.0-M3</version>
         </dependency>
 
         <!-- Test dependencies. -->
@@ -329,6 +329,11 @@
                                 <pomInclude>**/multiple-engines-*/pom.xml</pomInclude>
                                 <pomInclude>**/separating-starter/pom.xml</pomInclude>
                             </pomIncludes>
+                            <pomExcludes>
+                                <pomExclude>**/jupiter-5.0.0-platform-1.0.0/pom.xml</pomExclude>
+                                <pomExclude>**/jupiter-5.1.0-platform-1.1.0/pom.xml</pomExclude>
+                                <pomExclude>**/jupiter-5.2.0-platform-1.2.0/pom.xml</pomExclude>
+                            </pomExcludes>
                             <postBuildHookScript>verify</postBuildHookScript>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
                             <settingsFile>src/it/settings.xml</settingsFile>

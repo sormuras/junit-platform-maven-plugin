@@ -17,6 +17,7 @@ package de.sormuras.junit.platform.maven.plugin;
 import static de.sormuras.junit.platform.isolator.Version.JUNIT_PLATFORM_VERSION;
 
 import de.sormuras.junit.platform.isolator.Configuration;
+import de.sormuras.junit.platform.isolator.ConfigurationBuilder;
 import de.sormuras.junit.platform.isolator.Isolator;
 import de.sormuras.junit.platform.isolator.Version;
 import java.nio.file.Files;
@@ -167,7 +168,13 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     Set<String> set = new HashSet<>();
     set.add(mavenBuild.getTestOutputDirectory());
     Configuration configuration =
-        new Configuration().setDryRun(isDryRun()).setSelectedClassPathRoots(set);
+        new ConfigurationBuilder()
+            .setDryRun(isDryRun())
+            .discovery()
+            .setSelectedClasspathRoots(set)
+            .end()
+            .build();
+
     MavenDriver driver = new MavenDriver(this, configuration);
 
     info("Launching JUnit Platform " + driver.version(JUNIT_PLATFORM_VERSION) + "...");
