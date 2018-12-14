@@ -1,14 +1,18 @@
 package isolation;
 
-class Main {
+public class Main {
 
-  void lookupTestClass() {
+  public void lookupTestClass() {
     String name = "/isolation/MainTest.class";
-    assert getClass().getResourceAsStream(name) == null;
+    if (getClass().getResourceAsStream(name) != null) {
+      throw new AssertionError(getClass() + " should not see " + name);
+    }
   }
 
-  void lookupEngineClass() {
+  public void lookupEngineClass() {
     String name = "/org/junit/jupiter/engine/JupiterTestEngine.class";
-    assert getClass().getResourceAsStream(name) == null;
+    if (getClass().getResourceAsStream(name) != null) {
+      throw new AssertionError(getClass() + " should not see " + name);
+    }
   }
 }
