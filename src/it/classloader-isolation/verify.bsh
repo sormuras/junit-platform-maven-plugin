@@ -6,8 +6,10 @@ verifier.verifyBadLines();
 
 verifier.verifyReadable(new String[] {
   "pom.xml",
-  "src/test/java/SeparatingTests.java",
-  "target/test-classes/SeparatingTests.class"
+  "src/main/java/isolation/Main.java",
+  "src/test/java/isolation/MainTests.java",
+  "target/classes/isolation/Main.class",
+  "target/test-classes/isolation/MainTests.class"
 });
 
 verifier.verifyNotExists(new String[] {
