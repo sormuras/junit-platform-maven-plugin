@@ -212,7 +212,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     try {
       Isolator isolator = new Isolator(driver);
       int exitCode = isolator.evaluate(configuration);
-      info("Manager returned {0}", exitCode);
+      debug("Isolator returned {0}", exitCode);
     } catch (Exception e) {
       throw new MojoFailureException("Calling manager failed!", e);
     }

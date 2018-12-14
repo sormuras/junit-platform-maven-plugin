@@ -159,10 +159,10 @@ class MavenDriver implements Driver {
       paths.put("launcher", launcherPaths);
 
       //
-      // Worker + Manager
+      // Isolator + Worker
       //
-      Set<Path> workerPaths = resolve(configuration.basic().getWorkerCoordinates());
-      paths.put("worker", workerPaths);
+      Set<Path> isolatorPaths = resolve(configuration.basic().getWorkerCoordinates());
+      paths.put("isolator", isolatorPaths);
     } catch (Exception e) {
       throw new RuntimeException("Resolution failed!", e);
     }
@@ -172,12 +172,12 @@ class MavenDriver implements Driver {
     //
     paths.get("test").removeAll(paths.get("main"));
     paths.get("launcher").removeAll(paths.get("main"));
-    paths.get("worker").removeAll(paths.get("main"));
+    paths.get("isolator").removeAll(paths.get("main"));
 
     paths.get("launcher").removeAll(paths.get("test"));
-    paths.get("worker").removeAll(paths.get("test"));
+    paths.get("isolator").removeAll(paths.get("test"));
 
-    paths.get("worker").removeAll(paths.get("launcher"));
+    paths.get("isolator").removeAll(paths.get("launcher"));
 
     //
     // Throw all path elements into a single set?
