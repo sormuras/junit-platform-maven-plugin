@@ -27,6 +27,7 @@
                 <artifactId>@project.artifactId@</artifactId>
                 <configuration>
                     <isolate>true</isolate>
+                    <reunite>true</reunite>
                 </configuration>
             </plugin>
         </plugins>

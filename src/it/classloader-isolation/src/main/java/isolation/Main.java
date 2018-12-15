@@ -3,7 +3,7 @@ package isolation;
 class Main {
 
   void lookupTestClass() {
-    String name = "/isolation/MainTest.class";
+    String name = "/isolation/MainTests.class";
     if (getClass().getResourceAsStream(name) != null) {
       throw new AssertionError(getClass() + " should not see " + name);
     }

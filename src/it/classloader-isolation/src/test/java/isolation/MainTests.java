@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class MainTests {
@@ -26,6 +27,7 @@ class MainTests {
   }
 
   @Test
+  @Disabled("#19 - not _possible_ yet")
   void tested_class_should_not_see_test_class() throws Exception {
     assertDoesNotThrow(() -> new Main().lookupTestClass());
   }
