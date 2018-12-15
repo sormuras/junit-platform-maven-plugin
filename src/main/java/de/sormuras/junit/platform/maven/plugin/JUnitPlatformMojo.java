@@ -15,6 +15,7 @@
 package de.sormuras.junit.platform.maven.plugin;
 
 import static de.sormuras.junit.platform.isolator.Version.JUNIT_PLATFORM_VERSION;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
 import de.sormuras.junit.platform.isolator.Configuration;
@@ -107,6 +108,24 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
    */
   @Parameter private Map<String, String> parameters = emptyMap();
 
+  /**
+   * Tags or tag expressions to include only tests whose tags match.
+   *
+   * <p>All tags and expressions will be combined using {@code OR} semantics.
+   *
+   * <h3>Console Launcher equivalent</h3>
+   *
+   * {@code --include-tag <String>}
+   *
+   * @see <a
+   *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-tag-expressions">Tag
+   *     Expressions</a>
+   * @see <a
+   *     href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering">Tagging
+   *     and Filtering</a>
+   */
+  @Parameter private List<String> tags = emptyList();
+
   /** The log instance passed in via setter. */
   private Log log;
 
@@ -191,6 +210,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
             .setDryRun(isDryRun())
             .discovery()
             .setSelectedClasspathRoots(set)
+            .setFilterTagsIncluded(tags)
             .setParameters(parameters)
             .end()
             .build();
