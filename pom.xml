@@ -337,8 +337,7 @@
                                 <pomExclude>**/jupiter-5.1.0-platform-1.1.0/pom.xml</pomExclude>
                                 <pomExclude>**/jupiter-5.2.0-platform-1.2.0/pom.xml</pomExclude>
                                 <!-- not fixed yet -->
-                                <pomExclude>**/modular-world-*/pom.xml</pomExclude>
-                                <pomExclude>**/multiple-modules/**/pom.xml</pomExclude>
+                                <pomExclude>**/modular-world-*/**/pom.xml</pomExclude>
                             </pomExcludes>
                             <postBuildHookScript>verify</postBuildHookScript>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
