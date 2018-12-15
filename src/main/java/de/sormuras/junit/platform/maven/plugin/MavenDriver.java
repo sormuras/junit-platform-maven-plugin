@@ -108,15 +108,24 @@ class MavenDriver implements Driver {
     Set<Path> testPaths = new LinkedHashSet<>();
     Set<Path> launcherPaths = new LinkedHashSet<>();
     Set<Path> isolatorPaths = new LinkedHashSet<>();
-    //
-    // Main and Test
-    //
+
     try {
+      //
+      // Main path elements
+      //
+      // #19 classes in main output directory need a special treatment for now
+      Path mainClasses = Paths.get(mojo.getMavenProject().getBuild().getOutputDirectory());
       mojo.getMavenProject()
           .getCompileClasspathElements()
           .stream()
           .map(Paths::get)
+          .filter(path -> !path.equals(mainClasses)) // #19 exclude main output directory
           .forEach(mainPaths::add);
+
+      //
+      // Test path elements
+      //
+      testPaths.add(mainClasses); // #19 include main output directory
       mojo.getMavenProject()
           .getTestClasspathElements()
           .stream()
@@ -147,15 +156,17 @@ class MavenDriver implements Driver {
       throw new RuntimeException("Resolution failed!", e);
     }
 
+    //
+    // Only map non-empty path sets and remove duplicates
+    //
     if (!mainPaths.isEmpty()) paths.put("main", mainPaths);
     if (!testPaths.isEmpty()) paths.put("test", testPaths);
     if (!launcherPaths.isEmpty()) paths.put("launcher", launcherPaths);
-    if (!isolatorPaths.isEmpty()) paths.put("isolator", isolatorPaths);
-
+    paths.put("isolator", isolatorPaths);
     pruneDuplicates(paths);
 
     //
-    // Throw all path elements into a single set?
+    // Throw all path elements into a single "all" set?
     //
     if (!mojo.isIsolate()) {
       Set<Path> allPaths = new LinkedHashSet<>();
