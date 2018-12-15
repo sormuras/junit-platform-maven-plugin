@@ -15,6 +15,7 @@
 package de.sormuras.junit.platform.maven.plugin;
 
 import static de.sormuras.junit.platform.isolator.Version.JUNIT_PLATFORM_VERSION;
+import static java.util.Collections.emptyMap;
 
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.ConfigurationBuilder;
@@ -25,7 +26,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +75,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   private boolean dryRun = false;
 
   /** Custom version map. */
-  @Parameter private Map<String, String> versions = Collections.emptyMap();
+  @Parameter private Map<String, String> versions = emptyMap();
 
   /** The underlying Maven build model. */
   @Parameter(defaultValue = "${project.build}", readonly = true, required = true)
@@ -91,6 +91,21 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   /** The entry point to Maven Artifact Resolver, i.e. the component doing all the work. */
   @Component private RepositorySystem mavenResolver;
+
+  /**
+   * Launcher configuration parameters.
+   *
+   * <p>Set a configuration parameter for test discovery and execution.
+   *
+   * <h3>Console Launcher equivalent</h3>
+   *
+   * {@code --config <key=value>}
+   *
+   * @see <a
+   *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-config-params">Configuration
+   *     Parameters</a>
+   */
+  @Parameter private Map<String, String> parameters = emptyMap();
 
   /** The log instance passed in via setter. */
   private Log log;
@@ -176,6 +191,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
             .setDryRun(isDryRun())
             .discovery()
             .setSelectedClasspathRoots(set)
+            .setParameters(parameters)
             .end()
             .build();
 
