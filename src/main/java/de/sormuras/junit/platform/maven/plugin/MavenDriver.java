@@ -113,19 +113,15 @@ class MavenDriver implements Driver {
       //
       // Main path elements
       //
-      // #19 classes in main output directory need a special treatment for now
-      Path mainClasses = Paths.get(mojo.getMavenProject().getBuild().getOutputDirectory());
       mojo.getMavenProject()
           .getCompileClasspathElements()
           .stream()
           .map(Paths::get)
-          .filter(path -> !path.equals(mainClasses)) // #19 exclude main output directory
           .forEach(mainPaths::add);
 
       //
       // Test path elements
       //
-      testPaths.add(mainClasses); // #19 include main output directory
       mojo.getMavenProject()
           .getTestClasspathElements()
           .stream()
@@ -154,6 +150,17 @@ class MavenDriver implements Driver {
       isolatorPaths.addAll(resolve(configuration.basic().getWorkerCoordinates()));
     } catch (RepositoryException e) {
       throw new RuntimeException("Resolution failed!", e);
+    }
+
+    // Classes in main output directory need a special treatment for now
+    if (mojo.isReunite()) {
+      Path mainClasses = Paths.get(mojo.getMavenProject().getBuild().getOutputDirectory());
+      if (!mainPaths.remove(mainClasses)) {
+        warn(
+            "Main compile target output directory not part of projects compile classpath elements: {0}",
+            mainClasses);
+      }
+      testPaths.add(mainClasses);
     }
 
     //

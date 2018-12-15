@@ -66,6 +66,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   @Parameter(defaultValue = "true")
   private boolean isolate = true;
 
+  /** Put main and test output directories into same classloader. */
+  @Parameter(defaultValue = "true")
+  private boolean reunite = true;
+
   /** Dry-run mode discovers tests but does not execute them. */
   @Parameter(defaultValue = "false")
   private boolean dryRun = false;
@@ -240,5 +244,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   boolean isIsolate() {
     return isolate;
+  }
+
+  boolean isReunite() {
+    return reunite;
   }
 }
