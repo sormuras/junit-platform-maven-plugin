@@ -5,7 +5,7 @@
 
     <groupId>de.sormuras</groupId>
     <artifactId>junit-platform-maven-plugin</artifactId>
-    <version>0.811.0</version>
+    <version>0.811.1-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>JUnit Platform Maven Plugin</name>
