@@ -27,6 +27,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -98,55 +99,37 @@ class MavenDriver implements Driver {
     mojo.warn(format, objects);
   }
 
-  public boolean contains(GroupArtifact groupArtifact) {
-    return contains(groupArtifact.toString());
-  }
-
-  public boolean contains(String groupArtifact) {
-    return mojo.getMavenProject().getArtifactMap().containsKey(groupArtifact);
-  }
-
-  /** Resolve artifact and its transitive dependencies. */
-  public Set<Path> resolve(String coordinates) throws Exception {
-    return resolve(coordinates, "", (all, ways) -> true)
-        .stream()
-        .map(Artifact::getFile)
-        .map(File::toPath)
-        .collect(Collectors.toCollection(LinkedHashSet::new));
-  }
-
   @Override
   public Map<String, Set<Path>> paths() {
     if (!paths.isEmpty()) {
       return paths;
     }
+    Set<Path> mainPaths = new LinkedHashSet<>();
+    Set<Path> testPaths = new LinkedHashSet<>();
+    Set<Path> launcherPaths = new LinkedHashSet<>();
+    Set<Path> isolatorPaths = new LinkedHashSet<>();
     //
     // Main and Test
     //
     try {
-      paths.put(
-          "main",
-          mojo.getMavenProject()
-              .getCompileClasspathElements()
-              .stream()
-              .map(Paths::get)
-              .collect(Collectors.toCollection(LinkedHashSet::new)));
-      paths.put(
-          "test",
-          mojo.getMavenProject()
-              .getTestClasspathElements()
-              .stream()
-              .map(Paths::get)
-              .collect(Collectors.toCollection(LinkedHashSet::new)));
+      mojo.getMavenProject()
+          .getCompileClasspathElements()
+          .stream()
+          .map(Paths::get)
+          .forEach(mainPaths::add);
+      mojo.getMavenProject()
+          .getTestClasspathElements()
+          .stream()
+          .map(Paths::get)
+          .forEach(testPaths::add);
     } catch (DependencyResolutionRequiredException e) {
       throw new RuntimeException("Resolution required!", e);
     }
 
-    //
-    // JUnit Platform Launcher and all TestEngine implementations
-    //
     try {
-      Set<Path> launcherPaths = new LinkedHashSet<>();
+      //
+      // JUnit Platform Launcher and all TestEngine implementations
+      //
       if (!contains(JUNIT_PLATFORM_LAUNCHER)) {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER.toString(this::version)));
       }
@@ -156,28 +139,20 @@ class MavenDriver implements Driver {
       if (contains("junit:junit") && !contains(JUNIT_VINTAGE_ENGINE)) {
         launcherPaths.addAll(resolve(JUNIT_VINTAGE_ENGINE.toString(this::version)));
       }
-      paths.put("launcher", launcherPaths);
-
       //
       // Isolator + Worker
       //
-      Set<Path> isolatorPaths = resolve(configuration.basic().getWorkerCoordinates());
-      paths.put("isolator", isolatorPaths);
-    } catch (Exception e) {
+      isolatorPaths.addAll(resolve(configuration.basic().getWorkerCoordinates()));
+    } catch (RepositoryException e) {
       throw new RuntimeException("Resolution failed!", e);
     }
 
-    //
-    // Remove duplicates
-    //
-    paths.get("test").removeAll(paths.get("main"));
-    paths.get("launcher").removeAll(paths.get("main"));
-    paths.get("isolator").removeAll(paths.get("main"));
+    if (!mainPaths.isEmpty()) paths.put("main", mainPaths);
+    if (!testPaths.isEmpty()) paths.put("test", testPaths);
+    if (!launcherPaths.isEmpty()) paths.put("launcher", launcherPaths);
+    if (!isolatorPaths.isEmpty()) paths.put("isolator", isolatorPaths);
 
-    paths.get("launcher").removeAll(paths.get("test"));
-    paths.get("isolator").removeAll(paths.get("test"));
-
-    paths.get("isolator").removeAll(paths.get("launcher"));
+    pruneDuplicates(paths);
 
     //
     // Throw all path elements into a single set?
@@ -190,6 +165,22 @@ class MavenDriver implements Driver {
     }
 
     return paths;
+  }
+
+  public boolean contains(GroupArtifact groupArtifact) {
+    return contains(groupArtifact.toString());
+  }
+
+  public boolean contains(String groupArtifact) {
+    return mojo.getMavenProject().getArtifactMap().containsKey(groupArtifact);
+  }
+
+  public Set<Path> resolve(String coordinates) throws RepositoryException {
+    return resolve(coordinates, "", (all, ways) -> true)
+        .stream()
+        .map(Artifact::getFile)
+        .map(File::toPath)
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   private List<Artifact> resolve(String coordinates, String scope, DependencyFilter filter)
@@ -208,5 +199,16 @@ class MavenDriver implements Driver {
         .map(ArtifactResult::getArtifact)
         .peek(a -> debug("Artifact {0} resolved to {1}", a, a.getFile()))
         .collect(Collectors.toList());
+  }
+
+  static <T> void pruneDuplicates(Map<String, ? extends Collection<T>> paths) {
+    Set<String> keys = paths.keySet();
+    for (String outer : keys) {
+      for (String inner : keys) {
+        if (!outer.equals(inner)) {
+          paths.get(inner).removeAll(paths.get(outer));
+        }
+      }
+    }
   }
 }

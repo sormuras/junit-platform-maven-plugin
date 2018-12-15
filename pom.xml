@@ -325,7 +325,7 @@
                             <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                             <pomIncludes>
                                 <pomInclude>**/basic/pom.xml</pomInclude>
-                                <pomInclude>**/classloader-isolation/pom.xml</pomInclude>
+                                <pomInclude>**/classloader-*/pom.xml</pomInclude>
                                 <pomInclude>**/jupiter-5*-platform-1*/pom.xml</pomInclude>
                                 <pomInclude>**/multiple-engines-*/pom.xml</pomInclude>
                             </pomIncludes>
