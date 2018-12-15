@@ -8,4 +8,10 @@ class JupiterTests {
   void test() throws Exception {
     Thread.sleep(200);
   }
+
+  @Test
+  @Tag("fail")
+  void fail() throws Exception {
+    throw new AssertionError();
+  }
 }
