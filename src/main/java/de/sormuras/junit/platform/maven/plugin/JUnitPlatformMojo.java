@@ -33,6 +33,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -77,7 +82,11 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   @Parameter(defaultValue = "false")
   private boolean dryRun = false;
 
-  /** Custom version map. */
+  /** Global timeout duration in seconds. */
+  @Parameter(defaultValue = "300")
+  private long timeout;
+
+  /** Custom version map to override detected version. */
   @Parameter private Map<String, String> versions = emptyMap();
 
   /** The underlying Maven build model. */
@@ -259,12 +268,16 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   }
 
   private void execute(Driver driver, Configuration configuration) throws MojoFailureException {
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    Future<Integer> future = executor.submit(() -> new Isolator(driver).evaluate(configuration));
     try {
-      Isolator isolator = new Isolator(driver);
-      int exitCode = isolator.evaluate(configuration);
+      int exitCode = future.get(timeout, TimeUnit.SECONDS);
       debug("Isolator returned {0}", exitCode);
+    } catch (TimeoutException e) {
+      warn("Global timeout of {0} seconds reached.", timeout);
+      throw new MojoFailureException("Global timeout reached.", e);
     } catch (Exception e) {
-      throw new MojoFailureException("Calling manager failed!", e);
+      throw new MojoFailureException("Execution failed!", e);
     }
   }
 
@@ -304,8 +317,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     return artifact.getBaseVersion();
   }
 
-  /** Lookup version as a {@link String}. */
-  public String version(Version version) {
+  String version(Version version) {
     String detectedVersion = versionsFromProject.get(version.getKey());
     return versions.getOrDefault(version.getKey(), detectedVersion);
   }

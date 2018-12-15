@@ -339,7 +339,6 @@
                                 <!-- not fixed yet -->
                                 <pomExclude>**/modular-world-*/pom.xml</pomExclude>
                                 <pomExclude>**/multiple-modules/**/pom.xml</pomExclude>
-                                <pomExclude>**/timeout/pom.xml</pomExclude>
                             </pomExcludes>
                             <postBuildHookScript>verify</postBuildHookScript>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
