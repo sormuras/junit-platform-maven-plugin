@@ -324,15 +324,22 @@
                             <cloneAllFiles>true</cloneAllFiles>
                             <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                             <pomIncludes>
-                                <pomInclude>**/basic/pom.xml</pomInclude>
-                                <pomInclude>**/classloader-*/pom.xml</pomInclude>
-                                <pomInclude>**/jupiter-5*-platform-1*/pom.xml</pomInclude>
-                                <pomInclude>**/multiple-engines-*/pom.xml</pomInclude>
+                                <pomInclude>**/*/pom.xml</pomInclude>
+                                <!--<pomInclude>**/basic/pom.xml</pomInclude>-->
+                                <!--<pomInclude>**/classloader-*/pom.xml</pomInclude>-->
+                                <!--<pomInclude>**/configured/pom.xml</pomInclude>-->
+                                <!--<pomInclude>**/jupiter-5*-platform-1*/pom.xml</pomInclude>-->
+                                <!--<pomInclude>**/multiple-engines-*/pom.xml</pomInclude>-->
                             </pomIncludes>
                             <pomExcludes>
+                                <!-- https://github.com/sormuras/junit-platform-isolator/issues/8 -->
                                 <pomExclude>**/jupiter-5.0.0-platform-1.0.0/pom.xml</pomExclude>
                                 <pomExclude>**/jupiter-5.1.0-platform-1.1.0/pom.xml</pomExclude>
                                 <pomExclude>**/jupiter-5.2.0-platform-1.2.0/pom.xml</pomExclude>
+                                <!-- not fixed yet -->
+                                <pomExclude>**/modular-world-*/pom.xml</pomExclude>
+                                <pomExclude>**/multiple-modules/**/pom.xml</pomExclude>
+                                <pomExclude>**/timeout/pom.xml</pomExclude>
                             </pomExcludes>
                             <postBuildHookScript>verify</postBuildHookScript>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
