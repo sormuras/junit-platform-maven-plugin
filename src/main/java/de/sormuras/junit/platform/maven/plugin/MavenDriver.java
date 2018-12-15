@@ -55,7 +55,6 @@ class MavenDriver implements Driver {
   private final List<RemoteRepository> repositories;
   private final RepositorySystem repositorySystem;
   private final RepositorySystemSession session;
-  private final Map<String, String> versions;
 
   MavenDriver(JUnitPlatformMojo mojo, Configuration configuration) {
     this.mojo = mojo;
@@ -66,22 +65,11 @@ class MavenDriver implements Driver {
     this.repositorySystem = mojo.getMavenResolver();
     this.session = mojo.getMavenRepositorySession();
     this.paths = new LinkedHashMap<>();
-    this.versions = Version.buildMap(this::artifactVersionOrNull);
   }
 
-  private String artifactVersionOrNull(String key) {
-    org.apache.maven.artifact.Artifact artifact = mojo.getMavenProject().getArtifactMap().get(key);
-    if (artifact == null) {
-      return null;
-    }
-    return artifact.getBaseVersion();
-  }
-
-  /** Lookup version as a {@link String}. */
   @Override
   public String version(Version version) {
-    String detectedVersion = versions.get(version.getKey());
-    return mojo.getVersions().getOrDefault(version.getKey(), detectedVersion);
+    throw new UnsupportedOperationException("?!");
   }
 
   @Override
@@ -136,13 +124,13 @@ class MavenDriver implements Driver {
       // JUnit Platform Launcher and all TestEngine implementations
       //
       if (!contains(JUNIT_PLATFORM_LAUNCHER)) {
-        launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER.toString(this::version)));
+        launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER.toString(mojo::version)));
       }
       if (contains(JUNIT_JUPITER_API) && !contains(JUNIT_JUPITER_ENGINE)) {
-        launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE.toString(this::version)));
+        launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE.toString(mojo::version)));
       }
       if (contains("junit:junit") && !contains(JUNIT_VINTAGE_ENGINE)) {
-        launcherPaths.addAll(resolve(JUNIT_VINTAGE_ENGINE.toString(this::version)));
+        launcherPaths.addAll(resolve(JUNIT_VINTAGE_ENGINE.toString(mojo::version)));
       }
       //
       // Isolator + Worker

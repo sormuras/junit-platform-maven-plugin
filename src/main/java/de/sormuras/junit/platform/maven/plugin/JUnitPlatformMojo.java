@@ -20,6 +20,7 @@ import static java.util.Collections.emptyMap;
 
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.ConfigurationBuilder;
+import de.sormuras.junit.platform.isolator.Driver;
 import de.sormuras.junit.platform.isolator.Isolator;
 import de.sormuras.junit.platform.isolator.Version;
 import java.nio.file.Files;
@@ -33,6 +34,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
@@ -129,6 +131,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   /** The log instance passed in via setter. */
   private Log log;
 
+  /** Versions detected by scanning the artifacts of the current project. */
+  private Map<String, String> versionsFromProject;
+
   @Override
   public void setLog(Log log) {
     this.log = log;
@@ -215,17 +220,17 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
             .end()
             .build();
 
-    MavenDriver driver = new MavenDriver(this, configuration);
-
-    info("Launching JUnit Platform " + driver.version(JUNIT_PLATFORM_VERSION) + "...");
+    versionsFromProject = Version.buildMap(this::artifactVersionOrNull);
+    info("Launching JUnit Platform " + version(JUNIT_PLATFORM_VERSION) + "...");
     if (getLog().isDebugEnabled()) {
-      debug("Paths");
+      debug("Path");
       debug("  java.home = {0}", System.getProperty("java.home"));
       debug("  user.dir = {0}", System.getProperty("user.dir"));
       debug("  project.basedir = {0}", mavenProject.getBasedir());
+      debug("Class Loader");
       debug("  class loader = {0}", getClass().getClassLoader());
       debug("  context loader = {0}", Thread.currentThread().getContextClassLoader());
-      debug("Artifacts");
+      debug("Artifact");
       mavenProject
           .getArtifactMap()
           .keySet()
@@ -233,10 +238,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
           .sorted()
           .forEach(
               k -> debug(String.format("  %-50s -> %s", k, mavenProject.getArtifactMap().get(k))));
-      debug("Versions");
+      debug("Version");
       debug("  java.version = {0}", System.getProperty("java.version"));
       debug("  java.class.version = {0}", System.getProperty("java.class.version"));
-      Version.forEach(v -> debug("  {0} = {1}", v.getKey(), driver.version(v)));
+      Version.forEach(v -> debug("  {0} = {1}", v.getKey(), version(v)));
     }
 
     if (Files.notExists(Paths.get(mavenBuild.getTestOutputDirectory()))) {
@@ -244,11 +249,16 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       return;
     }
 
+    Driver driver = new MavenDriver(this, configuration);
     if (getLog().isDebugEnabled()) {
-      debug("Paths");
+      debug("Path");
       driver.paths().forEach(this::debug);
     }
 
+    execute(driver, configuration);
+  }
+
+  private void execute(Driver driver, Configuration configuration) throws MojoFailureException {
     try {
       Isolator isolator = new Isolator(driver);
       int exitCode = isolator.evaluate(configuration);
@@ -284,5 +294,19 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   boolean isReunite() {
     return reunite;
+  }
+
+  private String artifactVersionOrNull(String key) {
+    Artifact artifact = mavenProject.getArtifactMap().get(key);
+    if (artifact == null) {
+      return null;
+    }
+    return artifact.getBaseVersion();
+  }
+
+  /** Lookup version as a {@link String}. */
+  public String version(Version version) {
+    String detectedVersion = versionsFromProject.get(version.getKey());
+    return versions.getOrDefault(version.getKey(), detectedVersion);
   }
 }
