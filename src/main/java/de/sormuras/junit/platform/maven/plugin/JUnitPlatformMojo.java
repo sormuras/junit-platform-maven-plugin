@@ -264,20 +264,24 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       driver.paths().forEach(this::debug);
     }
 
-    execute(driver, configuration);
+    int result = execute(driver, configuration);
+    if (result != 0) {
+      throw new MojoFailureException("RED ALERT!");
+    }
   }
 
-  private void execute(Driver driver, Configuration configuration) throws MojoFailureException {
+  private int execute(Driver driver, Configuration configuration) throws MojoFailureException {
     ExecutorService executor = Executors.newSingleThreadExecutor();
     Future<Integer> future = executor.submit(() -> new Isolator(driver).evaluate(configuration));
     try {
-      int exitCode = future.get(timeout, TimeUnit.SECONDS);
-      debug("Isolator returned {0}", exitCode);
+      return future.get(timeout, TimeUnit.SECONDS);
     } catch (TimeoutException e) {
       warn("Global timeout of {0} seconds reached.", timeout);
       throw new MojoFailureException("Global timeout reached.", e);
     } catch (Exception e) {
       throw new MojoFailureException("Execution failed!", e);
+    } finally {
+      executor.shutdownNow();
     }
   }
 

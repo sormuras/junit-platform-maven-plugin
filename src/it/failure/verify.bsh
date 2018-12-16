@@ -1,0 +1,28 @@
+import it.Verifier;
+
+Verifier verifier = new Verifier(basedir.toPath());
+
+// verifier.verifyBadLines(); // warning and error lines are expected
+
+verifier.verifyReadable(new String[] {
+  "pom.xml",
+  "src/test/java/FailureTests.java",
+  "target/test-classes/FailureTests.class"
+});
+
+verifier.verifyNotExists(new String[] {
+  "target/classes",
+  "target/surefire-reports"
+});
+
+verifier.verifyLogMatches(new String[] {
+  ">> BEGIN >>",
+  "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
+  ">> Platform executes tests...>>",
+  "[INFO] BUILD FAILURE",
+  ">> Many stacktrace lines...>>",
+  "Caused by: org.apache.maven.plugin.MojoFailureException: RED ALERT!",
+  ">> END. >>"
+});
+
+return verifier.isOk();
