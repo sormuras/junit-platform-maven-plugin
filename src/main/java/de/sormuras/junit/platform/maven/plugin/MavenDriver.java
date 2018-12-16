@@ -22,7 +22,6 @@ import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_VINTAGE_EN
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.Driver;
 import de.sormuras.junit.platform.isolator.GroupArtifact;
-import de.sormuras.junit.platform.isolator.Version;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,11 +64,6 @@ class MavenDriver implements Driver {
     this.repositorySystem = mojo.getMavenResolver();
     this.session = mojo.getMavenRepositorySession();
     this.paths = new LinkedHashMap<>();
-  }
-
-  @Override
-  public String version(Version version) {
-    throw new UnsupportedOperationException("?!");
   }
 
   @Override
