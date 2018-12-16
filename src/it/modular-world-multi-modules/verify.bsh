@@ -1,101 +1,35 @@
-import java.io.*;
-import java.util.*;
-import java.nio.file.*;
+import it.Verifier;
 
-//
-// Expectations
-//
+Verifier verifier = new Verifier(basedir.toPath());
 
-String[] files = new String[] {
-};
+verifier.verifyBadLines();
 
-String[] emptyFiles = new String[] {
-};
-
-String log = new String(Files.readAllBytes(basedir.toPath().resolve("build.log")), "UTF-8");
-String[] snippets = new String[] {
-  "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
-  "[DEBUG] Versions",
-  "[DEBUG]   junit.jupiter.version = " + junitJupiterVersion,
-  "[DEBUG]   junit.platform.version = " + junitPlatformVersion,
-  "[DEBUG]   junit.vintage.version = " + junitVintageVersion,
-  "[DEBUG] Java module system",
+verifier.verifyLogMatches(new String[] {
+  ">> BEGIN >>",
+  "[INFO] ------------------------------------------------------------------------",
+  "[INFO] Reactor Build Order:",
+  "[INFO] ",
+  "[INFO] parent                                                             [pom]",
+  "[INFO] tool                                                               [jar]",
+  "[INFO] application                                                        [jar]",
+  "[INFO] verification                                                       [jar]",
+  ">> parent... >>",
+  "[INFO] JUnit Platform Plugin execution skipped: project uses 'pom' packaging",
+  ">> tool... >>",
+  "[DEBUG]   main -> module tool { requires=[java.base] packages=[tool] }",
+  "[DEBUG]   test -> open module tool { requires=[org.junit.jupiter.api, java.base] packages=[tool] }",
+  "[DEBUG]   mode -> MODULAR_PATCHED_TEST_COMPILE",
+  ">> application... >>",
+  "[DEBUG]   main -> module application { requires=[java.base, tool] packages=[application] }",
+  "[DEBUG]   test -> open module application { requires=[org.junit.jupiter.api, java.base, tool] packages=[application] }",
+  "[DEBUG]   mode -> MODULAR_PATCHED_TEST_COMPILE",
+  ">> verification... >>",
   "[DEBUG]   main -> <empty>",
   "[DEBUG]   test -> open module verification { requires=[org.junit.jupiter.api, java.base, tool, application] packages=[verification] }",
-  "[INFO] Test run finished",
-  "[INFO] [         2 containers found      ]",
-  "[INFO] [         0 containers skipped    ]",
-  "[INFO] [         2 containers started    ]",
-  "[INFO] [         0 containers aborted    ]",
-  "[INFO] [         2 containers successful ]",
-  "[INFO] [         0 containers failed     ]",
-  "[INFO] [         2 tests found           ]",
-  "[INFO] [         0 tests skipped         ]",
-  "[INFO] [         2 tests started         ]",
-  "[INFO] [         0 tests aborted         ]",
-  "[INFO] [         2 tests successful      ]",
-  "[INFO] [         0 tests failed          ]",
-  "[INFO] BUILD SUCCESS"
-};
+  "[DEBUG]   mode -> MODULAR",
+  ">> More information lines... >>",
+  "[INFO] BUILD SUCCESS",
+  ">> END. >>"
+});
 
-String[] badSnippets = new String[] {
-  "[WARNING]",
-  "[ERROR]",
-  "[INFO] --- maven-surefire-plugin:2.12.4:test (default-test)"
-};
-
-//
-// Verification
-//
-
-boolean ok = true;
-
-System.out.println("\nVerifying non-empty files...");
-for (String name : files) {
-  Path path = basedir.toPath().resolve(name);
-  if (!Files.isReadable(path)) {
-    System.out.println("XXX| Expected file not found: " + path);
-    ok = false;
-    continue;
-  }
-  long size = Files.size(path);
-  if (size == 0) {
-    System.err.println("XXX| Expected file " + path + " not to be empty");
-    ok = false;
-    continue;
-  }
-  System.out.println("   | " + name + " exists and is not empty: " + size);
-}
-
-System.out.println("\nVerifying empty files...");
-for (String name : emptyFiles) {
-  long size = Files.size(basedir.toPath().resolve(name));
-  if (size != 0) {
-    System.err.println("XXX| Expected file " + name + " to be empty: " + size);
-    ok = false;
-    continue;
-  }
-  System.out.println("   | " + name + " exists and is empty");
-}
-
-System.out.println("\nVerifying log snippets...");
-for (String snippet : snippets) {
-  if (!log.contains(snippet)) {
-    System.err.println("XXX| Snippet `" + snippet + "` not found");
-    ok = false;
-    continue;
-  }
-  System.out.println("   | `" + snippet + "` found in log");
-}
-
-System.out.println("\nVerifying bad log snippets...");
-for (String snippet : badSnippets) {
-  if (log.contains(snippet)) {
-    System.err.println("XXX| Snippet `" + snippet + "` found");
-    ok = false;
-    continue;
-  }
-  System.out.println("   | `" + snippet + "` not found");
-}
-
-return ok;
+return verifier.isOk();
