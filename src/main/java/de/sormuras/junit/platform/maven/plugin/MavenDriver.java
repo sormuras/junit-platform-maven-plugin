@@ -167,11 +167,11 @@ class MavenDriver implements Driver {
     return paths;
   }
 
-  public boolean contains(GroupArtifact groupArtifact) {
+  private boolean contains(GroupArtifact groupArtifact) {
     return contains(groupArtifact.toString());
   }
 
-  public boolean contains(String groupArtifact) {
+  private boolean contains(String groupArtifact) {
     return mojo.getMavenProject().getArtifactMap().containsKey(groupArtifact);
   }
 
