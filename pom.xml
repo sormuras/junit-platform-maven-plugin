@@ -102,7 +102,7 @@
         <dependency>
             <groupId>de.sormuras.junit-platform-isolator</groupId>
             <artifactId>junit-platform-isolator</artifactId>
-            <version>1.0.0-M3</version>
+            <version>1.0.0-M4</version>
         </dependency>
 
         <!-- Test dependencies. -->
