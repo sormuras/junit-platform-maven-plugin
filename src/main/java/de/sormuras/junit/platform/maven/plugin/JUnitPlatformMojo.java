@@ -63,7 +63,7 @@ import org.eclipse.aether.RepositorySystemSession;
 
 /** Launch JUnit Platform Mojo. */
 @org.apache.maven.plugins.annotations.Mojo(
-    name = "launch-junit-platform",
+    name = "launch",
     defaultPhase = LifecyclePhase.TEST,
     threadSafe = true,
     requiresDependencyCollection = ResolutionScope.TEST,
@@ -209,8 +209,8 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   private void injectThisPluginIntoTestExecutionPhase(MavenProject project, Plugin thisPlugin) {
     PluginExecution execution = new PluginExecution();
-    execution.setId("injected-junit-platform-maven-plugin");
-    execution.getGoals().add("launch-junit-platform");
+    execution.setId("injected-launch");
+    execution.getGoals().add("launch");
     execution.setPhase("test");
     execution.setConfiguration(thisPlugin.getConfiguration());
     thisPlugin.getExecutions().add(execution);
