@@ -12,7 +12,7 @@ Maven Plugin launching the JUnit Platform
 
 _[Make Java 8 baseline](https://github.com/sormuras/junit-platform-maven-plugin/issues/10) in progress..._
 
-New version will be `0.811.0`.
+New version is `0.811.1`.
 Current `master` is available via [JitPack](https://jitpack.io/#sormuras/junit-platform-maven-plugin):
 
 ```xml
@@ -45,15 +45,6 @@ Using this plugin requires at least:
 * [Apache Maven 3.3.9](https://maven.apache.org)
 * [Java 8](http://jdk.java.net/8)
 
-## ClassLoader Layout
-
-1. Java `AppClassLoader`
-2. Maven/ClassRealm _Thread Context Class Loader_
-3. Main `target/classes` + _main dependencies_
-4. Test `target/test-classes` + _test dependencies_
-5. Platform + Engines
-6. _Manager?_
-
 ## Usage with Jupiter
 
 Add test compile dependencies into the `pom.xml`.
@@ -76,12 +67,12 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
 <plugin>
   <groupId>de.sormuras</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>0.11.1</version>  
+  <version>0.811.1</version>  
   <extensions>true</extensions> <!-- Necessary to execute it in 'test' phase. -->
 </plugin>
 ```
 
-## `module-info.test` support
+## `module-info.test` support (_unsupported due to relaunch_)
 
 This plugin also integrates additional compiler flags specified in a `module-info.test` file.
 For example, if your tests need to access types from a module shipping with the JDK (here: `java.scripting`).
