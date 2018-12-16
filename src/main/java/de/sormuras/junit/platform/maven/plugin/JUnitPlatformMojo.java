@@ -23,6 +23,7 @@ import de.sormuras.junit.platform.isolator.ConfigurationBuilder;
 import de.sormuras.junit.platform.isolator.Driver;
 import de.sormuras.junit.platform.isolator.Isolator;
 import de.sormuras.junit.platform.isolator.Version;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,6 +46,7 @@ import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.Mojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
@@ -208,12 +210,20 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   }
 
   @Override
-  public void execute() throws MojoFailureException {
+  public void execute() throws MojoExecutionException, MojoFailureException {
     debug("Executing JUnitPlatformMojo...");
 
     if (skip) {
       info("JUnit Platform Plugin execution skipped.");
       return;
+    }
+
+    // Create target directory to store log files...
+    Path targetPath = Paths.get(mavenProject.getBuild().getDirectory(), "/junit-platform");
+    try {
+      Files.createDirectories(targetPath);
+    } catch (IOException e) {
+      throw new MojoExecutionException("Can't create target path: " + targetPath, e);
     }
 
     // Configuration
@@ -222,6 +232,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     Configuration configuration =
         new ConfigurationBuilder()
             .setDryRun(isDryRun())
+            .setTargetDirectory(targetPath.toString())
             .discovery()
             .setSelectedClasspathRoots(set)
             .setFilterTagsIncluded(tags)
