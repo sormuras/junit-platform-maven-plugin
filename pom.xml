@@ -102,7 +102,7 @@
         <dependency>
             <groupId>de.sormuras.junit-platform-isolator</groupId>
             <artifactId>junit-platform-isolator</artifactId>
-            <version>1.0.0-M4</version>
+            <version>1.0.0-M5</version>
         </dependency>
 
         <!-- Test dependencies. -->
@@ -324,20 +324,20 @@
                             <cloneAllFiles>true</cloneAllFiles>
                             <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                             <pomIncludes>
-                                <pomInclude>**/*/pom.xml</pomInclude>
-                                <!--<pomInclude>**/basic/pom.xml</pomInclude>-->
-                                <!--<pomInclude>**/classloader-*/pom.xml</pomInclude>-->
-                                <!--<pomInclude>**/configured/pom.xml</pomInclude>-->
-                                <!--<pomInclude>**/jupiter-5*-platform-1*/pom.xml</pomInclude>-->
-                                <!--<pomInclude>**/multiple-engines-*/pom.xml</pomInclude>-->
+                                <!-- "All in!" -->
+                                <pomInclude>*/pom.xml</pomInclude>
+                                <!-- Select a few... -->
+                                <!--<pomInclude>basic/pom.xml</pomInclude>-->
+                                <!--<pomInclude>failure/pom.xml</pomInclude>-->
+                                <!--<pomInclude>classloader-*/pom.xml</pomInclude>-->
+                                <!--<pomInclude>configured/pom.xml</pomInclude>-->
+                                <!--<pomInclude>jupiter-5*-platform-1*/pom.xml</pomInclude>-->
+                                <!--<pomInclude>modular-world-*/pom.xml</pomInclude>-->
+                                <!--<pomInclude>multiple-engines-*/pom.xml</pomInclude>-->
                             </pomIncludes>
                             <pomExcludes>
-                                <!-- https://github.com/sormuras/junit-platform-isolator/issues/8 -->
-                                <pomExclude>**/jupiter-5.0.0-platform-1.0.0/pom.xml</pomExclude>
-                                <pomExclude>**/jupiter-5.1.0-platform-1.1.0/pom.xml</pomExclude>
-                                <pomExclude>**/jupiter-5.2.0-platform-1.2.0/pom.xml</pomExclude>
-                                <!-- not fixed yet -->
-                                <pomExclude>**/modular-world-*/**/pom.xml</pomExclude>
+                                <!-- https://github.com/sormuras/junit-platform-maven-plugin/issues/21 -->
+                                <pomExclude>modular-world-2-main-module-test-plain/pom.xml</pomExclude>
                             </pomExcludes>
                             <postBuildHookScript>verify</postBuildHookScript>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>

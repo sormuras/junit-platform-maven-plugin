@@ -82,6 +82,11 @@ class MavenDriver implements Driver {
   }
 
   @Override
+  public void error(String format, Object... objects) {
+    mojo.error(format, objects);
+  }
+
+  @Override
   public Map<String, Set<Path>> paths() {
     if (!paths.isEmpty()) {
       return paths;

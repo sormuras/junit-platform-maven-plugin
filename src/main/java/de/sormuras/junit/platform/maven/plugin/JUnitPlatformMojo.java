@@ -17,19 +17,22 @@ package de.sormuras.junit.platform.maven.plugin;
 import static de.sormuras.junit.platform.isolator.Version.JUNIT_PLATFORM_VERSION;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singleton;
 
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.ConfigurationBuilder;
 import de.sormuras.junit.platform.isolator.Driver;
 import de.sormuras.junit.platform.isolator.Isolator;
+import de.sormuras.junit.platform.isolator.Modules;
+import de.sormuras.junit.platform.isolator.TestMode;
 import de.sormuras.junit.platform.isolator.Version;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -142,8 +145,11 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   /** The log instance passed in via setter. */
   private Log log;
 
+  /** Modular world helper. */
+  private Modules projectModules;
+
   /** Versions detected by scanning the artifacts of the current project. */
-  private Map<String, String> versionsFromProject;
+  private Map<String, String> projectVersions;
 
   @Override
   public void setLog(Log log) {
@@ -159,7 +165,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   }
 
   void debug(String format, Object... args) {
-    getLog().debug(MessageFormat.format(format, args));
+    getLog().debug(formatMessage(format, args));
   }
 
   private void debug(String caption, Collection<Path> paths) {
@@ -168,11 +174,28 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   }
 
   void info(String format, Object... args) {
-    getLog().info(MessageFormat.format(format, args));
+    getLog().info(formatMessage(format, args));
   }
 
   void warn(String format, Object... args) {
-    getLog().warn(MessageFormat.format(format, args));
+    getLog().warn(formatMessage(format, args));
+  }
+
+  void error(String format, Object... args) {
+    getLog().error(formatMessage(format, args));
+  }
+
+  private static String formatMessage(String pattern, Object... args) {
+    // fast-path
+    if (args.length == 0) {
+      return pattern;
+    }
+    // guard against illegal patterns...
+    try {
+      return MessageFormat.format(pattern, args);
+    } catch (IllegalArgumentException e) {
+      return pattern + " " + Arrays.asList(args) + " // " + e.getClass() + ": " + e.getMessage();
+    }
   }
 
   @Override
@@ -218,29 +241,16 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       return;
     }
 
-    // Create target directory to store log files...
-    Path targetPath = Paths.get(mavenProject.getBuild().getDirectory(), "/junit-platform");
-    try {
-      Files.createDirectories(targetPath);
-    } catch (IOException e) {
-      throw new MojoExecutionException("Can't create target path: " + targetPath, e);
+    if (mavenProject.getPackaging().equals("pom")) {
+      info("JUnit Platform Plugin execution skipped: project uses 'pom' packaging");
+      return;
     }
 
-    // Configuration
-    Set<String> set = new HashSet<>();
-    set.add(mavenBuild.getTestOutputDirectory());
-    Configuration configuration =
-        new ConfigurationBuilder()
-            .setDryRun(isDryRun())
-            .setTargetDirectory(targetPath.toString())
-            .discovery()
-            .setSelectedClasspathRoots(set)
-            .setFilterTagsIncluded(tags)
-            .setParameters(parameters)
-            .end()
-            .build();
+    Path mainPath = Paths.get(mavenBuild.getOutputDirectory());
+    Path testPath = Paths.get(mavenBuild.getTestOutputDirectory());
+    this.projectModules = new Modules(mainPath, testPath);
+    this.projectVersions = Version.buildMap(this::artifactVersionOrNull);
 
-    versionsFromProject = Version.buildMap(this::artifactVersionOrNull);
     info("Launching JUnit Platform " + version(JUNIT_PLATFORM_VERSION) + "...");
     if (getLog().isDebugEnabled()) {
       debug("Path");
@@ -250,7 +260,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       debug("Class Loader");
       debug("  class loader = {0}", getClass().getClassLoader());
       debug("  context loader = {0}", Thread.currentThread().getContextClassLoader());
-      debug("Artifact");
+      debug("Artifact Map");
       mavenProject
           .getArtifactMap()
           .keySet()
@@ -262,6 +272,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       debug("  java.version = {0}", System.getProperty("java.version"));
       debug("  java.class.version = {0}", System.getProperty("java.class.version"));
       Version.forEach(v -> debug("  {0} = {1}", v.getKey(), version(v)));
+      debug("Java Module System");
+      debug("  main -> {0}", projectModules.toStringMainModule());
+      debug("  test -> {0}", projectModules.toStringTestModule());
+      debug("  mode -> {0}", projectModules.getMode());
     }
 
     if (Files.notExists(Paths.get(mavenBuild.getTestOutputDirectory()))) {
@@ -269,6 +283,39 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       return;
     }
 
+    // Create target directory to store log files...
+    Path targetPath = Paths.get(mavenProject.getBuild().getDirectory(), "/junit-platform");
+    try {
+      Files.createDirectories(targetPath);
+    } catch (IOException e) {
+      throw new MojoExecutionException("Can't create target path: " + targetPath, e);
+    }
+
+    // Basic configuration...
+    ConfigurationBuilder configurationBuilder =
+        new ConfigurationBuilder()
+            .setDryRun(isDryRun())
+            .setTargetDirectory(targetPath.toString())
+            .discovery()
+            .setFilterTagsIncluded(tags)
+            .setParameters(parameters)
+            .end();
+
+    // Configure selectors...
+    TestMode mode = projectModules.getMode();
+    if (mode == TestMode.CLASSIC) {
+      Set<String> roots = singleton(mavenBuild.getTestOutputDirectory());
+      configurationBuilder.discovery().setSelectedClasspathRoots(roots);
+    } else {
+      String module =
+          mode == TestMode.MODULAR_PATCHED_TEST_RUNTIME
+              ? projectModules.getMainModuleName().orElseThrow(AssertionError::new)
+              : projectModules.getTestModuleName().orElseThrow(AssertionError::new);
+      Set<String> modules = singleton(module);
+      configurationBuilder.discovery().setSelectedModules(modules);
+    }
+
+    Configuration configuration = configurationBuilder.build();
     Driver driver = new MavenDriver(this, configuration);
     if (getLog().isDebugEnabled()) {
       debug("Path");
@@ -333,7 +380,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   }
 
   String version(Version version) {
-    String detectedVersion = versionsFromProject.get(version.getKey());
+    String detectedVersion = projectVersions.get(version.getKey());
     return versions.getOrDefault(version.getKey(), detectedVersion);
   }
 }
