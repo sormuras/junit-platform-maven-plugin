@@ -121,18 +121,18 @@ class MavenDriver implements Driver {
 
     try {
       //
-      // JUnit Platform Launcher and all TestEngine implementations
+      // JUnit Platform Launcher, Console, and all TestEngine implementations
       //
-      if (!contains(JUNIT_PLATFORM_LAUNCHER)) {
+      if (missing(JUNIT_PLATFORM_LAUNCHER)) {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER.toString(mojo::version)));
       }
-      if (mojo.getExecutor() != Executor.DIRECT && !contains(JUNIT_PLATFORM_CONSOLE)) {
+      if (mojo.getExecutor() != Executor.DIRECT && missing(JUNIT_PLATFORM_CONSOLE)) {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_CONSOLE.toString(mojo::version)));
       }
-      if (contains(JUNIT_JUPITER_API) && !contains(JUNIT_JUPITER_ENGINE)) {
+      if (contains(JUNIT_JUPITER_API) && missing(JUNIT_JUPITER_ENGINE)) {
         launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE.toString(mojo::version)));
       }
-      if (contains("junit:junit") && !contains(JUNIT_VINTAGE_ENGINE)) {
+      if (contains("junit:junit") && missing(JUNIT_VINTAGE_ENGINE)) {
         launcherPaths.addAll(resolve(JUNIT_VINTAGE_ENGINE.toString(mojo::version)));
       }
       //
@@ -176,6 +176,10 @@ class MavenDriver implements Driver {
     return paths;
   }
 
+  private boolean missing(GroupArtifact groupArtifact) {
+    return !contains(groupArtifact);
+  }
+
   private boolean contains(GroupArtifact groupArtifact) {
     return contains(groupArtifact.toString());
   }
@@ -184,7 +188,7 @@ class MavenDriver implements Driver {
     return mojo.getMavenProject().getArtifactMap().containsKey(groupArtifact);
   }
 
-  public Set<Path> resolve(String coordinates) throws RepositoryException {
+  private Set<Path> resolve(String coordinates) throws RepositoryException {
     return resolve(coordinates, "", (all, ways) -> true)
         .stream()
         .map(Artifact::getFile)
