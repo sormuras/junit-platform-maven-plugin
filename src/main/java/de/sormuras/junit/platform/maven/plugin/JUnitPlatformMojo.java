@@ -58,6 +58,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.apache.maven.toolchain.Toolchain;
+import org.apache.maven.toolchain.ToolchainManager;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 
@@ -115,6 +117,13 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   /** The entry point to Maven Artifact Resolver, i.e. the component doing all the work. */
   @Component private RepositorySystem mavenResolver;
+
+  /** The current Maven session. */
+  @Parameter(defaultValue = "${session}", readonly = true)
+  protected MavenSession mavenSession;
+
+  /** The tool chain manager. */
+  @Component private ToolchainManager mavenToolchainManager;
 
   /**
    * Launcher configuration parameters.
@@ -399,10 +408,6 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     return timeout;
   }
 
-  Map<String, String> getVersions() {
-    return versions;
-  }
-
   boolean isDryRun() {
     return dryRun;
   }
@@ -429,13 +434,30 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   }
 
   String getJavaExecutable() {
-    // TODO javaExecutable parameter or Maven Toolchain?
-    //    if (javaExecutable != null) {
-    //      return javaExecutable;
-    //    }
+    Path java = Paths.get(getJavaExecutable(javaOptions.executable)).normalize().toAbsolutePath();
+    if (!Files.isExecutable(java)) {
+      warn("{0} is not executable", java);
+    }
+    return java.toString();
+  }
+
+  private String getJavaExecutable(String executable) {
+    // User defined path executable
+    if (executable != null && !executable.isEmpty()) {
+      return executable;
+    }
+    // Ask toolchain
+    Toolchain toolchain = mavenToolchainManager.getToolchainFromBuildContext("jdk", mavenSession);
+    if (toolchain != null) {
+      String java = toolchain.findTool("java");
+      if (java != null) {
+        return java;
+      }
+    }
+    // Fall back to "java.home" system property
     String extension = System.getProperty("os.name").toLowerCase().contains("win") ? ".exe" : "";
     Path home = Paths.get(System.getProperty("java.home"));
     Path java = home.resolve("bin").resolve("java" + extension);
-    return java.normalize().toAbsolutePath().toString();
+    return java.toString();
   }
 }
