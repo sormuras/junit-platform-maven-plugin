@@ -19,7 +19,7 @@ verifier.verifyLogMatches(new String[] {
   ">> BEGIN >>",
   "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
   ">> Platform executes tests...>>",
-  "[WARNING] Global timeout of 2 seconds reached.",
+  "[WARNING] Global timeout of 2 second(s) reached.",
   ">> Platform executes tests...>>",
   "[INFO] BUILD FAILURE",
   ">> END. >>"
