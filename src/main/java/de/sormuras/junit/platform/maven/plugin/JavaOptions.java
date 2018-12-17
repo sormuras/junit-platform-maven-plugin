@@ -17,22 +17,21 @@ package de.sormuras.junit.platform.maven.plugin;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
-import org.apache.maven.plugins.annotations.Parameter;
 
 @SuppressWarnings("WeakerAccess")
 public class JavaOptions {
   /** Play nice with calling process. */
-  @Parameter boolean inheritIO = false;
+  boolean inheritIO = false;
 
   /** Override <strong>all</strong> Java command line options. */
-  @Parameter List<String> overrideJavaOptions = emptyList();
+  List<String> overrideJavaOptions = emptyList();
 
   /** Override <strong>all</strong> JUnit Platform Console Launcher options. */
-  @Parameter List<String> overrideLauncherOptions = emptyList();
+  List<String> overrideLauncherOptions = emptyList();
 
   /** Additional Java command line options prepended to auto-generated options. */
-  @Parameter List<String> additionalOptions = emptyList();
+  List<String> additionalOptions = emptyList();
 
   /** Argument for the {@code --add-modules} options: like {@code ALL-MODULE-PATH,ALL-DEFAULT}. */
-  @Parameter String addModulesArgument = "";
+  String addModulesArgument = "";
 }
