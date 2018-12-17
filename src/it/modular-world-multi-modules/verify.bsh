@@ -13,6 +13,7 @@ verifier.verifyLogMatches(new String[] {
   "[INFO] tool                                                               [jar]",
   "[INFO] application                                                        [jar]",
   "[INFO] verification                                                       [jar]",
+  "[INFO] with-spaces-in-path                                                [jar]",
   ">> parent... >>",
   "[INFO] JUnit Platform Plugin execution skipped: project uses 'pom' packaging",
   ">> tool... >>",
@@ -27,6 +28,10 @@ verifier.verifyLogMatches(new String[] {
   "[DEBUG]   main -> <empty>",
   "[DEBUG]   test -> open module verification { requires=[org.junit.jupiter.api, java.base, tool, application] packages=[verification] }",
   "[DEBUG]   mode -> MODULAR",
+  ">> with-spaces-in-path... >>",
+  "[DEBUG]   main -> module spaces { requires=[java.base] packages=[spaces] }",
+  "[DEBUG]   test -> <empty>",
+  "[DEBUG]   mode -> MODULAR_PATCHED_TEST_RUNTIME",
   ">> More information lines... >>",
   "[INFO] BUILD SUCCESS",
   ">> END. >>"

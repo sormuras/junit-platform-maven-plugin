@@ -26,7 +26,9 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <configuration>
+          <executor>JAVA</executor>
           <javaOptions>
+            <inheritIO>true</inheritIO>
             <additionalOptions>
               <additionalOption>--show-version</additionalOption>
               <additionalOption>--show-module-resolution</additionalOption>

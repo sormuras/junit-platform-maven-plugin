@@ -12,4 +12,16 @@
 
   <artifactId>with-spaces-in-path</artifactId>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>@project.groupId@</groupId>
+        <artifactId>@project.artifactId@</artifactId>
+        <configuration>
+          <executor>JAVA</executor>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>

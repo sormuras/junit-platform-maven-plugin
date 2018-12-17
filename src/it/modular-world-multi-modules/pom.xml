@@ -18,8 +18,7 @@
     <module>application</module>
     <module>tool</module>
     <module>verification</module>
-    <!-- https://github.com/sormuras/junit-platform-maven-plugin/issues/21 -->
-    <!--<module>with spaces in path</module>-->
+    <module>with spaces in path</module>
   </modules>
 
   <dependencies>
