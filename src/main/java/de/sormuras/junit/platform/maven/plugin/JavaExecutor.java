@@ -29,25 +29,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.apache.maven.project.MavenProject;
 
 /** Forks an external Java process to start the JUnit Platform Console Launcher. */
 class JavaExecutor {
 
   private final JUnitPlatformMojo mojo;
-  private final MavenProject project;
   private final Modules modules;
   private final Driver driver;
 
   JavaExecutor(JUnitPlatformMojo mojo, Driver driver) {
     this.mojo = mojo;
-    this.project = mojo.getMavenProject();
     this.modules = mojo.getProjectModules();
     this.driver = driver;
   }
 
   int evaluate(Configuration configuration) {
-    Path target = Paths.get(project.getBuild().getDirectory()).resolve("junit-platform");
+    Path target = Paths.get(configuration.basic().getTargetDirectory());
     Path cmdPath = target.resolve("console-launcher.cmd.log");
     Path errorPath = target.resolve("console-launcher.err.log");
     Path outputPath = target.resolve("console-launcher.out.log");
@@ -68,7 +65,7 @@ class JavaExecutor {
     // "java[.exe]"
     cmd.add(mojo.getJavaExecutable());
     addJavaOptions(cmd);
-    addLauncherOptions(cmd, configuration.discovery());
+    addLauncherOptions(cmd, configuration);
 
     // Prepare target directory...
     try {
@@ -169,29 +166,26 @@ class JavaExecutor {
 
   // Append console launcher options
   // See https://junit.org/junit5/docs/current/user-guide/#running-tests-console-launcher-options
-  private void addLauncherOptions(List<String> cmd, Configuration.Discovery cfg) {
+  private void addLauncherOptions(List<String> cmd, Configuration configuration) {
     List<String> overrides = mojo.getJavaOptions().overrideLauncherOptions;
     if (overrides != Collections.EMPTY_LIST) {
       cmd.addAll(overrides);
       return;
     }
 
+    Configuration.Basic basic = configuration.basic();
+    Configuration.Discovery dsc = configuration.discovery();
+
     cmd.add("--disable-ansi-colors");
     cmd.add("--details");
     cmd.add("tree");
     cmd.add("--details-theme");
     cmd.add("ascii");
-    cfg.getFilterTagsIncluded().forEach(tag -> cmd.add(createTagArgument("include", tag)));
-    cfg.getFilterTagsExcluded().forEach(tag -> cmd.add(createTagArgument("exclude", tag)));
-    cfg.getParameters().forEach((key, value) -> cmd.add(createConfigArgument(key, value)));
-
-    // TODO --reports-dir
-    //    mojo.getReportsPath()
-    //        .ifPresent(
-    //            path -> {
-    //              cmd.add("--reports-dir");
-    //              cmd.add(path.toString());
-    //            });
+    cmd.add("--reports-dir");
+    cmd.add(basic.getTargetDirectory());
+    dsc.getFilterTagsIncluded().forEach(tag -> cmd.add(createTagArgument("include", tag)));
+    dsc.getFilterTagsExcluded().forEach(tag -> cmd.add(createTagArgument("exclude", tag)));
+    dsc.getParameters().forEach((key, value) -> cmd.add(createConfigArgument(key, value)));
 
     Optional<Object> mainModule = modules.getMainModuleReference();
     Optional<Object> testModule = modules.getTestModuleReference();

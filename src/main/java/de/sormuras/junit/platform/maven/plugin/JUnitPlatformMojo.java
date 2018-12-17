@@ -291,7 +291,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     }
 
     // Create target directory to store log files...
-    Path targetPath = Paths.get(mavenProject.getBuild().getDirectory(), "/junit-platform");
+    Path targetPath = Paths.get(mavenProject.getBuild().getDirectory(), "junit-platform");
     try {
       Files.createDirectories(targetPath);
     } catch (IOException e) {
