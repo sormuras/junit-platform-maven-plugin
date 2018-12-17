@@ -8,28 +8,6 @@
 
 Maven Plugin launching the JUnit Platform
 
-# R E L A U N C H
-
-_[Make Java 8 baseline](https://github.com/sormuras/junit-platform-maven-plugin/issues/10) in progress..._
-
-New version is `0.811.1`.
-Current `master` is available via [JitPack](https://jitpack.io/#sormuras/junit-platform-maven-plugin):
-
-```xml
-<pluginRepositories>
-    <pluginRepository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </pluginRepository>
-</pluginRepositories>
-
-<dependency>
-    <groupId>com.github.sormuras</groupId>
-    <artifactId>junit-platform-maven-plugin</artifactId>
-    <version>master-SNAPSHOT</version>
-</dependency>
-```
-
 ## Goals
 
 * Utilize JUnit Platform's ability to execute multiple `TestEngine`s natively.
@@ -67,12 +45,33 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
 <plugin>
   <groupId>de.sormuras</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>0.811.1</version>  
+  <version>0.811.2</version>  
   <extensions>true</extensions> <!-- Necessary to execute it in 'test' phase. -->
 </plugin>
 ```
 
-## `module-info.test` support (_unsupported due to relaunch_)
+### JitPack
+
+Current `master-SNAPSHOT` version is available via [JitPack](https://jitpack.io/#sormuras/junit-platform-maven-plugin):
+
+```xml
+<pluginRepositories>
+    <pluginRepository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </pluginRepository>
+</pluginRepositories>
+
+<dependency>
+    <groupId>com.github.sormuras</groupId>
+    <artifactId>junit-platform-maven-plugin</artifactId>
+    <version>master-SNAPSHOT</version>
+</dependency>
+```
+
+## `module-info.test` support
+
+Needs `<executor>JAVA</executor>` mode!
 
 This plugin also integrates additional compiler flags specified in a `module-info.test` file.
 For example, if your tests need to access types from a module shipping with the JDK (here: `java.scripting`).
