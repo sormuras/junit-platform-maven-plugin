@@ -328,16 +328,18 @@
                                 <pomInclude>*/pom.xml</pomInclude>
                                 <!-- Select a few... -->
                                 <!--<pomInclude>basic/pom.xml</pomInclude>-->
+                                <!--<pomInclude>configured/pom.xml</pomInclude>-->
                                 <!--<pomInclude>failure/pom.xml</pomInclude>-->
                                 <!--<pomInclude>classloader-*/pom.xml</pomInclude>-->
                                 <!--<pomInclude>configured/pom.xml</pomInclude>-->
                                 <!--<pomInclude>jupiter-5*-platform-1*/pom.xml</pomInclude>-->
                                 <!--<pomInclude>modular-world-*/pom.xml</pomInclude>-->
+                                <!--<pomInclude>modular-world-multi-modules/pom.xml</pomInclude>-->
                                 <!--<pomInclude>multiple-engines-*/pom.xml</pomInclude>-->
+                                <!--<pomInclude>timeout/pom.xml</pomInclude>-->
                             </pomIncludes>
                             <pomExcludes>
-                                <!-- https://github.com/sormuras/junit-platform-maven-plugin/issues/21 -->
-                                <pomExclude>modular-world-2-main-module-test-plain/pom.xml</pomExclude>
+                                <!-- None, B. -->
                             </pomExcludes>
                             <postBuildHookScript>verify</postBuildHookScript>
                             <localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
