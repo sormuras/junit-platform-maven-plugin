@@ -89,7 +89,14 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   /** Global timeout duration in seconds. */
   @Parameter(defaultValue = "300")
-  private long timeout;
+  private long timeout = 300L;
+
+  /** Execution mode. */
+  @Parameter(defaultValue = "DIRECT")
+  private Executor executor = Executor.DIRECT;
+
+  /** Customized Java command line options. */
+  @Parameter private JavaOptions javaOptions = new JavaOptions();
 
   /** Custom version map to override detected version. */
   @Parameter private Map<String, String> versions = emptyMap();
@@ -251,7 +258,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     this.projectModules = new Modules(mainPath, testPath);
     this.projectVersions = Version.buildMap(this::artifactVersionOrNull);
 
-    info("Launching JUnit Platform " + version(JUNIT_PLATFORM_VERSION) + "...");
+    info("Launching JUnit Platform {0}...", version(JUNIT_PLATFORM_VERSION));
     if (getLog().isDebugEnabled()) {
       debug("Path");
       debug("  java.home = {0}", System.getProperty("java.home"));
@@ -322,25 +329,58 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       driver.paths().forEach(this::debug);
     }
 
-    int result = execute(driver, configuration);
-    if (result != 0) {
-      throw new MojoFailureException("RED ALERT!");
+    try {
+      int result = execute(driver, configuration);
+      if (result != 0) {
+        throw new MojoFailureException("RED ALERT!");
+      }
+    } catch (MojoExecutionException | MojoFailureException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new AssertionError("Unexpected exception caught!", e);
     }
   }
 
-  private int execute(Driver driver, Configuration configuration) throws MojoFailureException {
+  private int execute(Driver driver, Configuration configuration) throws Exception {
+    if (executor == Executor.DIRECT) {
+      return executeDirect(driver, configuration);
+    }
+    if (executor == Executor.JAVA) {
+      return executeJava(driver, configuration);
+    }
+    throw new MojoExecutionException("Unsupported executor: " + executor);
+  }
+
+  private int executeDirect(Driver driver, Configuration configuration) throws Exception {
     ExecutorService executor = Executors.newSingleThreadExecutor();
     Future<Integer> future = executor.submit(() -> new Isolator(driver).evaluate(configuration));
     try {
       return future.get(timeout, TimeUnit.SECONDS);
     } catch (TimeoutException e) {
-      warn("Global timeout of {0} seconds reached.", timeout);
+      warn("Global timeout of {0} second(s) reached.", timeout);
       throw new MojoFailureException("Global timeout reached.", e);
     } catch (Exception e) {
-      throw new MojoFailureException("Execution failed!", e);
+      throw new MojoExecutionException("Execution failed!", e);
     } finally {
       executor.shutdownNow();
     }
+  }
+
+  private int executeJava(Driver driver, Configuration configuration) {
+    JavaExecutor executor = new JavaExecutor(this, driver);
+    return executor.evaluate(configuration);
+  }
+
+  Executor getExecutor() {
+    return executor;
+  }
+
+  JavaOptions getJavaOptions() {
+    return javaOptions;
+  }
+
+  Modules getProjectModules() {
+    return projectModules;
   }
 
   MavenProject getMavenProject() {
@@ -353,6 +393,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   RepositorySystem getMavenResolver() {
     return mavenResolver;
+  }
+
+  long getTimeout() {
+    return timeout;
   }
 
   Map<String, String> getVersions() {
@@ -382,5 +426,16 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   String version(Version version) {
     String detectedVersion = projectVersions.get(version.getKey());
     return versions.getOrDefault(version.getKey(), detectedVersion);
+  }
+
+  String getJavaExecutable() {
+    // TODO javaExecutable parameter or Maven Toolchain?
+    //    if (javaExecutable != null) {
+    //      return javaExecutable;
+    //    }
+    String extension = System.getProperty("os.name").toLowerCase().contains("win") ? ".exe" : "";
+    Path home = Paths.get(System.getProperty("java.home"));
+    Path java = home.resolve("bin").resolve("java" + extension);
+    return java.normalize().toAbsolutePath().toString();
   }
 }

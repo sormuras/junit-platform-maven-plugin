@@ -16,6 +16,7 @@ package de.sormuras.junit.platform.maven.plugin;
 
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_JUPITER_API;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_JUPITER_ENGINE;
+import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_CONSOLE;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_LAUNCHER;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_VINTAGE_ENGINE;
 
@@ -124,6 +125,9 @@ class MavenDriver implements Driver {
       //
       if (!contains(JUNIT_PLATFORM_LAUNCHER)) {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER.toString(mojo::version)));
+      }
+      if (mojo.getExecutor() != Executor.DIRECT && !contains(JUNIT_PLATFORM_CONSOLE)) {
+        launcherPaths.addAll(resolve(JUNIT_PLATFORM_CONSOLE.toString(mojo::version)));
       }
       if (contains(JUNIT_JUPITER_API) && !contains(JUNIT_JUPITER_ENGINE)) {
         launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE.toString(mojo::version)));
