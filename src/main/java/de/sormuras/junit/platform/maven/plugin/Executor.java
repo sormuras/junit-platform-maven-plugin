@@ -18,8 +18,27 @@ package de.sormuras.junit.platform.maven.plugin;
 public enum Executor {
 
   /** Direct "in-process" execution. */
-  DIRECT,
+  DIRECT(false, true),
 
   /** Fork new JVM calling {@code java} via Process API. */
-  JAVA
+  JAVA(true, false);
+
+  private final boolean injectConsole;
+
+  private final boolean injectWorker;
+
+  Executor(boolean injectConsole, boolean injectWorker) {
+    this.injectConsole = injectConsole;
+    this.injectWorker = injectWorker;
+  }
+
+  /** @return {@code true} if junit-platform-console is needed at test runtime. */
+  public boolean isInjectConsole() {
+    return injectConsole;
+  }
+
+  /** @return {@code true} if isolator-worker is needed at test runtime. */
+  public boolean isInjectWorker() {
+    return injectWorker;
+  }
 }

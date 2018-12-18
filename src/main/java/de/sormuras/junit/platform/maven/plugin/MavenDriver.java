@@ -126,7 +126,7 @@ class MavenDriver implements Driver {
       if (missing(JUNIT_PLATFORM_LAUNCHER)) {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER.toString(mojo::version)));
       }
-      if (mojo.getExecutor() != Executor.DIRECT && missing(JUNIT_PLATFORM_CONSOLE)) {
+      if (mojo.getExecutor().isInjectConsole() && missing(JUNIT_PLATFORM_CONSOLE)) {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_CONSOLE.toString(mojo::version)));
       }
       if (contains(JUNIT_JUPITER_API) && missing(JUNIT_JUPITER_ENGINE)) {
@@ -138,7 +138,10 @@ class MavenDriver implements Driver {
       //
       // Isolator + Worker
       //
-      isolatorPaths.addAll(resolve(configuration.basic().getWorkerCoordinates()));
+      if (mojo.getExecutor().isInjectWorker()
+          && !contains("de.sormuras.junit-platform-isolator:junit-platform-isolator-worker")) {
+        isolatorPaths.addAll(resolve(configuration.basic().getWorkerCoordinates()));
+      }
     } catch (RepositoryException e) {
       throw new RuntimeException("Resolution failed!", e);
     }
