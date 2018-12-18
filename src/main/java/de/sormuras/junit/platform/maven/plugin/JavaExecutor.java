@@ -183,8 +183,7 @@ class JavaExecutor {
     cmd.add("ascii");
     cmd.add("--reports-dir");
     cmd.add(basic.getTargetDirectory());
-    dsc.getFilterTagsIncluded().forEach(tag -> cmd.add(createTagArgument("include", tag)));
-    dsc.getFilterTagsExcluded().forEach(tag -> cmd.add(createTagArgument("exclude", tag)));
+    dsc.getFilterTags().forEach(tag -> cmd.add(createTagArgument("include", tag)));
     dsc.getParameters().forEach((key, value) -> cmd.add(createConfigArgument(key, value)));
 
     Optional<Object> mainModule = modules.getMainModuleReference();

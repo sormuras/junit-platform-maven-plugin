@@ -24,7 +24,7 @@ verifier.verifyLogMatches(new String[] {
   "[DEBUG]   (f) parameters = {junit.jupiter.execution.parallel.enabled=true, ninety.nine=99}",
   "[DEBUG]   (f) reunite = true",
   "[DEBUG]   (f) skip = false",
-  "[DEBUG]   (f) tags = [foo, bar]",
+  "\\Q[DEBUG]   (f) tags = \\E.+", // [foo, bar] in any order
   "[DEBUG]   (f) timeout = 300",
   ">> >>",
   "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",

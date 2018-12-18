@@ -15,8 +15,8 @@
 package de.sormuras.junit.platform.maven.plugin;
 
 import static de.sormuras.junit.platform.isolator.Version.JUNIT_PLATFORM_VERSION;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 
 import de.sormuras.junit.platform.isolator.Configuration;
@@ -156,7 +156,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
    *     href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering">Tagging
    *     and Filtering</a>
    */
-  @Parameter private List<String> tags = emptyList();
+  @Parameter private Set<String> tags = emptySet();
 
   /** The log instance passed in via setter. */
   private Log log;
@@ -218,7 +218,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   public void afterProjectsRead(MavenSession session) {
     for (MavenProject project : session.getProjects()) {
       Optional<Plugin> thisPlugin =
-          findPlugin(project, "de.sormuras", "junit-platform-maven-plugin");
+          findPlugin(project, "de.sormuras.junit", "junit-platform-maven-plugin");
       thisPlugin.ifPresent(plugin -> injectThisPluginIntoTestExecutionPhase(project, plugin));
     }
   }
@@ -313,7 +313,15 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
             .setDryRun(isDryRun())
             .setTargetDirectory(targetPath.toString())
             .discovery()
-            .setFilterTagsIncluded(tags)
+            .setFilterTags(tags)
+            // TODO FIX BUG!
+            //   Caused by: java.lang.ClassCastException: class [Ljava.lang.Object; cannot be cast
+            //   to class [Ljava.lang.String; ([Ljava.lang.Object; and [Ljava.lang.String; are in
+            //   module java.base of loader 'bootstrap')
+            //   at
+            //   de.sormuras.junit.platform.isolator.worker.DiscoveryCreator.lambda$createFilters$14
+            //   (DiscoveryCreator.java:68)
+            .setFilterClassNamePatterns(null)
             .setParameters(parameters)
             .end();
 
