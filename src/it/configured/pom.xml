@@ -26,6 +26,13 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <configuration>
+          <selectors>
+            <classes>
+              <class>JupiterTest</class>
+              <class>JupiterTests</class>
+              <class>TestJupiter</class>
+            </classes>
+          </selectors>
           <tags>
             <tag>foo</tag>
             <tag>bar</tag>
