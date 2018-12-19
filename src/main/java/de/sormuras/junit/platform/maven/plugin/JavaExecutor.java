@@ -54,6 +54,7 @@ class JavaExecutor {
     List<String> cmd = builder.command();
 
     boolean inheritIO = mojo.getJavaOptions().inheritIO;
+    boolean captureIO = !inheritIO;
     if (inheritIO) {
       builder.inheritIO();
     } else {
@@ -71,7 +72,7 @@ class JavaExecutor {
     try {
       Files.createDirectories(target);
       Files.write(cmdPath, cmd);
-      if (!inheritIO) {
+      if (captureIO) {
         if (Files.notExists(errorPath)) {
           Files.createFile(errorPath);
         }
@@ -116,7 +117,7 @@ class JavaExecutor {
         return -2;
       }
       int exitValue = process.exitValue();
-      if (!inheritIO) {
+      if (captureIO) {
         try {
           Files.readAllLines(outputPath)
               .stream()
