@@ -42,7 +42,7 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <configuration>
-          <isolate>true</isolate> <!-- true is the default -->
+          <isolation>ABSOLUTE</isolation> <!-- MERGE is the default -->
         </configuration>
       </plugin>
     </plugins>
