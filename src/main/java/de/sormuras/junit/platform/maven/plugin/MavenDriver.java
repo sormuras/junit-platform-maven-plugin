@@ -96,7 +96,7 @@ class MavenDriver implements Driver {
     }
 
     MavenProject project = mojo.getMavenProject();
-    TweakOptions tweaks = mojo.getTweakOptions();
+    Tweaks tweaks = mojo.getTweaks();
 
     Set<Path> mainPaths = new LinkedHashSet<>();
     Set<Path> testPaths = new LinkedHashSet<>();

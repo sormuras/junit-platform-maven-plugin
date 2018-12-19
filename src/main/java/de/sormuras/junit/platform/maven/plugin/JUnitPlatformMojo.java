@@ -97,7 +97,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   @Parameter private JavaOptions javaOptions = new JavaOptions();
 
   /** Common well-known maven options. */
-  @Parameter private TweakOptions tweakOptions = new TweakOptions();
+  @Parameter private Tweaks tweaks = new Tweaks();
+
+  /** Test discovery options. */
+  @Parameter private Selectors selectors = new Selectors();
 
   /** Custom version map to override detected version. */
   @Parameter private Map<String, String> versions = emptyMap();
@@ -138,6 +141,8 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
    *     Parameters</a>
    */
   @Parameter private Map<String, String> parameters = emptyMap();
+
+  @Parameter private Set<String> classNamePatterns = singleton("^(Test.*|.+[.$]Test.*|.*Tests?)$");
 
   /**
    * Tags or tag expressions to include only tests whose tags match.
@@ -312,22 +317,36 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
             .setDryRun(isDryRun())
             .setTargetDirectory(targetPath.toString())
             .discovery()
+            // selectors
+            .setSelectedDirectories(selectors.directories)
+            .setSelectedFiles(selectors.files)
+            .setSelectedModules(selectors.modules)
+            .setSelectedPackages(selectors.packages)
+            .setSelectedClasses(selectors.classes)
+            .setSelectedMethods(selectors.methods)
+            .setSelectedClasspathResources(selectors.resources)
+            .setSelectedUris(selectors.uris)
+            // filters
+            .setFilterClassNamePatterns(classNamePatterns)
             .setFilterTags(tags)
+            // configuration parameters
             .setParameters(parameters)
             .end();
 
-    // Configure selectors...
-    TestMode mode = projectModules.getMode();
-    if (mode == TestMode.CLASSIC) {
-      Set<String> roots = singleton(mavenBuild.getTestOutputDirectory());
-      configurationBuilder.discovery().setSelectedClasspathRoots(roots);
-    } else {
-      String module =
-          mode == TestMode.MODULAR_PATCHED_TEST_RUNTIME
-              ? projectModules.getMainModuleName().orElseThrow(AssertionError::new)
-              : projectModules.getTestModuleName().orElseThrow(AssertionError::new);
-      Set<String> modules = singleton(module);
-      configurationBuilder.discovery().setSelectedModules(modules);
+    // No custom selector
+    if (selectors.isEmpty()) {
+      TestMode mode = projectModules.getMode();
+      if (mode == TestMode.CLASSIC) {
+        Set<String> roots = singleton(mavenBuild.getTestOutputDirectory());
+        configurationBuilder.discovery().setSelectedClasspathRoots(roots);
+      } else {
+        String module =
+            mode == TestMode.MODULAR_PATCHED_TEST_RUNTIME
+                ? projectModules.getMainModuleName().orElseThrow(AssertionError::new)
+                : projectModules.getTestModuleName().orElseThrow(AssertionError::new);
+        Set<String> modules = singleton(module);
+        configurationBuilder.discovery().setSelectedModules(modules);
+      }
     }
 
     Configuration configuration = configurationBuilder.build();
@@ -387,8 +406,8 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     return javaOptions;
   }
 
-  TweakOptions getTweakOptions() {
-    return tweakOptions;
+  Tweaks getTweaks() {
+    return tweaks;
   }
 
   Modules getProjectModules() {
@@ -434,7 +453,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   @SafeVarargs
   final void removeExcludedArtifacts(Collection<Path>... collections) {
-    for (String exclude : tweakOptions.dependencyExcludes) {
+    for (String exclude : tweaks.dependencyExcludes) {
       org.apache.maven.artifact.Artifact artifact = mavenProject.getArtifactMap().get(exclude);
       if (artifact == null) {
         debug("Can't exclude what isn't included: " + exclude);

@@ -4,9 +4,9 @@ import static java.util.Collections.emptyList;
 
 import java.util.List;
 
-/** Tweak options to fine-tune the test execution. */
+/** Tweak options to fine-tune test execution. */
 @SuppressWarnings("WeakerAccess")
-public class TweakOptions {
+public class Tweaks {
 
   /** List of additional raw (local) test path elements. */
   List<String> additionalTestPathElements = emptyList();
