@@ -314,14 +314,6 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
             .setTargetDirectory(targetPath.toString())
             .discovery()
             .setFilterTags(tags)
-            // TODO FIX BUG!
-            //   Caused by: java.lang.ClassCastException: class [Ljava.lang.Object; cannot be cast
-            //   to class [Ljava.lang.String; ([Ljava.lang.Object; and [Ljava.lang.String; are in
-            //   module java.base of loader 'bootstrap')
-            //   at
-            //   de.sormuras.junit.platform.isolator.worker.DiscoveryCreator.lambda$createFilters$14
-            //   (DiscoveryCreator.java:68)
-            .setFilterClassNamePatterns(null)
             .setParameters(parameters)
             .end();
 
