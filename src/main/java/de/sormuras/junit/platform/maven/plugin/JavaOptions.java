@@ -18,6 +18,7 @@ import static java.util.Collections.emptyList;
 
 import java.util.List;
 
+/** Options consumed by the {@link JavaExecutor}. */
 @SuppressWarnings("WeakerAccess")
 public class JavaOptions {
   /**

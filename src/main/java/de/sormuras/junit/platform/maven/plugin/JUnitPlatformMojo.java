@@ -96,6 +96,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   /** Customized Java command line options. */
   @Parameter private JavaOptions javaOptions = new JavaOptions();
 
+  /** Common well-known maven options. */
+  @Parameter private TweakOptions tweakOptions = new TweakOptions();
+
   /** Custom version map to override detected version. */
   @Parameter private Map<String, String> versions = emptyMap();
 
@@ -384,6 +387,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     return javaOptions;
   }
 
+  TweakOptions getTweakOptions() {
+    return tweakOptions;
+  }
+
   Modules getProjectModules() {
     return projectModules;
   }
@@ -423,6 +430,21 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   String version(Version version) {
     String detectedVersion = projectVersions.get(version.getKey());
     return versions.getOrDefault(version.getKey(), detectedVersion);
+  }
+
+  @SafeVarargs
+  final void removeExcludedArtifacts(Collection<Path>... collections) {
+    for (String exclude : tweakOptions.dependencyExcludes) {
+      org.apache.maven.artifact.Artifact artifact = mavenProject.getArtifactMap().get(exclude);
+      if (artifact == null) {
+        debug("Can't exclude what isn't included: " + exclude);
+        continue;
+      }
+      Path excludedPath = artifact.getFile().toPath();
+      for (Collection<Path> collection : collections) {
+        collection.remove(excludedPath);
+      }
+    }
   }
 
   String getJavaExecutable() {

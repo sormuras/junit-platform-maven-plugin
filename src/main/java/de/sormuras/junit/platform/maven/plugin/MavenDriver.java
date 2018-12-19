@@ -94,23 +94,37 @@ class MavenDriver implements Driver {
     if (!paths.isEmpty()) {
       return paths;
     }
+
     MavenProject project = mojo.getMavenProject();
+    TweakOptions tweaks = mojo.getTweakOptions();
 
     Set<Path> mainPaths = new LinkedHashSet<>();
     Set<Path> testPaths = new LinkedHashSet<>();
     Set<Path> launcherPaths = new LinkedHashSet<>();
     Set<Path> isolatorPaths = new LinkedHashSet<>();
 
-    // Acquire all main and test path elements...
+    // Acquire all main and test path elements from the project...
     try {
-      project.getCompileClasspathElements().stream().map(Paths::get).forEach(mainPaths::add);
-      project.getTestClasspathElements().stream().map(Paths::get).forEach(testPaths::add);
+      addAll(project.getCompileClasspathElements(), mainPaths);
+      addAll(project.getTestClasspathElements(), testPaths);
     } catch (DependencyResolutionRequiredException e) {
       throw new RuntimeException("Resolution required!", e);
     }
 
-    // Resolve missing dependencies...
+    // Add additional path elements...
+    addAll(tweaks.additionalTestPathElements, testPaths);
+    addAll(tweaks.additionalLauncherPathElements, launcherPaths);
+
+    // Resolve additional and missing dependencies...
     try {
+      // Tweaks first...
+      for (String coordinates : tweaks.additionalTestDependencies) {
+        testPaths.addAll(resolve(coordinates));
+      }
+      for (String coordinates : tweaks.additionalLauncherDependencies) {
+        launcherPaths.addAll(resolve(coordinates));
+      }
+
       // JUnit Platform Launcher, Console, and well-known TestEngine implementations
       if (missing(JUNIT_PLATFORM_LAUNCHER)) {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER));
@@ -131,6 +145,8 @@ class MavenDriver implements Driver {
     } catch (RepositoryException e) {
       throw new RuntimeException("Resolution failed!", e);
     }
+
+    mojo.removeExcludedArtifacts(mainPaths, testPaths, launcherPaths, isolatorPaths);
 
     Isolation isolation = mojo.getIsolation();
     switch (isolation) {
@@ -210,6 +226,10 @@ class MavenDriver implements Driver {
         .map(ArtifactResult::getArtifact)
         // .peek(a -> debug("Artifact {0} resolved to {1}", a, a.getFile()))
         .collect(Collectors.toList());
+  }
+
+  private static void addAll(Collection<String> source, Collection<Path> target) {
+    source.stream().map(Paths::get).forEach(target::add);
   }
 
   private static void put(Map<String, Set<Path>> paths, String key, Set<Path> value) {
