@@ -19,10 +19,9 @@ verifier.verifyLogMatches(new String[] {
   ">> BEGIN >>",
   "[DEBUG]   (f) dryRun = false",
   "[DEBUG]   (f) executor = DIRECT",
-  "[DEBUG]   (f) isolate = true",
+  "[DEBUG]   (f) isolation = MERGED",
   ">> More Maven parameters... >>",
   "[DEBUG]   (f) parameters = {junit.jupiter.execution.parallel.enabled=true, ninety.nine=99}",
-  "[DEBUG]   (f) reunite = true",
   "[DEBUG]   (f) skip = false",
   "\\Q[DEBUG]   (f) tags = \\E.+", // [foo, bar] in any order
   "[DEBUG]   (f) timeout = 300",

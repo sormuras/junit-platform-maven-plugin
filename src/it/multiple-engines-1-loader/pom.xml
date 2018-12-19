@@ -80,7 +80,7 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <configuration>
-          <isolate>false</isolate>
+          <isolation>NONE</isolation>
         </configuration>
         <!-- Doesn't work here: jqwik and others win the race and pulls 1.2.0 in... -->
         <!--<configuration>-->

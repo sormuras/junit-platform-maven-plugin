@@ -14,11 +14,13 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 
 class JUnitPlatformMojoTests {
@@ -28,11 +30,21 @@ class JUnitPlatformMojoTests {
     JUnitPlatformMojo mojo = new JUnitPlatformMojo();
 
     assertFalse(mojo.isDryRun());
-    assertTrue(mojo.isIsolate());
-    assertNotNull(mojo.getLog());
+    assertEquals(Executor.DIRECT, mojo.getExecutor());
+    assertEquals(Isolation.MERGED, mojo.getIsolation());
+    assertEquals(300L, mojo.getTimeout());
 
+    assertNotNull(mojo.getLog());
     assertNull(mojo.getMavenProject());
     assertNull(mojo.getMavenRepositorySession());
     assertNull(mojo.getMavenResolver());
+
+    JavaOptions javaOptions = mojo.getJavaOptions();
+    assertFalse(javaOptions.inheritIO);
+    assertEquals("", javaOptions.executable);
+    assertEquals("", javaOptions.addModulesArgument);
+    assertSame(Collections.EMPTY_LIST, javaOptions.additionalOptions);
+    assertSame(Collections.EMPTY_LIST, javaOptions.overrideJavaOptions);
+    assertSame(Collections.EMPTY_LIST, javaOptions.overrideLauncherOptions);
   }
 }

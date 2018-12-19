@@ -78,12 +78,8 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   private boolean skip = false;
 
   /** Isolate artifacts in separated class loaders. */
-  @Parameter(defaultValue = "true")
-  private boolean isolate = true;
-
-  /** Put main and test output directories into same classloader. */
-  @Parameter(defaultValue = "true")
-  private boolean reunite = true;
+  @Parameter(defaultValue = "MERGED")
+  private Isolation isolation = Isolation.MERGED;
 
   /** Dry-run mode discovers tests but does not execute them. */
   @Parameter(defaultValue = "false")
@@ -274,8 +270,8 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       debug("  user.dir = {0}", System.getProperty("user.dir"));
       debug("  project.basedir = {0}", mavenProject.getBasedir());
       debug("Class Loader");
-      debug("  class loader = {0}", getClass().getClassLoader());
-      debug("  context loader = {0}", Thread.currentThread().getContextClassLoader());
+      debug("  mojo's loader = {0}", getClass().getClassLoader());
+      debug("  thread context = {0}", Thread.currentThread().getContextClassLoader());
       debug("Artifact Map");
       mavenProject
           .getArtifactMap()
@@ -334,7 +330,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     Configuration configuration = configurationBuilder.build();
     Driver driver = new MavenDriver(this, configuration);
     if (getLog().isDebugEnabled()) {
-      debug("Path");
+      debug("Isolator Path Layering");
       driver.paths().forEach(this::debug);
     }
 
@@ -412,12 +408,8 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     return dryRun;
   }
 
-  boolean isIsolate() {
-    return isolate;
-  }
-
-  boolean isReunite() {
-    return reunite;
+  Isolation getIsolation() {
+    return isolation;
   }
 
   private String artifactVersionOrNull(String key) {

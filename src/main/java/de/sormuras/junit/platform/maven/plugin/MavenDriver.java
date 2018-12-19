@@ -14,6 +14,7 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import static de.sormuras.junit.platform.isolator.GroupArtifact.ISOLATOR_WORKER;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_JUPITER_API;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_JUPITER_ENGINE;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_CONSOLE;
@@ -35,6 +36,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -92,89 +94,78 @@ class MavenDriver implements Driver {
     if (!paths.isEmpty()) {
       return paths;
     }
+    MavenProject project = mojo.getMavenProject();
+
     Set<Path> mainPaths = new LinkedHashSet<>();
     Set<Path> testPaths = new LinkedHashSet<>();
     Set<Path> launcherPaths = new LinkedHashSet<>();
     Set<Path> isolatorPaths = new LinkedHashSet<>();
 
+    // Acquire all main and test path elements...
     try {
-      //
-      // Main path elements
-      //
-      mojo.getMavenProject()
-          .getCompileClasspathElements()
-          .stream()
-          .map(Paths::get)
-          .forEach(mainPaths::add);
-
-      //
-      // Test path elements
-      //
-      mojo.getMavenProject()
-          .getTestClasspathElements()
-          .stream()
-          .map(Paths::get)
-          .forEach(testPaths::add);
+      project.getCompileClasspathElements().stream().map(Paths::get).forEach(mainPaths::add);
+      project.getTestClasspathElements().stream().map(Paths::get).forEach(testPaths::add);
     } catch (DependencyResolutionRequiredException e) {
       throw new RuntimeException("Resolution required!", e);
     }
 
+    // Resolve missing dependencies...
     try {
-      //
-      // JUnit Platform Launcher, Console, and all TestEngine implementations
-      //
+      // JUnit Platform Launcher, Console, and well-known TestEngine implementations
       if (missing(JUNIT_PLATFORM_LAUNCHER)) {
-        launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER.toString(mojo::version)));
+        launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER));
       }
       if (mojo.getExecutor().isInjectConsole() && missing(JUNIT_PLATFORM_CONSOLE)) {
-        launcherPaths.addAll(resolve(JUNIT_PLATFORM_CONSOLE.toString(mojo::version)));
+        launcherPaths.addAll(resolve(JUNIT_PLATFORM_CONSOLE));
       }
       if (contains(JUNIT_JUPITER_API) && missing(JUNIT_JUPITER_ENGINE)) {
-        launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE.toString(mojo::version)));
+        launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE));
       }
       if (contains("junit:junit") && missing(JUNIT_VINTAGE_ENGINE)) {
-        launcherPaths.addAll(resolve(JUNIT_VINTAGE_ENGINE.toString(mojo::version)));
+        launcherPaths.addAll(resolve(JUNIT_VINTAGE_ENGINE));
       }
-      //
       // Isolator + Worker
-      //
-      if (mojo.getExecutor().isInjectWorker()
-          && !contains("de.sormuras.junit-platform-isolator:junit-platform-isolator-worker")) {
+      if (mojo.getExecutor().isInjectWorker() && missing(ISOLATOR_WORKER)) {
         isolatorPaths.addAll(resolve(configuration.basic().getWorkerCoordinates()));
       }
     } catch (RepositoryException e) {
       throw new RuntimeException("Resolution failed!", e);
     }
 
-    // Classes in main output directory need a special treatment for now
-    if (mojo.isReunite()) {
-      Path mainClasses = Paths.get(mojo.getMavenProject().getBuild().getOutputDirectory());
-      if (!mainPaths.remove(mainClasses)) {
-        warn(
-            "Main compile target output directory not part of projects compile classpath elements: {0}",
-            mainClasses);
-      }
-      testPaths.add(mainClasses);
+    Isolation isolation = mojo.getIsolation();
+    switch (isolation) {
+      case ALMOST:
+        Path mainClasses = Paths.get(project.getBuild().getOutputDirectory());
+        mainPaths.remove(mainClasses);
+        testPaths.add(mainClasses);
+        // fall-through!
+      case ABSOLUTE:
+        put(paths, "main", mainPaths);
+        put(paths, "test", testPaths);
+        put(paths, "launcher", launcherPaths);
+        put(paths, "isolator", isolatorPaths);
+        break;
+      case MERGED:
+        Set<Path> mergedPaths = new LinkedHashSet<>();
+        mergedPaths.addAll(testPaths);
+        mergedPaths.addAll(mainPaths);
+        put(paths, "merged(test+main)", mergedPaths);
+        put(paths, "launcher", launcherPaths);
+        put(paths, "isolator", isolatorPaths);
+        break;
+      case NONE:
+        Set<Path> allPaths = new LinkedHashSet<>();
+        allPaths.addAll(mainPaths);
+        allPaths.addAll(testPaths);
+        allPaths.addAll(launcherPaths);
+        allPaths.addAll(isolatorPaths);
+        paths.put("all", allPaths);
+        break;
+      default:
+        throw new AssertionError("Unsupported isolation constant: " + isolation);
     }
 
-    //
-    // Only map non-empty path sets and remove duplicates
-    //
-    if (!mainPaths.isEmpty()) paths.put("main", mainPaths);
-    if (!testPaths.isEmpty()) paths.put("test", testPaths);
-    if (!launcherPaths.isEmpty()) paths.put("launcher", launcherPaths);
-    paths.put("isolator", isolatorPaths);
     pruneDuplicates(paths);
-
-    //
-    // Throw all path elements into a single "all" set?
-    //
-    if (!mojo.isIsolate()) {
-      Set<Path> allPaths = new LinkedHashSet<>();
-      paths.values().forEach(allPaths::addAll);
-      paths.clear();
-      paths.put("all", allPaths);
-    }
 
     return paths;
   }
@@ -189,6 +180,10 @@ class MavenDriver implements Driver {
 
   private boolean contains(String groupArtifact) {
     return mojo.getMavenProject().getArtifactMap().containsKey(groupArtifact);
+  }
+
+  private Set<Path> resolve(GroupArtifact groupArtifact) throws RepositoryException {
+    return resolve(groupArtifact.toString(mojo::version));
   }
 
   private Set<Path> resolve(String coordinates) throws RepositoryException {
@@ -215,6 +210,13 @@ class MavenDriver implements Driver {
         .map(ArtifactResult::getArtifact)
         .peek(a -> debug("Artifact {0} resolved to {1}", a, a.getFile()))
         .collect(Collectors.toList());
+  }
+
+  private static void put(Map<String, Set<Path>> paths, String key, Set<Path> value) {
+    if (value.isEmpty()) {
+      return;
+    }
+    paths.put(key, value);
   }
 
   static <T> void pruneDuplicates(Map<String, ? extends Collection<T>> paths) {
