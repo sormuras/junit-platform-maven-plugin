@@ -202,13 +202,13 @@ class MavenDriver implements Driver {
     collectRequest.setRoot(new Dependency(artifact, scope));
     collectRequest.setRepositories(repositories);
     DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, filter);
-    debug("Resolving dependencies {0}...", dependencyRequest);
+    // debug("Resolving dependencies {0}...", dependencyRequest);
     return repositorySystem
         .resolveDependencies(session, dependencyRequest)
         .getArtifactResults()
         .stream()
         .map(ArtifactResult::getArtifact)
-        .peek(a -> debug("Artifact {0} resolved to {1}", a, a.getFile()))
+        // .peek(a -> debug("Artifact {0} resolved to {1}", a, a.getFile()))
         .collect(Collectors.toList());
   }
 
