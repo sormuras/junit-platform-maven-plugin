@@ -279,7 +279,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       debug("  user.dir = {0}", System.getProperty("user.dir"));
       debug("  project.basedir = {0}", mavenProject.getBasedir());
       debug("Class Loader");
-      debug("  mojo's loader = {0}", getClass().getClassLoader());
+      debug("  mojo''s loader = {0}", getClass().getClassLoader());
       debug("  context loader = {0}", Thread.currentThread().getContextClassLoader());
       debug("  platform loader = {0}", OverlaySingleton.INSTANCE.platformClassLoader());
       debug("Artifact Map");
