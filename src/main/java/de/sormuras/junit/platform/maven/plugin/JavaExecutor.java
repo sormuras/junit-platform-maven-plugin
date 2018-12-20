@@ -183,6 +183,10 @@ class JavaExecutor {
     Configuration.Basic basic = configuration.basic();
     Configuration.Discovery dsc = configuration.discovery();
 
+    if (basic.isFailIfNoTests()) {
+      cmd.add("--fail-if-no-tests");
+    }
+
     cmd.add("--disable-ansi-colors");
     cmd.add("--details");
     cmd.add("tree");

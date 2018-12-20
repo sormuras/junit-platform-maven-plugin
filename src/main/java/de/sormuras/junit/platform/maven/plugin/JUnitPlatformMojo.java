@@ -24,6 +24,7 @@ import de.sormuras.junit.platform.isolator.ConfigurationBuilder;
 import de.sormuras.junit.platform.isolator.Driver;
 import de.sormuras.junit.platform.isolator.Isolator;
 import de.sormuras.junit.platform.isolator.Modules;
+import de.sormuras.junit.platform.isolator.OverlaySingleton;
 import de.sormuras.junit.platform.isolator.TestMode;
 import de.sormuras.junit.platform.isolator.Version;
 import java.io.IOException;
@@ -279,7 +280,8 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       debug("  project.basedir = {0}", mavenProject.getBasedir());
       debug("Class Loader");
       debug("  mojo's loader = {0}", getClass().getClassLoader());
-      debug("  thread context = {0}", Thread.currentThread().getContextClassLoader());
+      debug("  context loader = {0}", Thread.currentThread().getContextClassLoader());
+      debug("  platform loader = {0}", OverlaySingleton.INSTANCE.platformClassLoader());
       debug("Artifact Map");
       mavenProject
           .getArtifactMap()
@@ -303,7 +305,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       return;
     }
 
-    // Create target directory to store log files...
+    // Create target directory to store log and report files...
     Path targetPath = Paths.get(mavenProject.getBuild().getDirectory(), "junit-platform");
     try {
       Files.createDirectories(targetPath);
@@ -315,6 +317,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     ConfigurationBuilder configurationBuilder =
         new ConfigurationBuilder()
             .setDryRun(isDryRun())
+            .setFailIfNoTests(tweaks.failIfNoTests)
+            .setDefaultAssertionStatus(tweaks.defaultAssertionStatus)
+            .setPlatformClassLoader(tweaks.platformClassLoader)
             .setTargetDirectory(targetPath.toString())
             .discovery()
             // selectors

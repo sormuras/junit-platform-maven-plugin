@@ -8,6 +8,15 @@ import java.util.List;
 @SuppressWarnings("WeakerAccess")
 public class Tweaks {
 
+  /** Fail test run if no tests are found. */
+  boolean failIfNoTests = true;
+
+  /** Enable execution of Java language's {@code assert} statements. */
+  boolean defaultAssertionStatus = true;
+
+  /** Use platform or thread context classloader. */
+  boolean platformClassLoader = true;
+
   /** List of additional raw (local) test path elements. */
   List<String> additionalTestPathElements = emptyList();
 
