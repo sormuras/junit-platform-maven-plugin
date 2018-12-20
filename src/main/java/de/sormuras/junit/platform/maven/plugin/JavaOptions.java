@@ -31,6 +31,9 @@ public class JavaOptions {
    */
   String executable = "";
 
+  /** Passed as {@code -Dfile.encoding=${encoding}, defaults to {@code UTF-8}. */
+  String encoding = "UTF-8";
+
   /** Play nice with calling process. */
   boolean inheritIO = false;
 

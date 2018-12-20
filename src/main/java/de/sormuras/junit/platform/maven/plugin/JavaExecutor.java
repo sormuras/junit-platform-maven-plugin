@@ -147,9 +147,13 @@ class JavaExecutor {
 
     Optional<Object> mainModule = modules.getMainModuleReference();
     Optional<Object> testModule = modules.getTestModuleReference();
-    cmd.addAll(mojo.getJavaOptions().additionalOptions);
-    cmd.add("-enableassertions");
-    cmd.add("-Dfile.encoding=UTF-8");
+    cmd.addAll(options.additionalOptions);
+    if (configuration.basic().isDefaultAssertionStatus()) {
+      cmd.add("-enableassertions");
+    }
+    if (!options.encoding.isEmpty()) {
+      cmd.add("-Dfile.encoding=" + options.encoding);
+    }
     if (mainModule.isPresent() || testModule.isPresent()) {
       cmd.add("--module-path");
       cmd.add(createPathArgument());
