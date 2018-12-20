@@ -34,11 +34,13 @@ import java.util.concurrent.TimeUnit;
 class JavaExecutor {
 
   private final JUnitPlatformMojo mojo;
+  private final JavaOptions options;
   private final Modules modules;
   private final Driver driver;
 
   JavaExecutor(JUnitPlatformMojo mojo, Driver driver) {
     this.mojo = mojo;
+    this.options = mojo.getJavaOptions();
     this.modules = mojo.getProjectModules();
     this.driver = driver;
   }
@@ -65,7 +67,7 @@ class JavaExecutor {
 
     // "java[.exe]"
     cmd.add(mojo.getJavaExecutable());
-    addJavaOptions(cmd);
+    addJavaOptions(cmd, configuration);
     addLauncherOptions(cmd, configuration);
 
     // Prepare target directory...
@@ -136,8 +138,8 @@ class JavaExecutor {
   }
 
   // Supply standard options for Java foundation tool
-  private void addJavaOptions(List<String> cmd) {
-    List<String> overrides = mojo.getJavaOptions().overrideJavaOptions;
+  private void addJavaOptions(List<String> cmd, Configuration configuration) {
+    List<String> overrides = options.overrideJavaOptions;
     if (overrides != Collections.EMPTY_LIST) {
       cmd.addAll(overrides);
       return;
@@ -168,7 +170,7 @@ class JavaExecutor {
   // Append console launcher options
   // See https://junit.org/junit5/docs/current/user-guide/#running-tests-console-launcher-options
   private void addLauncherOptions(List<String> cmd, Configuration configuration) {
-    List<String> overrides = mojo.getJavaOptions().overrideLauncherOptions;
+    List<String> overrides = options.overrideLauncherOptions;
     if (overrides != Collections.EMPTY_LIST) {
       cmd.addAll(overrides);
       return;
@@ -203,7 +205,7 @@ class JavaExecutor {
   }
 
   private String createAddModulesArgument() {
-    String value = mojo.getJavaOptions().addModulesArgument;
+    String value = options.addModulesArgument;
     if (value != null && !value.isEmpty()) {
       return value;
     }
