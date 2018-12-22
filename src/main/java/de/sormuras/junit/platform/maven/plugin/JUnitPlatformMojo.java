@@ -316,11 +316,6 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       debug("  mode -> {0}", projectModules.getMode());
     }
 
-    if (Files.notExists(Paths.get(mavenBuild.getTestOutputDirectory()))) {
-      info("Test output directory does not exist.");
-      return;
-    }
-
     // Create target directory to store log and report files...
     Path targetPath = targetDirectory.toPath();
     try {
@@ -356,6 +351,11 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
     // No custom selector
     if (selectors.isEmpty()) {
+      debug("No custom selector was configured, providing default one.");
+      if (Files.notExists(testPath)) {
+        warn("Test output directory does not exist.");
+        // return;
+      }
       TestMode mode = projectModules.getMode();
       if (mode == TestMode.CLASSIC) {
         Set<String> roots = singleton(mavenBuild.getTestOutputDirectory());
