@@ -97,7 +97,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   /** Customized Java command line options. */
   @Parameter private JavaOptions javaOptions = new JavaOptions();
 
-  /** Common well-known maven options. */
+  /** Tweak options to fine-tune test execution. */
   @Parameter private Tweaks tweaks = new Tweaks();
 
   /** Test discovery options. */
@@ -143,6 +143,17 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
    */
   @Parameter private Map<String, String> parameters = emptyMap();
 
+  /**
+   * Launcher class name patterns.
+   *
+   * <p>Provide regular expressions to include only classes whose fully qualified names match. To
+   * avoid loading classes unnecessarily, the default pattern only includes class names that begin
+   * with "Test" or end with "Test" or "Tests". Default: {@code ^(Test.*|.+[.$]Test.*|.*Tests?)$}
+   *
+   * <h3>Console Launcher equivalent</h3>
+   *
+   * {@code --include-classname <String>}
+   */
   @Parameter private Set<String> classNamePatterns = singleton("^(Test.*|.+[.$]Test.*|.*Tests?)$");
 
   /**

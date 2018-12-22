@@ -25,7 +25,7 @@ public class JavaOptions {
    * This is the path to the {@code java} executable.
    *
    * <p>When this parameter is not set or empty, the plugin attempts to load a {@code jdk} toolchain
-   * and use it find the {@code java} executable. If no {@code jdk} toolchain is defined in the
+   * and use it to find the {@code java} executable. If no {@code jdk} toolchain is defined in the
    * project, the {@code java} executable is determined by the current {@code java.home} system
    * property, extended to {@code ${java.home}/bin/java[.exe]}.
    */
