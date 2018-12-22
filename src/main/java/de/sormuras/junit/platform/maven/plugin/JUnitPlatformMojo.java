@@ -27,6 +27,7 @@ import de.sormuras.junit.platform.isolator.Modules;
 import de.sormuras.junit.platform.isolator.OverlaySingleton;
 import de.sormuras.junit.platform.isolator.TestMode;
 import de.sormuras.junit.platform.isolator.Version;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -174,6 +175,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
    */
   @Parameter private Set<String> tags = emptySet();
 
+  /** Base output directory path used by this plugin to store log files and reports. */
+  @Parameter(defaultValue = "${project.build.directory}/junit-platform")
+  private File targetDirectory;
+
   /** The log instance passed in via setter. */
   private Log log;
 
@@ -317,7 +322,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     }
 
     // Create target directory to store log and report files...
-    Path targetPath = Paths.get(mavenProject.getBuild().getDirectory(), "junit-platform");
+    Path targetPath = targetDirectory.toPath();
     try {
       Files.createDirectories(targetPath);
     } catch (IOException e) {

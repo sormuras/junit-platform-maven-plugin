@@ -26,6 +26,7 @@ verifier.verifyLogMatches(new String[] {
   "\\Q[DEBUG]   (f) selectors = de.sormuras.junit.platform.maven.plugin.Selectors\\E.+",
   "[DEBUG]   (f) skip = false",
   "\\Q[DEBUG]   (f) tags = \\E.+", // [foo, bar] in any order
+  "\\Q[DEBUG]   (f) targetDirectory =\\E.+",
   "[DEBUG]   (f) timeout = 300",
   ">> >>",
   "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
