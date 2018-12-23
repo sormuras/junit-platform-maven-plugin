@@ -325,18 +325,19 @@
                             <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                             <pomIncludes>
                                 <!-- "All in!" -->
-                                <pomInclude>*/pom.xml</pomInclude>
+                                <pomInclude>*</pomInclude>
                                 <!-- Select a few... -->
-                                <!--<pomInclude>basic/pom.xml</pomInclude>-->
-                                <!--<pomInclude>configured/pom.xml</pomInclude>-->
-                                <!--<pomInclude>failure/pom.xml</pomInclude>-->
-                                <!--<pomInclude>classloader-*/pom.xml</pomInclude>-->
-                                <!--<pomInclude>configured/pom.xml</pomInclude>-->
-                                <!--<pomInclude>jupiter-5*-platform-1*/pom.xml</pomInclude>-->
-                                <!--<pomInclude>modular-world-*/pom.xml</pomInclude>-->
-                                <!--<pomInclude>modular-world-multi-modules/pom.xml</pomInclude>-->
-                                <!--<pomInclude>multiple-engines-*/pom.xml</pomInclude>-->
-                                <!--<pomInclude>timeout/pom.xml</pomInclude>-->
+                                <!--<pomInclude>basic</pomInclude>-->
+                                <!--<pomInclude>jacoco-executor-java</pomInclude>-->
+                                <!--<pomInclude>configured</pomInclude>-->
+                                <!--<pomInclude>failure</pomInclude>-->
+                                <!--<pomInclude>classloader-*</pomInclude>-->
+                                <!--<pomInclude>configured</pomInclude>-->
+                                <!--<pomInclude>jupiter-5*-platform-1*</pomInclude>-->
+                                <!--<pomInclude>modular-world-*</pomInclude>-->
+                                <!--<pomInclude>modular-world-multi-modules</pomInclude>-->
+                                <!--<pomInclude>multiple-engines-*</pomInclude>-->
+                                <!--<pomInclude>timeout</pomInclude>-->
                             </pomIncludes>
                             <pomExcludes>
                                 <!-- None, B. -->
