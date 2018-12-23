@@ -1,0 +1,29 @@
+import it.Verifier;
+
+Verifier verifier = new Verifier(basedir.toPath());
+
+verifier.verifyBadLines();
+
+verifier.verifyReadable(new String[] {
+  "pom.xml",
+  "src/main/java/jacoco/Main.java",
+  "src/test/java/jacoco/MainTests.java",
+  "target/classes/jacoco/Main.class",
+  "target/test-classes/jacoco/MainTests.class",
+  "target/jacoco.exec",                        // session
+  "target/site/jacoco/index.html"              // report
+});
+
+verifier.verifyNotExists(new String[] {
+  "target/surefire-reports"
+});
+
+verifier.verifyLogMatches(new String[] {
+  ">> BEGIN >>",
+  "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
+  ">> Platform executes tests...>>",
+  "[INFO] BUILD SUCCESS",
+  ">> END. >>"
+});
+
+return verifier.isOk();
