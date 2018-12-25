@@ -210,6 +210,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     paths.forEach(path -> debug(String.format("  %-50s -> %s", path.getFileName(), path)));
   }
 
+  private void debug(String key, Artifact artifact) {
+    debug(String.format("  %-50s -> %s trail=%s", key, artifact, artifact.getDependencyTrail()));
+  }
+
   void info(String format, Object... args) {
     getLog().info(formatMessage(format, args));
   }
@@ -304,8 +308,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
           .keySet()
           .stream()
           .sorted()
-          .forEach(
-              k -> debug(String.format("  %-50s -> %s", k, mavenProject.getArtifactMap().get(k))));
+          .forEach(k -> debug(k, getMavenProject().getArtifactMap().get(k)));
       debug("Version");
       debug("  java.version = {0}", System.getProperty("java.version"));
       debug("  java.class.version = {0}", System.getProperty("java.class.version"));
