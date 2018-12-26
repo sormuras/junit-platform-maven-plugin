@@ -29,10 +29,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -106,7 +108,12 @@ class MavenDriver implements Driver {
     // Acquire all main and test path elements from the project...
     try {
       addAll(project.getCompileClasspathElements(), mainPaths);
-      addAll(project.getTestClasspathElements(), testPaths);
+
+      Set<String> excludePaths = new LinkedHashSet<>();
+      locate("org.junit.jupiter:junit-jupiter").ifPresent(excludePaths::add);
+      locate(JUNIT_JUPITER_ENGINE).ifPresent(excludePaths::add);
+      locate("org.junit.platform:junit-platform-engine").ifPresent(excludePaths::add);
+      addAll(project.getTestClasspathElements(), excludePaths, testPaths);
     } catch (DependencyResolutionRequiredException e) {
       throw new RuntimeException("Resolution required!", e);
     }
@@ -133,6 +140,9 @@ class MavenDriver implements Driver {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_CONSOLE));
       }
       if (contains(JUNIT_JUPITER_API) && missing(JUNIT_JUPITER_ENGINE)) {
+        launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE));
+      }
+      if (contains(JUNIT_JUPITER_API) && locate(JUNIT_JUPITER_ENGINE).isPresent()) {
         launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE));
       }
       if (contains("junit:junit") && missing(JUNIT_VINTAGE_ENGINE)) {
@@ -198,6 +208,19 @@ class MavenDriver implements Driver {
     return mojo.getMavenProject().getArtifactMap().containsKey(groupArtifact);
   }
 
+  private Optional<String> locate(GroupArtifact groupArtifact) {
+    return locate(groupArtifact.toString());
+  }
+
+  private Optional<String> locate(String groupArtifact) {
+    org.apache.maven.artifact.Artifact artifact =
+        mojo.getMavenProject().getArtifactMap().get(groupArtifact);
+    if (artifact == null) {
+      return Optional.empty();
+    }
+    return Optional.of(artifact.getFile().toPath().toString());
+  }
+
   private Set<Path> resolve(GroupArtifact groupArtifact) throws RepositoryException {
     return resolve(groupArtifact.toString(mojo::version));
   }
@@ -229,7 +252,17 @@ class MavenDriver implements Driver {
   }
 
   private static void addAll(Collection<String> source, Collection<Path> target) {
-    source.stream().map(Paths::get).forEach(target::add);
+    addAll(source, Collections.emptySet(), target);
+  }
+
+  private static void addAll(
+      Collection<String> source, Set<String> exclude, Collection<Path> target) {
+    source
+        .stream()
+        .peek(System.out::println)
+        .filter(a -> !exclude.contains(a))
+        .map(Paths::get)
+        .forEach(target::add);
   }
 
   private static void put(Map<String, Set<Path>> paths, String key, Set<Path> value) {
