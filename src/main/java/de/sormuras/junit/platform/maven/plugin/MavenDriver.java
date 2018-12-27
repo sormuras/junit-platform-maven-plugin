@@ -260,12 +260,7 @@ class MavenDriver implements Driver {
 
   private static void addAll(
       Collection<String> source, Set<String> exclude, Collection<Path> target) {
-    source
-        .stream()
-        .peek(System.out::println)
-        .filter(a -> !exclude.contains(a))
-        .map(Paths::get)
-        .forEach(target::add);
+    source.stream().filter(a -> !exclude.contains(a)).map(Paths::get).forEach(target::add);
   }
 
   private static void put(Map<String, Set<Path>> paths, String key, Set<Path> value) {
