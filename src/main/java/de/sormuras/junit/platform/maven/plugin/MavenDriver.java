@@ -15,15 +15,18 @@
 package de.sormuras.junit.platform.maven.plugin;
 
 import static de.sormuras.junit.platform.isolator.GroupArtifact.ISOLATOR_WORKER;
+import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_JUPITER;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_JUPITER_API;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_JUPITER_ENGINE;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_CONSOLE;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_LAUNCHER;
+import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_REPORTING;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_VINTAGE_ENGINE;
 
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.Driver;
 import de.sormuras.junit.platform.isolator.GroupArtifact;
+import de.sormuras.junit.platform.isolator.Version;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,6 +41,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
@@ -112,7 +116,7 @@ class MavenDriver implements Driver {
       // Exclude all compile elements from test paths per default
       Set<String> excludePaths = new LinkedHashSet<>(project.getCompileClasspathElements());
       if (tweaks.moveTestEnginesToLauncherClassLoader) {
-        locate("org.junit.jupiter:junit-jupiter").ifPresent(excludePaths::add);
+        locate(JUNIT_JUPITER).ifPresent(excludePaths::add);
         locate(JUNIT_JUPITER_ENGINE).ifPresent(excludePaths::add);
         locate("org.junit.platform:junit-platform-engine").ifPresent(excludePaths::add);
       }
@@ -138,6 +142,14 @@ class MavenDriver implements Driver {
       // JUnit Platform Launcher, Console, and well-known TestEngine implementations
       if (missing(JUNIT_PLATFORM_LAUNCHER)) {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER));
+      }
+      if (missing(JUNIT_PLATFORM_REPORTING)) {
+        ComparableVersion ver14m1 = new ComparableVersion("1.4.0-m1");
+        ComparableVersion current =
+            new ComparableVersion(mojo.version(Version.JUNIT_PLATFORM_VERSION).toLowerCase());
+        if (current.compareTo(ver14m1) >= 0) {
+          launcherPaths.addAll(resolve(JUNIT_PLATFORM_REPORTING));
+        }
       }
       if (mojo.getExecutor().isInjectConsole() && missing(JUNIT_PLATFORM_CONSOLE)) {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_CONSOLE));

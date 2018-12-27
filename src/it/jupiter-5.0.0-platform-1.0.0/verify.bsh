@@ -2,7 +2,9 @@ import it.Verifier;
 
 Verifier verifier = new Verifier(basedir.toPath());
 
-verifier.verifyBadLines();
+verifier.verifyBadLines(new String[] {
+  "[WARNING] [WORKER] LegacyXmlReportGeneratingListener not found - JUnit Platform 1.4+ is required"
+});
 
 verifier.verifyReadable(new String[] {
   "pom.xml",

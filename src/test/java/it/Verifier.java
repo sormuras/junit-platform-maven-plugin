@@ -56,10 +56,19 @@ public class Verifier {
   }
 
   public Verifier verifyBadLines() {
+    return verifyBadLines(new String[0]);
+  }
+
+  public Verifier verifyBadLines(String... exceptions) {
     System.out.printf("Verifying build.log doesn't contain bad lines...%n");
+    Arrays.sort(exceptions);
     int size = buildLogLines.size();
     for (int i = 0; i < size; i++) {
       String line = buildLogLines.get(i);
+      if (Arrays.binarySearch(exceptions, line) >= 0) {
+        out("Bad line exception found in line %d: %s", i, line);
+        continue;
+      }
       if (line.startsWith("[ERROR]")) {
         ok = false;
         err("Log line %d contains an error marker: %s", i, line);

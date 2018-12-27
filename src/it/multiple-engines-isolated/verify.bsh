@@ -20,7 +20,7 @@ verifier.verifyLogMatches(new String[] {
   ">> BEGIN >>",
   "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
   ">> Platform executes tests...>>",
-  "\\Q[INFO] Successfully executed 3 test(s) in \\E.+ ms",
+  "\\Q[INFO] [WORKER] Successfully executed 3 test(s) in \\E.+ ms",
   ">> More summary lines... >>",
   "[INFO] BUILD SUCCESS",
   ">> END. >>"

@@ -99,10 +99,12 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- Main C O M P I L E dependencies. -->
         <dependency>
             <groupId>de.sormuras.junit</groupId>
             <artifactId>junit-platform-isolator</artifactId>
-            <version>1.0.0-M7</version>
+            <version>1.0.0-M8</version>
+            <scope>compile</scope>
         </dependency>
 
         <!-- Test dependencies. -->
