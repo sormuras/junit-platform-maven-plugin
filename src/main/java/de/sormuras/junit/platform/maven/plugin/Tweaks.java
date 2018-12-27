@@ -17,6 +17,9 @@ public class Tweaks {
   /** Use platform or thread context classloader. */
   boolean platformClassLoader = true;
 
+  /** Move any test engine implementations to the launcher classloader. */
+  boolean moveTestEnginesToLauncherClassLoader = true;
+
   /** List of additional raw (local) test path elements. */
   List<String> additionalTestPathElements = emptyList();
 

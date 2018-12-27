@@ -110,9 +110,11 @@ class MavenDriver implements Driver {
       addAll(project.getCompileClasspathElements(), mainPaths);
 
       Set<String> excludePaths = new LinkedHashSet<>();
-      locate("org.junit.jupiter:junit-jupiter").ifPresent(excludePaths::add);
-      locate(JUNIT_JUPITER_ENGINE).ifPresent(excludePaths::add);
-      locate("org.junit.platform:junit-platform-engine").ifPresent(excludePaths::add);
+      if (tweaks.moveTestEnginesToLauncherClassLoader) {
+        locate("org.junit.jupiter:junit-jupiter").ifPresent(excludePaths::add);
+        locate(JUNIT_JUPITER_ENGINE).ifPresent(excludePaths::add);
+        locate("org.junit.platform:junit-platform-engine").ifPresent(excludePaths::add);
+      }
       addAll(project.getTestClasspathElements(), excludePaths, testPaths);
     } catch (DependencyResolutionRequiredException e) {
       throw new RuntimeException("Resolution required!", e);
@@ -142,7 +144,7 @@ class MavenDriver implements Driver {
       if (contains(JUNIT_JUPITER_API) && missing(JUNIT_JUPITER_ENGINE)) {
         launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE));
       }
-      if (contains(JUNIT_JUPITER_API) && locate(JUNIT_JUPITER_ENGINE).isPresent()) {
+      if (contains(JUNIT_JUPITER_API) && tweaks.moveTestEnginesToLauncherClassLoader) {
         launcherPaths.addAll(resolve(JUNIT_JUPITER_ENGINE));
       }
       if (contains("junit:junit") && missing(JUNIT_VINTAGE_ENGINE)) {
