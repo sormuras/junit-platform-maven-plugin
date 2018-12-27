@@ -109,7 +109,8 @@ class MavenDriver implements Driver {
     try {
       addAll(project.getCompileClasspathElements(), mainPaths);
 
-      Set<String> excludePaths = new LinkedHashSet<>();
+      // Exclude all compile elements from test paths per default
+      Set<String> excludePaths = new LinkedHashSet<>(project.getCompileClasspathElements());
       if (tweaks.moveTestEnginesToLauncherClassLoader) {
         locate("org.junit.jupiter:junit-jupiter").ifPresent(excludePaths::add);
         locate(JUNIT_JUPITER_ENGINE).ifPresent(excludePaths::add);
