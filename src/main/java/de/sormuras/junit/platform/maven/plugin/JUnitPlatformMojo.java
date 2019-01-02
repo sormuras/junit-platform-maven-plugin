@@ -241,14 +241,14 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   @Override
   public void afterProjectsRead(MavenSession session) {
+    String group = "de.sormuras.junit";
+    String artifact = "junit-platform-maven-plugin";
     for (MavenProject project : session.getProjects()) {
-      Optional<Plugin> thisPlugin =
-          findPlugin(project, "de.sormuras.junit", "junit-platform-maven-plugin");
-      thisPlugin.ifPresent(plugin -> injectThisPluginIntoTestExecutionPhase(project, plugin));
+      findPlugin(project, group, artifact).ifPresent(plugin -> injectThisPlugin(project, plugin));
     }
   }
 
-  private void injectThisPluginIntoTestExecutionPhase(MavenProject project, Plugin thisPlugin) {
+  private void injectThisPlugin(MavenProject project, Plugin thisPlugin) {
     PluginExecution execution = new PluginExecution();
     execution.setId("injected-launch");
     execution.getGoals().add("launch");
@@ -256,9 +256,22 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     execution.setConfiguration(thisPlugin.getConfiguration());
     thisPlugin.getExecutions().add(execution);
 
-    Optional<Plugin> surefirePlugin =
-        findPlugin(project, "org.apache.maven.plugins", "maven-surefire-plugin");
-    surefirePlugin.ifPresent(surefire -> surefire.getExecutions().clear());
+    String surefireGroup = "org.apache.maven.plugins";
+    String surefireArtifact = "maven-surefire-plugin";
+    findPlugin(project, surefireGroup, surefireArtifact).ifPresent(this::mangleSurefirePlugin);
+  }
+
+  private void mangleSurefirePlugin(Plugin surefirePlugin) {
+    // "-D...keep.executions=true" --> skip next code block: don't clear executions
+    // "-D...keep.executions=false|<empty>" --> enter block:  clear executions
+    if (!Boolean.getBoolean("junit.platform.maven.plugin.surefire.keep.executions")) {
+      surefirePlugin.getExecutions().clear();
+    }
+
+    if (Boolean.getBoolean("junit.platform.maven.plugin.surefire.migration.support")) {
+      // TODO Parse Surefire configuration and pick some "interesting" settings...
+      //      https://github.com/sormuras/junit-platform-maven-plugin/issues/23
+    }
   }
 
   private Optional<Plugin> findPlugin(MavenProject project, String group, String artifact) {
