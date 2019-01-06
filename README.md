@@ -16,8 +16,7 @@ Maven Plugin launching the JUnit Platform
 * Most [selectors](https://junit.org/junit5/docs/current/api/org/junit/platform/engine/discovery/package-summary.html) the JUnit Platform offers are supported.
 * Load test, main, and framework/plugin classes in separation via dedicated `ClassLoader` instances using the [JUnit Platform Isolator](https://github.com/sormuras/junit-platform-isolator) library.
 
-
-Idea of this plugin was presented by [Sander Mak](https://github.com/sandermak) at Devoxx 2018: https://youtu.be/l4Dk7EF-oYc?t=2346
+This plugin was presented by [Sander Mak](https://github.com/sandermak) at Devoxx 2018: https://youtu.be/l4Dk7EF-oYc?t=2346
 
 ## Prequisites
 
@@ -26,10 +25,14 @@ Using this plugin requires at least:
 * [Apache Maven 3.3.9](https://maven.apache.org)
 * [Java 8](http://jdk.java.net/8)
 
-## Usage with Jupiter
+## Simple Usage
 
-Add test compile dependencies into the `pom.xml`.
-For example, if you want to write tests using the Jupiter API, you'll need the [`junit-jupiter-api`](https://junit.org/junit5/docs/current/user-guide/#writing-tests) artifact:
+The following sections describe the default and minimal usage pattern of this plugin.
+
+### JUnit Jupiter API
+
+Add test compile dependencies into your project's `pom.xml`.
+For example, if you want to write tests using the JUnit Jupiter API, you only need the [`junit-jupiter-api`](https://junit.org/junit5/docs/current/user-guide/#writing-tests) artifact:
 
 ```xml
 <dependencies>
@@ -53,11 +56,47 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
 </plugin>
 ```
 
-### JitPack
+This minimal configuration uses the _extensions_ facility to:
+
+- ...inject this plugin's `launch` goal into the `test` phase of Maven's lifecycle.
+- ...and also it effectively disables Maven's Surefire plugin by clearing all executions from the `test` phase.
+
+### Pure Maven Plugin Mode
+
+If you want to execute this plugin side-by-side with Surefire you have two options.
+
+Either use the `<extensions>true</extensions>` as described above and also set the following system property to `true`:
+`junit.platform.maven.plugin.surefire.keep.executions`.
+
+Or omit the `<extensions>true</extensions>` line (or set it to `false`) and register this plugin's `launch` goal manually to the `test` phase:
+
+```xml
+<plugin>
+  <groupId>de.sormuras.junit</groupId>
+  <artifactId>junit-platform-maven-plugin</artifactId>
+  <version>1.0.0-M3</version>  
+  <extensions>false</extensions> <!-- Don't install into `test` phase and don't touch Surefire. -->
+  <executions>
+    <execution>
+      <id>Launch JUnit Platform</id>
+      <phase>test</phase>
+      <goals>
+        <goal>launch</goal>
+      </goals>      
+      <configuration>
+      ...
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+```
+
+### Access SNAPSHOT version via JitPack
 
 Current `master-SNAPSHOT` version is available via [JitPack](https://jitpack.io/#sormuras/junit-platform-maven-plugin):
 
 ```xml
+<project>
 <pluginRepositories>
     <pluginRepository>
         <id>jitpack.io</id>
@@ -70,11 +109,346 @@ Current `master-SNAPSHOT` version is available via [JitPack](https://jitpack.io/
     <artifactId>junit-platform-maven-plugin</artifactId>
     <version>master-SNAPSHOT</version>
 </dependency>
+</project>
 ```
 
-## `module-info.test` support
+## JUnit Platform Configuration
 
-Needs `<executor>JAVA</executor>` mode!
+The following sections describe how to pass arguments to the JUnit Platform.
+The parameters described below are similar to those used by the [Console Launcher](https://junit.org/junit5/docs/current/user-guide/#running-tests-console-launcher) on purpose.
+
+### Tags
+
+Tags or tag expressions to include only tests whose tags match.
+
+https://junit.org/junit5/docs/current/user-guide/#running-tests-tag-expressions
+
+````xml
+<configuration>
+  <tags>
+    <tag>foo</tag>
+    <tag>bar</tag>
+  </tags>
+</configuration>
+````
+
+### Additional Custom Configuration Parameters
+
+https://junit.org/junit5/docs/current/user-guide/#running-tests-config-params
+
+```xml
+<configuration>
+  <parameters>
+    <junit.jupiter.execution.parallel.enabled>true</junit.jupiter.execution.parallel.enabled>
+    <ninety.nine>99</ninety.nine>
+  </parameters>
+</configuration>
+```
+
+### Selectors
+
+https://junit.org/junit5/docs/current/api/org/junit/platform/engine/discovery/package-summary.html
+
+```xml
+<configuration>
+  <selectors>
+    <classes>
+      <class>JupiterTest</class>
+      <class>JupiterTests</class>
+      <class>TestJupiter</class>
+    </classes>
+  </selectors>
+</configuration>
+```
+
+All supported selectors are listed below:
+
+```java
+class Selectors {
+  Set<String> directories = emptySet();
+  Set<String> files = emptySet();
+
+  Set<String> modules = emptySet();
+  Set<String> packages = emptySet();
+  Set<String> classes = emptySet();
+  Set<String> methods = emptySet();
+
+  Set<String> resources = emptySet();
+
+  Set<URI> uris = emptySet();
+}  
+```
+
+## Plugin Configuration
+
+The following sections describe how to configure the JUnit Platform Maven Plugin.
+
+### Dry Run
+
+Dry-run mode discovers tests but does not execute them.
+
+```xml
+<configuration>
+    <dryRun>true|false</dryRun>
+</configuration>
+```
+
+Defaults to `false`.
+
+### Global Timeout
+
+Global timeout duration defaults to 300 seconds.
+
+```xml
+<configuration>
+    <timeout>300</timeout>
+</configuration>
+```
+
+### Isolation Level
+
+`ClassLoader` hierarchy configuration.
+
+```xml
+<configuration>
+    <isolation>ABSOLUTE|ALMOST|MERGED|NONE</isolation>
+</configuration>
+```
+
+Defaults to `MERGED`.
+
+#### Isolation: ABSOLUTE
+
+Total isolation.
+
+```text
+ MAIN
+   - target/classes
+   - main dependencies...
+ TEST
+   - target/test-classes
+   - test dependencies...
+ JUNIT PLATFORM
+   - junit-platform-launcher
+   - junit-jupiter-engine
+   - junit-vintage-engine
+   - more runtime-only test engines...
+ ISOLATOR
+   - junit-platform-isolator
+   - junit-platform-isolator-worker
+```
+
+#### Isolation: ALMOST
+
+Almost total isolation - main and test classes are put into the same layer.
+
+```text
+ MAIN
+   - main dependencies...
+ TEST
+   - target/classes
+   - target/test-classes
+   - test dependencies...
+ JUNIT PLATFORM
+   - junit-platform-launcher
+   - junit-jupiter-engine
+   - junit-vintage-engine
+   - more runtime-only test engines...
+ ISOLATOR
+   - junit-platform-isolator
+   - junit-platform-isolator-worker
+```
+
+#### Isolation: MERGED
+
+Merge main and test layers.
+
+```text
+ MERGED (TEST + MAIN)
+   - target/test-classes
+   - test dependencies...
+   - target/classes
+   - main dependencies...
+ JUNIT PLATFORM
+   - junit-platform-launcher
+   - junit-jupiter-engine
+   - junit-vintage-engine
+   - more runtime-only test engines...
+ ISOLATOR
+   - junit-platform-isolator
+   - junit-platform-isolator-worker
+```
+
+#### Isolation: NONE
+
+No isolation, all dependencies are put into a single layer.
+
+```text
+ ALL
+   - target/classes
+   - main dependencies...
+   - target/test-classes
+   - test dependencies...
+   - junit-platform-launcher
+   - junit-jupiter-engine
+   - junit-vintage-engine
+   - more runtime-only test engines...
+   - junit-platform-isolator
+   - junit-platform-isolator-worker
+```
+
+### Executor
+
+The JUnit Platform Maven Plugin supports two modes of execution: DIRECT and JAVA.
+
+```xml
+<configuration>
+  <executor>DIRECT|JAVA</executor>
+</configuration>
+```
+
+DIRECT is the default execution mode.
+
+#### Executor: DIRECT
+
+Launch the JUnit Platform Launcher "in-process".
+Direct execution doesn't support any special options - it inherits all Java-related settings from Maven's Plugin execution "sandbox".
+
+#### Executor: JAVA
+
+Fork new a JVM calling `java` via Java's Process API and launch the JUnit Platform Console Launcher.
+
+```java
+class JavaOptions {
+  /**
+   * This is the path to the {@code java} executable.
+   *
+   * <p>When this parameter is not set or empty, the plugin attempts to load a {@code jdk} toolchain
+   * and use it to find the {@code java} executable. If no {@code jdk} toolchain is defined in the
+   * project, the {@code java} executable is determined by the current {@code java.home} system
+   * property, extended to {@code ${java.home}/bin/java[.exe]}.
+   */
+  String executable = "";
+
+  /** Passed as {@code -Dfile.encoding=${encoding}, defaults to {@code UTF-8}. */
+  String encoding = "UTF-8";
+
+  /** Play nice with calling process. */
+  boolean inheritIO = false;
+
+  /** Override <strong>all</strong> Java command line options. */
+  List<String> overrideJavaOptions = emptyList();
+
+  /** Override <strong>all</strong> JUnit Platform Console Launcher options. */
+  List<String> overrideLauncherOptions = emptyList();
+
+  /** Additional Java command line options prepended to auto-generated options. */
+  List<String> additionalOptions = emptyList();
+
+  /** Argument for the {@code --add-modules} options: like {@code ALL-MODULE-PATH,ALL-DEFAULT}. */
+  String addModulesArgument = "";
+}
+```
+
+Example
+
+```xml
+<configuration>
+  <executor>JAVA</executor>
+  <javaOptions>
+    <inheritIO>true</inheritIO>
+    <additionalOptions>
+      <additionalOption>--show-version</additionalOption>
+      <additionalOption>--show-module-resolution</additionalOption>
+    </additionalOptions>
+  </javaOptions>
+</configuration>
+```
+
+## Plugin Configuration Tweaks
+
+Tweak options to fine-tune test execution.
+
+```java
+class Tweaks {
+  /** Fail test run if no tests are found. */
+  boolean failIfNoTests = true;
+
+  /** Enable execution of Java language's {@code assert} statements. */
+  boolean defaultAssertionStatus = true;
+
+  /** Use platform or thread context classloader. */
+  boolean platformClassLoader = true;
+
+  /** Move any test engine implementations to the launcher classloader. */
+  boolean moveTestEnginesToLauncherClassLoader = true;
+
+  /** List of additional raw (local) test path elements. */
+  List<String> additionalTestPathElements = emptyList();
+
+  /** List of additional raw (local) launcher path elements. */
+  List<String> additionalLauncherPathElements = emptyList();
+
+  /** List of {@code group:artifact} dependencies to exclude from all path sets. */
+  List<String> dependencyExcludes = emptyList();
+
+  /** List of {@code group:artifact:version} dependencies to include in test path set. */
+  List<String> additionalTestDependencies = emptyList();
+
+  /** List of {@code group:artifact:version} dependencies to include in launcher path set. */
+  List<String> additionalLauncherDependencies = emptyList();
+}
+```
+
+## Modular Testing
+
+https://sormuras.github.io/blog/2018-09-11-testing-in-the-modular-world.html
+
+### Modular Test Mode
+
+A test mode is defined by the relation of one **main** and one **test** module name.
+
+- `C` = `CLASSIC` -> no modules available
+- `M` = `MODULAR` -> main `module foo` and test `module bar` OR main lacks module and test `module any`
+- `A` = `MODULAR_PATCHED_TEST_COMPILE` -> main `module foo` and test `module foo`
+- `B` = `MODULAR_PATCHED_TEST_RUNTIME` -> main `module foo` and test lacks module
+
+```text
+                          main plain    main module   main module
+                             ---            foo           bar
+     test plain  ---          C              B             B
+     test module foo          M              A             M
+     test module bar          M              M             A
+```
+
+Copied from [junit-platform-isolator/.../TestMode.java](https://github.com/sormuras/junit-platform-isolator/blob/master/junit-platform-isolator-base-8/src/main/java/de/sormuras/junit/platform/isolator/TestMode.java)
+
+```java
+class TestMode {
+  static TestMode of(String main, String test) {
+    var mainAbsent = main == null || main.trim().isEmpty();
+    var testAbsent = test == null || test.trim().isEmpty();
+    if (mainAbsent) {
+      if (testAbsent) { // trivial case: no modules declared at all
+        return CLASSIC;
+      }
+      return MODULAR; // only test module is present, no patching involved
+    }
+    if (testAbsent) { // only main module is present
+      return MODULAR_PATCHED_TEST_RUNTIME;
+    }
+    if (main.equals(test)) { // same module name
+      return MODULAR_PATCHED_TEST_COMPILE;
+    }
+    return MODULAR; // bi-modular testing, no patching involved
+  }
+}
+```
+
+### `module-info.test` support
+
+Needs `<executor>JAVA</executor>` for now!
+For details see [#21](https://github.com/sormuras/junit-platform-maven-plugin/issues/21).
 
 This plugin also integrates additional compiler flags specified in a `module-info.test` file.
 For example, if your tests need to access types from a module shipping with the JDK (here: `java.scripting`).
