@@ -117,20 +117,36 @@ Current `master-SNAPSHOT` version is available via [JitPack](https://jitpack.io/
 The following sections describe how to pass arguments to the JUnit Platform.
 The parameters described below are similar to those used by the [Console Launcher](https://junit.org/junit5/docs/current/user-guide/#running-tests-console-launcher) on purpose.
 
+### Class Name Patterns
+
+Provide regular expressions to include only classes whose fully qualified names match.
+To avoid loading classes unnecessarily, the default pattern only includes class names that begin with `"Test"` or end with `"Test"` or `"Tests"`.
+
+The configuration below extends the default pattern to include also class names that end with `"TestCase"`:
+
+```xml
+<configuration>
+  <classNamePatterns>
+    <pattern>^(Test.*|.+[.$]Test.*|.*Tests?)$</pattern>
+    <pattern>.*TestCase</pattern>
+  </classNamePatterns>
+</configuration>
+```
+
 ### Tags
 
 Tags or tag expressions to include only tests whose tags match.
 
 https://junit.org/junit5/docs/current/user-guide/#running-tests-tag-expressions
 
-````xml
+```xml
 <configuration>
   <tags>
     <tag>foo</tag>
     <tag>bar</tag>
   </tags>
 </configuration>
-````
+```
 
 ### Additional Custom Configuration Parameters
 
