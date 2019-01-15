@@ -90,6 +90,13 @@
             <version>3.6.0</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <!-- Needed for FileUtils.copyDirectoryStructure()... -->
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+            <version>3.0.22</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Main P R O V I D E D dependencies. -->
         <dependency>
@@ -103,7 +110,7 @@
         <dependency>
             <groupId>de.sormuras.junit</groupId>
             <artifactId>junit-platform-isolator</artifactId>
-            <version>1.0.0-M8</version>
+            <version>1.0.0-M10</version>
             <scope>compile</scope>
         </dependency>
 
@@ -282,6 +289,9 @@
                 <artifactId>junit-platform-maven-plugin</artifactId>
                 <version>1.0.0-M3</version>
                 <extensions>true</extensions>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
         </plugins>
     </build>
