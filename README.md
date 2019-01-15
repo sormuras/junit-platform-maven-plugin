@@ -51,7 +51,7 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
 <plugin>
   <groupId>de.sormuras.junit</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>1.0.0-M3</version>  
+  <version>1.0.0-M4</version>  
   <extensions>true</extensions> <!-- Necessary to execute it in 'test' phase. -->
 </plugin>
 ```
@@ -74,8 +74,8 @@ Or omit the `<extensions>true</extensions>` line (or set it to `false`) and regi
 <plugin>
   <groupId>de.sormuras.junit</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>1.0.0-M3</version>  
-  <extensions>false</extensions> <!-- Don't install into `test` phase and don't touch Surefire. -->
+  <version>1.0.0-M4</version>  
+  <extensions>false</extensions> <!-- Neither install this plugin into `test` phase, nor touch Surefire. -->
   <executions>
     <execution>
       <id>Launch JUnit Platform</id>
