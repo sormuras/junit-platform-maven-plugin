@@ -15,7 +15,6 @@
 package de.sormuras.junit.platform.maven.plugin;
 
 import de.sormuras.junit.platform.isolator.Configuration;
-import de.sormuras.junit.platform.isolator.Driver;
 import de.sormuras.junit.platform.isolator.Modules;
 import de.sormuras.junit.platform.isolator.TestMode;
 import java.io.File;
@@ -23,12 +22,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /** Forks an external Java process to start the JUnit Platform Console Launcher. */
 class JavaExecutor {
@@ -36,13 +35,11 @@ class JavaExecutor {
   private final JUnitPlatformMojo mojo;
   private final JavaOptions options;
   private final Modules modules;
-  private final Driver driver;
 
-  JavaExecutor(JUnitPlatformMojo mojo, Driver driver) {
+  JavaExecutor(JUnitPlatformMojo mojo) {
     this.mojo = mojo;
     this.options = mojo.getJavaOptions();
     this.modules = mojo.getProjectModules();
-    this.driver = driver;
   }
 
   int evaluate(Configuration configuration) {
@@ -156,17 +153,17 @@ class JavaExecutor {
     }
     if (mainModule.isPresent() || testModule.isPresent()) {
       cmd.add("--module-path");
-      cmd.add(createPathArgument());
+      cmd.add(createPathArgument(configuration));
       cmd.add("--add-modules");
       cmd.add(createAddModulesArgument());
       if (mainModule.isPresent() && !testModule.isPresent()) {
-        new JavaPatcher(mojo).patch(cmd);
+        new JavaPatcher(mojo, configuration).patch(cmd);
       }
       cmd.add("--module");
       cmd.add("org.junit.platform.console");
     } else {
       cmd.add("--class-path");
-      cmd.add(createPathArgument());
+      cmd.add(createPathArgument(configuration));
       cmd.add("org.junit.platform.console.ConsoleLauncher");
     }
   }
@@ -231,11 +228,13 @@ class JavaExecutor {
     return "--" + filter + "-tag=\"" + tag + "\"";
   }
 
-  private String createPathArgument() {
-    List<String> elements = new ArrayList<>();
-    for (Set<Path> paths : driver.paths().values()) {
-      paths.forEach(p -> elements.add(p.toString()));
-    }
-    return String.join(File.pathSeparator, elements);
+  private String createPathArgument(Configuration configuration) {
+    return configuration
+        .basic()
+        .getPaths()
+        .values()
+        .stream()
+        .flatMap(Collection::stream)
+        .collect(Collectors.joining(File.pathSeparator));
   }
 }
