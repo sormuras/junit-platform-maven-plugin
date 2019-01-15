@@ -377,12 +377,15 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
             .setParameters(parameters)
             .end();
 
-    // No custom selector
+    // No custom selector configured?
     if (selectors.isEmpty()) {
-      debug("No custom selector was configured, providing default one.");
+      debug("No custom selector was configured, providing default one...");
       if (Files.notExists(testPath)) {
-        warn("Test output directory does not exist.");
-        // return;
+        if (tweaks.skipOnMissingTestOutputDirectory) {
+          info("JUnit Platform Plugin execution skipped: test output directory does not exist.");
+          return;
+        }
+        warn("Test output directory does not exist... this may lead to failures");
       }
       TestMode mode = projectModules.getMode();
       if (mode == TestMode.CLASSIC) {
