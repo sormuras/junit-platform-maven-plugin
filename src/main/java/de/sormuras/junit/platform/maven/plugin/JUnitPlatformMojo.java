@@ -205,9 +205,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     getLog().debug(formatMessage(format, args));
   }
 
-  private void debug(String caption, Collection<Path> paths) {
+  private void debug(String caption, Collection<String> paths) {
     debug(caption);
-    paths.forEach(path -> debug(String.format("  %-50s -> %s", path.getFileName(), path)));
+    paths.forEach(
+        path -> debug(String.format("  %-50s -> %s", Paths.get(path).getFileName(), path)));
   }
 
   private void debug(String key, Artifact artifact) {
@@ -305,6 +306,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     this.projectModules = new Modules(mainPath, testPath);
     this.projectVersions = Version.buildMap(this::artifactVersionOrNull);
 
+    String moduleInfoTest =
+        findModuleInfoTest(mavenBuild.getTestSourceDirectory(), testPath.toString());
+
     info("Launching JUnit Platform {0}...", version(JUNIT_PLATFORM_VERSION));
     if (getLog().isDebugEnabled()) {
       debug("Path");
@@ -330,6 +334,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       debug("  main -> {0}", projectModules.toStringMainModule());
       debug("  test -> {0}", projectModules.toStringTestModule());
       debug("  mode -> {0}", projectModules.getMode());
+      debug("  module-info.test -> {0}", moduleInfoTest);
     }
 
     // Create target directory to store log and report files...
@@ -340,6 +345,8 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       throw new MojoExecutionException("Can't create target path: " + targetPath, e);
     }
 
+    MavenDriver driver = new MavenDriver(this);
+
     // Basic configuration...
     ConfigurationBuilder configurationBuilder =
         new ConfigurationBuilder()
@@ -348,6 +355,11 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
             .setDefaultAssertionStatus(tweaks.defaultAssertionStatus)
             .setPlatformClassLoader(tweaks.platformClassLoader)
             .setTargetDirectory(targetPath.toString())
+            .setTargetMainPath(mainPath.toString())
+            .setTargetTestPath(testPath.toString())
+            .setWorkerIsolationRequired(tweaks.workerIsolationRequired)
+            .setPaths(driver.buildPathMap(targetPath))
+            .setModuleInfoTestPath(moduleInfoTest)
             .discovery()
             // selectors
             .setSelectedDirectories(selectors.directories)
@@ -387,10 +399,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     }
 
     Configuration configuration = configurationBuilder.build();
-    Driver driver = new MavenDriver(this, configuration);
     if (getLog().isDebugEnabled()) {
       debug("Isolator Path Layering");
-      driver.paths().forEach(this::debug);
+      configuration.basic().getPaths().forEach(this::debug);
     }
 
     try {
@@ -410,7 +421,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       return executeDirect(driver, configuration);
     }
     if (executor == Executor.JAVA) {
-      return executeJava(driver, configuration);
+      return executeJava(configuration);
     }
     throw new MojoExecutionException("Unsupported executor: " + executor);
   }
@@ -430,8 +441,8 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     }
   }
 
-  private int executeJava(Driver driver, Configuration configuration) {
-    JavaExecutor executor = new JavaExecutor(this, driver);
+  private int executeJava(Configuration configuration) {
+    JavaExecutor executor = new JavaExecutor(this);
     return executor.evaluate(configuration);
   }
 
@@ -489,15 +500,15 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   }
 
   @SafeVarargs
-  final void removeExcludedArtifacts(Collection<Path>... collections) {
+  final void removeExcludedArtifacts(Collection<String>... collections) {
     for (String exclude : tweaks.dependencyExcludes) {
       org.apache.maven.artifact.Artifact artifact = mavenProject.getArtifactMap().get(exclude);
       if (artifact == null) {
         debug("Can't exclude what isn't included: " + exclude);
         continue;
       }
-      Path excludedPath = artifact.getFile().toPath();
-      for (Collection<Path> collection : collections) {
+      String excludedPath = artifact.getFile().toPath().toString();
+      for (Collection<String> collection : collections) {
         collection.remove(excludedPath);
       }
     }
@@ -529,5 +540,15 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     Path home = Paths.get(System.getProperty("java.home"));
     Path java = home.resolve("bin").resolve("java" + extension);
     return java.toString();
+  }
+
+  private static String findModuleInfoTest(String... roots) {
+    for (String root : roots) {
+      Path candidate = Paths.get(root).resolve("module-info.test");
+      if (Files.isReadable(candidate)) {
+        return candidate.toString();
+      }
+    }
+    return "";
   }
 }

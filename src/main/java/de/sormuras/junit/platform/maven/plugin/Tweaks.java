@@ -20,6 +20,12 @@ public class Tweaks {
   /** Move any test engine implementations to the launcher classloader. */
   boolean moveTestEnginesToLauncherClassLoader = true;
 
+  /** Fail if worker is not loaded in isolation. */
+  boolean workerIsolationRequired = true;
+
+  /** A missing test output directory and no explicit selector configured: skip execution. */
+  boolean skipOnMissingTestOutputDirectory = true;
+
   /** List of additional raw (local) test path elements. */
   List<String> additionalTestPathElements = emptyList();
 

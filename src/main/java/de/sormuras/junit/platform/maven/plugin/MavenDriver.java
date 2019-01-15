@@ -23,11 +23,13 @@ import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_L
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_REPORTING;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_VINTAGE_ENGINE;
 
-import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.Driver;
 import de.sormuras.junit.platform.isolator.GroupArtifact;
+import de.sormuras.junit.platform.isolator.TestMode;
 import de.sormuras.junit.platform.isolator.Version;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -37,12 +39,14 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -58,21 +62,17 @@ import org.eclipse.aether.resolution.DependencyRequest;
 class MavenDriver implements Driver {
 
   private final JUnitPlatformMojo mojo;
-  private final Configuration configuration;
-  private final Map<String, Set<Path>> paths;
   private final List<RemoteRepository> repositories;
   private final RepositorySystem repositorySystem;
   private final RepositorySystemSession session;
 
-  MavenDriver(JUnitPlatformMojo mojo, Configuration configuration) {
+  MavenDriver(JUnitPlatformMojo mojo) {
     this.mojo = mojo;
-    this.configuration = configuration;
     this.repositories = new ArrayList<>();
     repositories.addAll(mojo.getMavenProject().getRemotePluginRepositories());
     repositories.addAll(mojo.getMavenProject().getRemoteProjectRepositories());
     this.repositorySystem = mojo.getMavenResolver();
     this.session = mojo.getMavenRepositorySession();
-    this.paths = new LinkedHashMap<>();
   }
 
   @Override
@@ -95,19 +95,16 @@ class MavenDriver implements Driver {
     mojo.error(format, objects);
   }
 
-  @Override
-  public Map<String, Set<Path>> paths() {
-    if (!paths.isEmpty()) {
-      return paths;
-    }
-
+  Map<String, Set<String>> buildPathMap(Path targetPath) {
     MavenProject project = mojo.getMavenProject();
     Tweaks tweaks = mojo.getTweaks();
 
-    Set<Path> mainPaths = new LinkedHashSet<>();
-    Set<Path> testPaths = new LinkedHashSet<>();
-    Set<Path> launcherPaths = new LinkedHashSet<>();
-    Set<Path> isolatorPaths = new LinkedHashSet<>();
+    Set<String> mainPaths = new LinkedHashSet<>();
+    Set<String> testPaths = new LinkedHashSet<>();
+    Set<String> launcherPaths = new LinkedHashSet<>();
+    Set<String> isolatorPaths = new LinkedHashSet<>();
+
+    Path patched = targetPath.resolve("patched-test-runtime");
 
     // Acquire all main and test path elements from the project...
     try {
@@ -123,6 +120,21 @@ class MavenDriver implements Driver {
       addAll(project.getTestClasspathElements(), excludePaths, testPaths);
     } catch (DependencyResolutionRequiredException e) {
       throw new RuntimeException("Resolution required!", e);
+    }
+
+    if (mojo.getProjectModules().getMode() == TestMode.MODULAR_PATCHED_TEST_RUNTIME) {
+      mainPaths.remove(project.getBuild().getOutputDirectory());
+      testPaths.remove(project.getBuild().getTestOutputDirectory());
+      testPaths.add(patched.toString());
+
+      File mainDirectory = new File(project.getBuild().getOutputDirectory());
+      File testDirectory = new File(project.getBuild().getTestOutputDirectory());
+      try {
+        FileUtils.copyDirectoryStructure(mainDirectory, patched.toFile());
+        FileUtils.copyDirectoryStructure(testDirectory, patched.toFile());
+      } catch (IOException e) {
+        throw new UncheckedIOException("Populating patched directory failed: " + patched, e);
+      }
     }
 
     // Add additional path elements...
@@ -165,7 +177,7 @@ class MavenDriver implements Driver {
       }
       // Isolator + Worker
       if (mojo.getExecutor().isInjectWorker() && missing(ISOLATOR_WORKER)) {
-        isolatorPaths.addAll(resolve(configuration.basic().getWorkerCoordinates()));
+        isolatorPaths.addAll(resolve(ISOLATOR_WORKER.toStringWithDefaultVersion()));
       }
     } catch (RepositoryException e) {
       throw new RuntimeException("Resolution failed!", e);
@@ -173,10 +185,12 @@ class MavenDriver implements Driver {
 
     mojo.removeExcludedArtifacts(mainPaths, testPaths, launcherPaths, isolatorPaths);
 
+    Map<String, Set<String>> paths = new LinkedHashMap<>();
+
     Isolation isolation = mojo.getIsolation();
     switch (isolation) {
       case ALMOST:
-        Path mainClasses = Paths.get(project.getBuild().getOutputDirectory());
+        String mainClasses = Paths.get(project.getBuild().getOutputDirectory()).toString();
         mainPaths.remove(mainClasses);
         testPaths.add(mainClasses);
         // fall-through!
@@ -187,7 +201,7 @@ class MavenDriver implements Driver {
         put(paths, "isolator", isolatorPaths);
         break;
       case MERGED:
-        Set<Path> mergedPaths = new LinkedHashSet<>();
+        Set<String> mergedPaths = new LinkedHashSet<>();
         mergedPaths.addAll(testPaths);
         mergedPaths.addAll(mainPaths);
         put(paths, "merged(test+main)", mergedPaths);
@@ -195,7 +209,7 @@ class MavenDriver implements Driver {
         put(paths, "isolator", isolatorPaths);
         break;
       case NONE:
-        Set<Path> allPaths = new LinkedHashSet<>();
+        Set<String> allPaths = new LinkedHashSet<>();
         allPaths.addAll(mainPaths);
         allPaths.addAll(testPaths);
         allPaths.addAll(launcherPaths);
@@ -236,15 +250,16 @@ class MavenDriver implements Driver {
     return Optional.of(artifact.getFile().toPath().toString());
   }
 
-  private Set<Path> resolve(GroupArtifact groupArtifact) throws RepositoryException {
+  private Set<String> resolve(GroupArtifact groupArtifact) throws RepositoryException {
     return resolve(groupArtifact.toString(mojo::version));
   }
 
-  private Set<Path> resolve(String coordinates) throws RepositoryException {
+  private Set<String> resolve(String coordinates) throws RepositoryException {
     return resolve(coordinates, "", (all, ways) -> true)
         .stream()
         .map(Artifact::getFile)
         .map(File::toPath)
+        .map(Objects::toString)
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
@@ -266,16 +281,16 @@ class MavenDriver implements Driver {
         .collect(Collectors.toList());
   }
 
-  private static void addAll(Collection<String> source, Collection<Path> target) {
+  private static void addAll(Collection<String> source, Collection<String> target) {
     addAll(source, Collections.emptySet(), target);
   }
 
   private static void addAll(
-      Collection<String> source, Set<String> exclude, Collection<Path> target) {
-    source.stream().filter(a -> !exclude.contains(a)).map(Paths::get).forEach(target::add);
+      Collection<String> source, Set<String> exclude, Collection<String> target) {
+    source.stream().filter(a -> !exclude.contains(a)).forEach(target::add);
   }
 
-  private static void put(Map<String, Set<Path>> paths, String key, Set<Path> value) {
+  private static void put(Map<String, Set<String>> paths, String key, Set<String> value) {
     if (value.isEmpty()) {
       return;
     }

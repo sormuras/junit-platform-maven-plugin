@@ -17,9 +17,6 @@
       <plugin>
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
-        <configuration>
-          <executor>JAVA</executor>
-        </configuration>
       </plugin>
     </plugins>
   </build>
