@@ -14,32 +14,28 @@
 
 package de.sormuras.junit.platform.maven.plugin;
 
+import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.Modules;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
 import org.apache.maven.project.MavenProject;
 
 class JavaPatcher {
 
   private final JUnitPlatformMojo mojo;
+  private final Configuration configuration;
   private final MavenProject project;
   private final Modules modules;
 
-  JavaPatcher(JUnitPlatformMojo mojo) {
+  JavaPatcher(JUnitPlatformMojo mojo, Configuration configuration) {
     this.mojo = mojo;
     this.project = mojo.getMavenProject();
     this.modules = mojo.getProjectModules();
+    this.configuration = configuration;
   }
 
   void patch(List<String> cmd) {
-    String testSource = project.getBuild().getTestSourceDirectory();
     String testOutput = project.getBuild().getTestOutputDirectory();
     String name = modules.getMainModuleName().orElseThrow(AssertionError::new);
 
@@ -49,34 +45,11 @@ class JavaPatcher {
     cmd.add(name + '=' + testOutput);
 
     // Apply user-defined command line options defined in "module-info.test"
-    Optional<Path> moduleInfoTest = findModuleInfoTest(testSource, testOutput);
+    Optional<Path> moduleInfoTest = configuration.basic().findModuleInfoTest();
     if (moduleInfoTest.isPresent()) {
       Path moduleInfoTestPath = moduleInfoTest.get();
       mojo.debug("Using lines of {0} to patch module {1}...", moduleInfoTestPath, name);
-      appendModuleInfoTestArguments(moduleInfoTestPath, cmd::add);
-    }
-  }
-
-  private Optional<Path> findModuleInfoTest(String... roots) {
-    for (String root : roots) {
-      Path candidate = Paths.get(root).resolve("module-info.test");
-      if (Files.exists(candidate)) {
-        return Optional.of(candidate);
-      }
-    }
-    return Optional.empty();
-  }
-
-  private static void appendModuleInfoTestArguments(
-      Path moduleInfoTestPath, Consumer<String> consume) {
-    try (Stream<String> lines = Files.lines(moduleInfoTestPath)) {
-      lines
-          .map(String::trim)
-          .filter(line -> !line.isEmpty())
-          .filter(line -> !line.startsWith("//"))
-          .forEach(consume);
-    } catch (IOException e) {
-      throw new UncheckedIOException("Reading " + moduleInfoTestPath + " failed", e);
+      configuration.basic().parseModuleInfoTestLines(cmd::add);
     }
   }
 }
