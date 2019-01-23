@@ -1,11 +1,6 @@
 dist: xenial
 language: java
 
-jdk:
-  - openjdk8
-  - openjdk11
-  - openjdk-ea
-
 install: true
 
 script:
@@ -17,8 +12,9 @@ after_success:
 after_failure:
 - tail -200 target/it/basic/build.log
 - tail -200 target/it/jupiter-5.4.0-platform-1.4.0-SNAPSHOT/build.log
-- tail -200 target/it/modular-world-1-main-plain-test-module/build.log
+- tail -200 target/it/modular-world-1-empty-plain-test-module/build.log
 - tail -200 target/it/modular-world-2-main-module-test-plain/build.log
+- tail -200 target/it/modular-world-multi-modules/build.log
 - tail -200 target/it/multiple-engines-isolated/build.log
 - tail -200 target/it/timeout/build.log
 
