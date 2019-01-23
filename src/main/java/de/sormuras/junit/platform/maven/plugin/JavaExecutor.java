@@ -162,7 +162,7 @@ class JavaExecutor {
       cmd.add("--module");
       cmd.add("org.junit.platform.console");
     } else {
-      cmd.add("--class-path");
+      cmd.add("-classpath"); // https://github.com/sormuras/junit-platform-maven-plugin/issues/28
       cmd.add(createPathArgument(configuration));
       cmd.add("org.junit.platform.console.ConsoleLauncher");
     }
