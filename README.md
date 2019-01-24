@@ -51,7 +51,7 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
 <plugin>
   <groupId>de.sormuras.junit</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>1.0.0-M4</version>  
+  <version>1.0.0-M5</version>  
   <extensions>true</extensions> <!-- Necessary to execute it in 'test' phase. -->
 </plugin>
 ```
@@ -74,7 +74,7 @@ Or omit the `<extensions>true</extensions>` line (or set it to `false`) and regi
 <plugin>
   <groupId>de.sormuras.junit</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>1.0.0-M4</version>  
+  <version>1.0.0-M5</version>  
   <extensions>false</extensions> <!-- Neither install this plugin into `test` phase, nor touch Surefire. -->
   <executions>
     <execution>
@@ -462,9 +462,6 @@ class TestMode {
 ```
 
 ### `module-info.test` support
-
-Needs `<executor>JAVA</executor>` for now!
-For details see [#21](https://github.com/sormuras/junit-platform-maven-plugin/issues/21).
 
 This plugin also integrates additional compiler flags specified in a `module-info.test` file.
 For example, if your tests need to access types from a module shipping with the JDK (here: `java.scripting`).
