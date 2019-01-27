@@ -287,7 +287,7 @@
             <plugin>
                 <groupId>de.sormuras.junit</groupId>
                 <artifactId>junit-platform-maven-plugin</artifactId>
-                <version>1.0.0-M4</version>
+                <version>1.0.0-M5</version>
                 <extensions>true</extensions>
                 <configuration>
                     <skip>false</skip>
