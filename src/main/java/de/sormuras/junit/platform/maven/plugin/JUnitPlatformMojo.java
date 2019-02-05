@@ -409,6 +409,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
     try {
       int result = execute(driver, configuration);
+      if (result == 2) {
+        throw new MojoFailureException("No tests found.");
+      }
       if (result != 0) {
         throw new MojoFailureException("RED ALERT!");
       }

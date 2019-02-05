@@ -416,6 +416,30 @@ class Tweaks {
 }
 ```
 
+### Error "No tests found."
+
+If the plugin reports "No tests found." it may be due to:
+
+- no tests are declared in `src/test/...` or they are invalid,
+- a discovery selector (module, package, class, method, uri, ...) did not select a single container,
+- a discovery filter (engine, class, method tag, ...) did not match a single test,
+- or some other environment or system condition that prevent any test to be discovered.
+
+Possible solutions:
+- Create tests below `src/test/...` - it is easy and fun!
+- If your `src/test` directory is empty, delete it. The plugin auto-skip test execution if there's no `src/test` directory.
+- Tweak the plugin configuration not fail on no tests found:
+
+```xml
+<configuration>
+  <tweaks>
+    <classes>
+      <failIfNoTests>false</failIfNoTests>
+    </classes>
+  </tweaks>
+</configuration>
+```
+
 ## Modular Testing
 
 https://sormuras.github.io/blog/2018-09-11-testing-in-the-modular-world.html
