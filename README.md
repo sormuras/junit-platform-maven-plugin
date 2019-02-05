@@ -421,21 +421,19 @@ class Tweaks {
 If the plugin reports "No tests found." it may be due to:
 
 - no tests are declared in `src/test/...` or they are invalid,
-- a discovery selector (module, package, class, method, uri, ...) did not select a single container,
-- a discovery filter (engine, class, method tag, ...) did not match a single test,
-- or some other environment or system condition that prevent any test to be discovered.
+- discovery selectors (module, package, class, method, uri, ...) did not select a single container/test,
+- discovery filters (engine, class, method, tag expressions, ...) did not match a single container/test,
+- or some other environment or system condition that prevented any test to be found.
 
 Possible solutions:
 - Create tests below `src/test/...` - it is easy and fun!
 - If your `src/test` directory is empty, delete it. The plugin auto-skip test execution if there's no `src/test` directory.
-- Tweak the plugin configuration not fail on no tests found:
+- Tweak the plugin configuration not to fail on no tests found:
 
 ```xml
 <configuration>
   <tweaks>
-    <classes>
-      <failIfNoTests>false</failIfNoTests>
-    </classes>
+    <failIfNoTests>false</failIfNoTests>
   </tweaks>
 </configuration>
 ```
