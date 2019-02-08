@@ -118,8 +118,7 @@ class JavaExecutor {
       int exitValue = process.exitValue();
       if (captureIO) {
         try {
-          Files.readAllLines(outputPath)
-              .stream()
+          Files.readAllLines(outputPath).stream()
               .limit(500)
               .forEach(exitValue == 0 ? mojo::info : mojo::error);
           Files.readAllLines(errorPath).forEach(exitValue == 0 ? mojo::warn : mojo::error);
@@ -229,11 +228,7 @@ class JavaExecutor {
   }
 
   private String createPathArgument(Configuration configuration) {
-    return configuration
-        .basic()
-        .getPaths()
-        .values()
-        .stream()
+    return configuration.basic().getPaths().values().stream()
         .flatMap(Collection::stream)
         .collect(Collectors.joining(File.pathSeparator));
   }

@@ -255,8 +255,7 @@ class MavenDriver implements Driver {
   }
 
   private Set<String> resolve(String coordinates) throws RepositoryException {
-    return resolve(coordinates, "", (all, ways) -> true)
-        .stream()
+    return resolve(coordinates, "", (all, ways) -> true).stream()
         .map(Artifact::getFile)
         .map(File::toPath)
         .map(Objects::toString)
@@ -272,9 +271,7 @@ class MavenDriver implements Driver {
     collectRequest.setRepositories(repositories);
     DependencyRequest dependencyRequest = new DependencyRequest(collectRequest, filter);
     // debug("Resolving dependencies {0}...", dependencyRequest);
-    return repositorySystem
-        .resolveDependencies(session, dependencyRequest)
-        .getArtifactResults()
+    return repositorySystem.resolveDependencies(session, dependencyRequest).getArtifactResults()
         .stream()
         .map(ArtifactResult::getArtifact)
         // .peek(a -> debug("Artifact {0} resolved to {1}", a, a.getFile()))

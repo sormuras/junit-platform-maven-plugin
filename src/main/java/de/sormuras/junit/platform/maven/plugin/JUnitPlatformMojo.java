@@ -277,8 +277,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   private Optional<Plugin> findPlugin(MavenProject project, String group, String artifact) {
     List<Plugin> plugins = project.getModel().getBuild().getPlugins();
-    return plugins
-        .stream()
+    return plugins.stream()
         .filter(plugin -> group.equals(plugin.getGroupId()))
         .filter(plugin -> artifact.equals(plugin.getArtifactId()))
         .reduce(
@@ -320,10 +319,7 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
       debug("  context loader = {0}", Thread.currentThread().getContextClassLoader());
       debug("  platform loader = {0}", OverlaySingleton.INSTANCE.platformClassLoader());
       debug("Artifact Map");
-      mavenProject
-          .getArtifactMap()
-          .keySet()
-          .stream()
+      mavenProject.getArtifactMap().keySet().stream()
           .sorted()
           .forEach(k -> debug(k, getMavenProject().getArtifactMap().get(k)));
       debug("Version");
