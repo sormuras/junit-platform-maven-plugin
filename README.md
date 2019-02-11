@@ -39,7 +39,7 @@ For example, if you want to write tests using the JUnit Jupiter API, you only ne
   <dependency>
     <groupId>org.junit.jupiter</groupId>
     <artifactId>junit-jupiter-api</artifactId>
-    <version>5.4.0-M1</version>
+    <version>5.4.0</version>
     <scope>test</scope>
   </dependency>
 </dependencies>
