@@ -31,7 +31,7 @@ class JUnitPlatformMojoTests {
 
     assertFalse(mojo.isDryRun());
     assertEquals(Executor.DIRECT, mojo.getExecutor());
-    assertEquals(Isolation.MERGED, mojo.getIsolation());
+    assertEquals(Isolation.ABSOLUTE, mojo.getIsolation());
     assertEquals(300L, mojo.getTimeout());
 
     assertNotNull(mojo.getLog());

@@ -35,6 +35,9 @@
       <plugin>
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
+        <configuration>
+          <isolation>MERGED</isolation>
+        </configuration>
       </plugin>
     </plugins>
   </build>

@@ -80,8 +80,8 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   private boolean skip = false;
 
   /** Isolate artifacts in separated class loaders. */
-  @Parameter(defaultValue = "MERGED")
-  private Isolation isolation = Isolation.MERGED;
+  @Parameter(defaultValue = "ABSOLUTE")
+  private Isolation isolation = Isolation.ABSOLUTE;
 
   /** Dry-run mode discovers tests but does not execute them. */
   @Parameter(defaultValue = "false")

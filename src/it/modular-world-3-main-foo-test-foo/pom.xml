@@ -26,6 +26,7 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <configuration>
+          <isolation>MERGED</isolation>
           <javaOptions>
             <additionalOptions>
               <additionalOption>--show-version</additionalOption>
