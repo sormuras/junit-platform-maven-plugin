@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it</groupId>
+    <artifactId>setup</artifactId>
+    <version>0</version>
+  </parent>
+
+  <artifactId>mockito-basic</artifactId>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
+      <version>2.25.1</version> <!-- Pulls in Byte Buddy 1.9.7 -->
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>@project.groupId@</groupId>
+        <artifactId>@project.artifactId@</artifactId>
+        <version>@project.version@</version>
+        <extensions>true</extensions>
+        <configuration>
+          <tweaks>
+            <dependencyExcludes>
+              <byte.buddy>net.bytebuddy:byte-buddy</byte.buddy>
+              <byte.buddy.agent>net.bytebuddy:byte-buddy-agent</byte.buddy.agent>
+            </dependencyExcludes>
+            <additionalTestDependencies>
+              <byte.buddy>net.bytebuddy:byte-buddy:1.9.11</byte.buddy>
+              <byte.buddy.agent>net.bytebuddy:byte-buddy-agent:1.9.11</byte.buddy.agent>
+            </additionalTestDependencies>
+          </tweaks>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
