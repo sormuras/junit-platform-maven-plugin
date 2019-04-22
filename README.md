@@ -97,18 +97,18 @@ Current `master-SNAPSHOT` version is available via [JitPack](https://jitpack.io/
 
 ```xml
 <project>
-<pluginRepositories>
+  <pluginRepositories>
     <pluginRepository>
         <id>jitpack.io</id>
         <url>https://jitpack.io</url>
     </pluginRepository>
-</pluginRepositories>
+  </pluginRepositories>
 
-<dependency>
+  <dependency>
     <groupId>com.github.sormuras</groupId>
     <artifactId>junit-platform-maven-plugin</artifactId>
     <version>master-SNAPSHOT</version>
-</dependency>
+  </dependency>
 </project>
 ```
 
@@ -205,7 +205,7 @@ Dry-run mode discovers tests but does not execute them.
 
 ```xml
 <configuration>
-    <dryRun>true|false</dryRun>
+  <dryRun>true|false</dryRun>
 </configuration>
 ```
 
@@ -217,7 +217,7 @@ Global timeout duration defaults to 300 seconds.
 
 ```xml
 <configuration>
-    <timeout>300</timeout>
+  <timeout>300</timeout>
 </configuration>
 ```
 
@@ -227,11 +227,11 @@ Global timeout duration defaults to 300 seconds.
 
 ```xml
 <configuration>
-    <isolation>ABSOLUTE|ALMOST|MERGED|NONE</isolation>
+  <isolation>ABSOLUTE|ALMOST|MERGED|NONE</isolation>
 </configuration>
 ```
 
-Defaults to `MERGED`.
+Defaults to `ABSOLUTE`.
 
 #### Isolation: ABSOLUTE
 
