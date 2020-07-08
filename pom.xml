@@ -46,6 +46,10 @@
             <name>Karl Heinz Marbaise</name>
             <id>khmarbaise</id>
         </developer>
+        <developer>
+            <name>Romain Manni-Bucau</name>
+            <id>rmannibucau</id>
+        </developer>
     </developers>
 
     <licenses>
