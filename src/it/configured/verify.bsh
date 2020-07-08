@@ -17,7 +17,6 @@ verifier.verifyNotExists(new String[] {
 
 verifier.verifyLogMatches(new String[] {
   ">> BEGIN >>",
-  "[DEBUG]   (f) dryRun = false",
   "[DEBUG]   (f) executor = DIRECT",
   "[DEBUG]   (f) isolation = NONE",
   ">> More Maven parameters... >>",
