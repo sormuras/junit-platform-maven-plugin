@@ -2,6 +2,7 @@
  
 [![jdk8](https://img.shields.io/badge/java-8-lightgray.svg)](http://jdk.java.net/8)
 [![jdk11](https://img.shields.io/badge/java-11-blue.svg)](http://jdk.java.net/11)
+[![CI](https://github.com/sormuras/junit-platform-maven-plugin/workflows/CI/badge.svg)](https://github.com/sormuras/junit-platform-maven-plugin/actions)
 [![stable](https://img.shields.io/badge/api-stable-green.svg)](https://javadoc.io/doc/de.sormuras.junit/junit-platform-maven-plugin)
 [![central](https://img.shields.io/maven-central/v/de.sormuras.junit/junit-platform-maven-plugin.svg)](https://search.maven.org/artifact/de.sormuras.junit/junit-platform-maven-plugin)
 
