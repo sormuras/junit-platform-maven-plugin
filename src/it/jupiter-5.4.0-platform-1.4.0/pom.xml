@@ -9,7 +9,7 @@
     <version>0</version>
   </parent>
 
-  <artifactId>jupiter-5.4.0-platform-1.4.0-SNAPSHOT</artifactId>
+  <artifactId>jupiter-5.4.0-platform-1.4.0</artifactId>
 
   <repositories>
     <repository>
@@ -26,7 +26,7 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
-      <version>5.4.0-SNAPSHOT</version>
+      <version>5.4.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -39,7 +39,7 @@
         <configuration>
           <versions>
             <!-- Help to auto-detection of versions, by setting them here. -->
-            <junit.vintage.version>5.4.0-SNAPSHOT</junit.vintage.version>
+            <junit.vintage.version>5.4.0</junit.vintage.version>
           </versions>
         </configuration>
       </plugin>
