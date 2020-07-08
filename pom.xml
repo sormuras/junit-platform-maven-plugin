@@ -284,6 +284,7 @@
                 <version>1.0.0</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <isolation>NONE</isolation>
                     <skip>false</skip>
                 </configuration>
             </plugin>

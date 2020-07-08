@@ -19,7 +19,7 @@ verifier.verifyLogMatches(new String[] {
   ">> BEGIN >>",
   "[DEBUG]   (f) dryRun = false",
   "[DEBUG]   (f) executor = DIRECT",
-  "[DEBUG]   (f) isolation = ABSOLUTE",
+  "[DEBUG]   (f) isolation = NONE",
   ">> More Maven parameters... >>",
   "[DEBUG]   (f) parameters = {junit.jupiter.execution.parallel.enabled=true, ninety.nine=99}",
   "[DEBUG]   (f) classes = [TestJupiter, JupiterTests, JupiterTest]",
