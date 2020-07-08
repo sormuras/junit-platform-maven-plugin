@@ -277,11 +277,11 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Use our own dog food, should point to the latest published version... -->
+            <!-- Use our own food, should point to the latest published version... -->
             <plugin>
                 <groupId>de.sormuras.junit</groupId>
                 <artifactId>junit-platform-maven-plugin</artifactId>
-                <version>1.0.0-M5</version>
+                <version>1.0.0</version>
                 <extensions>true</extensions>
                 <configuration>
                     <skip>false</skip>
