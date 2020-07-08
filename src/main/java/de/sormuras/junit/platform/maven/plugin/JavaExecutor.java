@@ -155,6 +155,11 @@ class JavaExecutor {
     if (!options.encoding.isEmpty()) {
       cmd.add("-Dfile.encoding=" + options.encoding);
     }
+    if (!"false".equalsIgnoreCase(options.debug)) {
+      cmd.add(
+          "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address="
+              + (Boolean.parseBoolean(options.debug) /* if bool */ ? "5005" : options.debug));
+    }
     if (mainModule.isPresent() || testModule.isPresent()) {
       cmd.add("--module-path");
       cmd.add(createPathArgument(configuration));
@@ -192,25 +197,36 @@ class JavaExecutor {
       cmd.add("--disable-ansi-colors");
     }
     cmd.add("--details");
-    cmd.add("tree");
+    cmd.add(mojo.getTweaks().details);
     cmd.add("--details-theme");
-    cmd.add("ascii");
+    cmd.add(mojo.getTweaks().detailsTheme);
     cmd.add("--reports-dir");
     cmd.add(basic.getTargetDirectory());
     dsc.getFilterTags().forEach(tag -> cmd.add(createTagArgument("include", tag)));
+    if (mojo.getTest() != null) { // interactive mode first
+      if (mojo.getTest().contains("(") || mojo.getTest().contains("#")) {
+        cmd.add("--select-method=" + mojo.getTest());
+      } else {
+        cmd.add("--select-class=" + mojo.getTest());
+      }
+    } else if (dsc.getFilterClassNamePatterns() != null) { // else explicit config
+      dsc.getFilterClassNamePatterns().forEach(it -> cmd.add("--include-classname=" + it));
+    }
     dsc.getParameters().forEach((key, value) -> cmd.add(createConfigArgument(key, value)));
 
     Optional<Object> mainModule = modules.getMainModuleReference();
     Optional<Object> testModule = modules.getTestModuleReference();
-    if (testModule.isPresent()) {
-      cmd.add("--select-module");
-      cmd.add(modules.getTestModuleName().orElseThrow(AssertionError::new));
-    } else {
-      if (mainModule.isPresent()) {
+    if (mojo.getTest() == null && dsc.getFilterClassNamePatterns() == null) {
+      if (testModule.isPresent()) {
         cmd.add("--select-module");
-        cmd.add(modules.getMainModuleName().orElseThrow(AssertionError::new));
+        cmd.add(modules.getTestModuleName().orElseThrow(AssertionError::new));
       } else {
-        cmd.add("--scan-class-path");
+        if (mainModule.isPresent()) {
+          cmd.add("--select-module");
+          cmd.add(modules.getMainModuleName().orElseThrow(AssertionError::new));
+        } else {
+          cmd.add("--scan-class-path");
+        }
       }
     }
     if (options.additionalLauncherOptions != null && !options.additionalLauncherOptions.isEmpty()) {

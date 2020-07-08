@@ -39,6 +39,12 @@ public class JavaOptions {
   /** Play nice with calling process. */
   boolean inheritIO = false;
 
+  /**
+   * Enable remote debugging on the JVM, can be set to true (port 5005), a port value or false
+   * (disabled).
+   */
+  String debug = "false";
+
   /** Override <strong>all</strong> Java command line options. */
   List<String> overrideJavaOptions = emptyList();
 

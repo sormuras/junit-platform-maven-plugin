@@ -29,6 +29,12 @@ public class Tweaks {
   /** Force ansi to be disabled for java executions. */
   boolean disableAnsi = false;
 
+  /** Details mode, can be none, summary, flat, tree, verbose. */
+  String details = "tree";
+
+  /** Details theme to use: ascii, unicode. */
+  String detailsTheme = "ascii";
+
   /** List of additional raw (local) test path elements. */
   List<String> additionalTestPathElements = emptyList();
 

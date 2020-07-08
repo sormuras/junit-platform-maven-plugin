@@ -15,10 +15,12 @@
 package de.sormuras.junit.platform.maven.plugin;
 
 import static de.sormuras.junit.platform.isolator.Version.JUNIT_PLATFORM_VERSION;
+import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.toMap;
 
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.ConfigurationBuilder;
@@ -30,6 +32,8 @@ import de.sormuras.junit.platform.isolator.TestMode;
 import de.sormuras.junit.platform.isolator.Version;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,8 +57,10 @@ import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.PluginExecution;
 import org.apache.maven.plugin.Mojo;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.plugins.annotations.Component;
@@ -64,6 +70,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
+import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -158,7 +165,19 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
    *
    * {@code --include-classname <String>}
    */
-  @Parameter private Set<String> classNamePatterns = singleton("^(Test.*|.+[.$]Test.*|.*Tests?)$");
+  @Parameter private Set<String> classNamePatterns;
+
+  /**
+   * Select class.
+   *
+   * <p>Provide a test to launch (useful in interactive mode).
+   *
+   * <h3>Console Launcher equivalent</h3>
+   *
+   * {@code --select-class= <String>}
+   */
+  @Parameter(property = "test") // property must stay short
+  private String test; // todo: enable to not use fqn but just simple name of classes
 
   /**
    * Tags or tag expressions to include only tests whose tags match.
@@ -176,11 +195,16 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
    *     href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering">Tagging
    *     and Filtering</a>
    */
-  @Parameter private Set<String> tags = emptySet();
+  @Parameter(property = "tag")
+  private Set<String> tags = emptySet();
 
   /** Base output directory path used by this plugin to store log files and reports. */
   @Parameter(defaultValue = "${project.build.directory}/junit-platform")
   private File targetDirectory;
+
+  // internal
+  @Parameter(readonly = true, defaultValue = "${mojoExecution}")
+  private MojoExecution execution;
 
   /** The log instance passed in via setter. */
   private Log log;
@@ -269,12 +293,12 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   private void mangleSurefirePlugin(Plugin surefirePlugin, Plugin jpmp) {
     // "-D...keep.executions=true" --> skip next code block: don't clear executions
     // "-D...keep.executions=false|<empty>" --> enter block:  clear executions
-    if (!Boolean.getBoolean("junit.platform.maven.plugin.surefire.keep.executions")) {
+    if (!Boolean.getBoolean("junit-platform.surefire.keep.executions")) {
       surefirePlugin.getExecutions().clear();
     }
 
     if (Boolean.parseBoolean(
-        System.getProperty("junit.platform.maven.plugin.surefire.migration.support", "true"))) {
+        System.getProperty("junit-platform.surefire.migration.support", "true"))) {
       // TODO Parse Surefire configuration and pick some "interesting" settings...
       //      https://github.com/sormuras/junit-platform-maven-plugin/issues/23
       final Object configuration = surefirePlugin.getConfiguration();
@@ -346,6 +370,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    autoConfigure("javaOptions", javaOptions);
+    autoConfigure("tweaks", tweaks);
+
     debug("Executing JUnitPlatformMojo...");
 
     if (skip) {
@@ -476,6 +503,52 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     }
   }
 
+  // should be in maven with something like BeanConfigurator for xml conf
+  private void autoConfigure(final String markerName, final Object dto) {
+    final PluginParameterExpressionEvaluator evaluator =
+        new PluginParameterExpressionEvaluator(mavenSession, execution);
+    Stream.of(dto.getClass().getDeclaredFields()) // for now no inheritance support needed
+        .filter(it -> !Modifier.isStatic(it.getModifiers()))
+        .peek(it -> it.setAccessible(true))
+        .forEach(
+            field -> {
+              final String key = "${junit-platform." + markerName + '.' + field.getName() + "}";
+              String value = null;
+              try {
+                value = String.class.cast(evaluator.evaluate(key, String.class));
+              } catch (final ExpressionEvaluationException e) {
+                getLog().warn(e.getMessage(), e);
+              }
+              if (value != null) {
+                final Class<?> type = field.getType();
+                if (String.class == type) {
+                  set(field, dto, value);
+                } else if (boolean.class == type) {
+                  set(field, dto, Boolean.parseBoolean(value));
+                } else if (List.class == type) { // List<String>
+                  set(field, dto, asList(value.split(",")));
+                } else if (Map.class == type) { // Map<String, String>
+                  set(
+                      field,
+                      dto,
+                      Stream.of(value.split(","))
+                          .map(it -> it.split("="))
+                          .collect(toMap(it -> it[0], it -> it[1])));
+                } else {
+                  throw new IllegalArgumentException("Unsupported type: " + type);
+                }
+              }
+            });
+  }
+
+  private void set(final Field field, final Object target, final Object value) {
+    try {
+      field.set(target, value);
+    } catch (final IllegalAccessException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   private int execute(Driver driver, Configuration configuration) throws Exception {
     if (executor == Executor.DIRECT) {
       return executeDirect(driver, configuration);
@@ -504,6 +577,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   private int executeJava(Configuration configuration) {
     JavaExecutor executor = new JavaExecutor(this);
     return executor.evaluate(configuration);
+  }
+
+  String getTest() {
+    return test;
   }
 
   Executor getExecutor() {
