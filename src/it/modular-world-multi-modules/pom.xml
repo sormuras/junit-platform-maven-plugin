@@ -36,7 +36,8 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <configuration>
-          <isolation>MERGED</isolation>
+          <isolation>NONE</isolation>
+          <executor>JAVA</executor>
         </configuration>
       </plugin>
     </plugins>

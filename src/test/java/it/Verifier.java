@@ -133,8 +133,7 @@ public class Verifier {
       assertLinesMatch(expectedLines, buildLogLines);
       expectedLines.forEach(line -> out(line));
     } catch (AssertionError e) {
-      err("Expected lines don't match this build.log!");
-      expectedLines.forEach(line -> err(line));
+      err("Expected lines don't match this build.log!\n> " + e.getMessage());
       ok = false;
     }
     return this;

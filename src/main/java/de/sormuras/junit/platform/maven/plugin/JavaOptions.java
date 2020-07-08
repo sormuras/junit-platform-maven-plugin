@@ -15,8 +15,10 @@
 package de.sormuras.junit.platform.maven.plugin;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 
 import java.util.List;
+import java.util.Map;
 
 /** Options consumed by the {@link JavaExecutor}. */
 @SuppressWarnings("WeakerAccess")
@@ -43,8 +45,14 @@ public class JavaOptions {
   /** Override <strong>all</strong> JUnit Platform Console Launcher options. */
   List<String> overrideLauncherOptions = emptyList();
 
+  /** Additional JUnit Platform Console Launcher options. */
+  List<String> additionalLauncherOptions = emptyList();
+
   /** Additional Java command line options prepended to auto-generated options. */
   List<String> additionalOptions = emptyList();
+
+  /** Environment set on the java process. */
+  Map<String, String> additionalEnvironment = emptyMap();
 
   /** Argument for the {@code --add-modules} options: like {@code ALL-MODULE-PATH,ALL-DEFAULT}. */
   String addModulesArgument = "";

@@ -20,7 +20,7 @@ verifier.verifyLogMatches(new String[] {
   ">> More debug information lines... >>",
   "[DEBUG] Java Module System",
   "[DEBUG]   main -> <empty>",
-  "[DEBUG]   test -> open module foo { requires=[org.junit.jupiter.api, java.base] packages=[foo] }",
+  "\\[DEBUG\\]   test -> open module foo \\{ requires=\\[.*org\\.junit\\.jupiter\\.api.*\\] packages=\\[foo\\] \\}",
   "[DEBUG]   mode -> MODULAR",
   ">> Platform executes tests...>>",
   "[INFO] BUILD SUCCESS",

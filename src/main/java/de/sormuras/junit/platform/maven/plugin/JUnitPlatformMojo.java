@@ -18,6 +18,7 @@ import static de.sormuras.junit.platform.isolator.Version.JUNIT_PLATFORM_VERSION
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
+import static java.util.Optional.ofNullable;
 
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.ConfigurationBuilder;
@@ -44,6 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Stream;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.execution.MavenSession;
@@ -62,6 +64,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 
@@ -259,20 +262,75 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
     String surefireGroup = "org.apache.maven.plugins";
     String surefireArtifact = "maven-surefire-plugin";
-    findPlugin(project, surefireGroup, surefireArtifact).ifPresent(this::mangleSurefirePlugin);
+    findPlugin(project, surefireGroup, surefireArtifact)
+        .ifPresent(surefire -> mangleSurefirePlugin(surefire, thisPlugin));
   }
 
-  private void mangleSurefirePlugin(Plugin surefirePlugin) {
+  private void mangleSurefirePlugin(Plugin surefirePlugin, Plugin jpmp) {
     // "-D...keep.executions=true" --> skip next code block: don't clear executions
     // "-D...keep.executions=false|<empty>" --> enter block:  clear executions
     if (!Boolean.getBoolean("junit.platform.maven.plugin.surefire.keep.executions")) {
       surefirePlugin.getExecutions().clear();
     }
 
-    if (Boolean.getBoolean("junit.platform.maven.plugin.surefire.migration.support")) {
+    if (Boolean.parseBoolean(
+        System.getProperty("junit.platform.maven.plugin.surefire.migration.support", "true"))) {
       // TODO Parse Surefire configuration and pick some "interesting" settings...
       //      https://github.com/sormuras/junit-platform-maven-plugin/issues/23
+      final Object configuration = surefirePlugin.getConfiguration();
+      if (!Xpp3Dom.class.isInstance(configuration)) { // unlikely but to prevent future changes
+        getLog()
+            .warn(
+                "SurefireSurefire configuration is not a xpp3dom, skipping migration: "
+                    + configuration);
+      } else { // partial support for now
+        final Xpp3Dom config = Xpp3Dom.class.cast(configuration);
+        ofNullable(config.getChild("systemPropertyVariables"))
+            .filter(it -> it.getChildCount() > 0)
+            .ifPresent(
+                spv -> {
+                  final Xpp3Dom targetConfig = enforceConfiguration(jpmp);
+                  final Xpp3Dom javaOptions = getOrCreateChild(targetConfig, "javaOptions");
+                  final Xpp3Dom additionalOptions =
+                      getOrCreateChild(javaOptions, "additionalOptions");
+                  Stream.of(spv.getChildren())
+                      .map(
+                          sp -> {
+                            final Xpp3Dom option = new Xpp3Dom("additionalOption");
+                            option.setValue("-D" + sp.getName() + "=" + sp.getValue());
+                            return option;
+                          })
+                      .forEach(additionalOptions::addChild);
+                });
+        ofNullable(config.getChild("environmentVariables"))
+            .filter(it -> it.getChildCount() > 0)
+            .ifPresent(
+                spv -> {
+                  final Xpp3Dom targetConfig = enforceConfiguration(jpmp);
+                  final Xpp3Dom additionalEnvironment =
+                      getOrCreateChild(targetConfig, "additionalEnvironment");
+                  Stream.of(spv.getChildren()).forEach(additionalEnvironment::addChild);
+                });
+      }
     }
+  }
+
+  private Xpp3Dom enforceConfiguration(final Plugin jpmp) {
+    Xpp3Dom targetConfig = Xpp3Dom.class.cast(jpmp.getConfiguration());
+    if (targetConfig == null) {
+      targetConfig = new Xpp3Dom("configuration");
+      jpmp.setConfiguration(targetConfig);
+    }
+    return targetConfig;
+  }
+
+  private Xpp3Dom getOrCreateChild(final Xpp3Dom parent, final String name) {
+    Xpp3Dom child = parent.getChild(name);
+    if (child == null) {
+      child = new Xpp3Dom(name);
+      parent.addChild(child);
+    }
+    return child;
   }
 
   private Optional<Plugin> findPlugin(MavenProject project, String group, String artifact) {
