@@ -12,7 +12,7 @@ Maven Plugin launching the JUnit Platform
 
 * Utilize JUnit Platform's ability to execute multiple `TestEngine`s natively.
 * Auto-load well-known engine implementations at test runtime: users only have to depend on `junit-jupiter-api`, the Jupiter TestEngine is provided.
-* Support _white-box_ and _black-box_ testing when writing modularized projects.
+* Support in-module and extra-modular testing when writing modularized projects.
 * Most [selectors](https://junit.org/junit5/docs/current/api/org/junit/platform/engine/discovery/package-summary.html) the JUnit Platform offers are supported.
 * Load test, main, and framework/plugin classes in separation via dedicated `ClassLoader` instances using the [JUnit Platform Isolator](https://github.com/sormuras/junit-platform-isolator) library.
 
