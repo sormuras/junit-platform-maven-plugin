@@ -26,6 +26,9 @@ public class Tweaks {
   /** A missing test output directory and no explicit selector configured: skip execution. */
   boolean skipOnMissingTestOutputDirectory = true;
 
+  /** Force ansi to be disabled for java executions. */
+  boolean disableAnsi = false;
+
   /** List of additional raw (local) test path elements. */
   List<String> additionalTestPathElements = emptyList();
 

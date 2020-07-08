@@ -50,6 +50,7 @@ class JavaExecutor {
 
     // Prepare the process builder
     ProcessBuilder builder = new ProcessBuilder();
+    builder.directory(mojo.getMavenProject().getBasedir()); // todo: config?
     List<String> cmd = builder.command();
 
     boolean inheritIO = mojo.getJavaOptions().inheritIO;
@@ -60,6 +61,10 @@ class JavaExecutor {
       builder.redirectError(errorPath.toFile());
       builder.redirectOutput(outputPath.toFile());
       builder.redirectInput(ProcessBuilder.Redirect.INHERIT);
+    }
+
+    if (options.additionalEnvironment != null && !options.additionalEnvironment.isEmpty()) {
+      builder.environment().putAll(options.additionalEnvironment);
     }
 
     // "java[.exe]"
@@ -183,7 +188,9 @@ class JavaExecutor {
       cmd.add("--fail-if-no-tests");
     }
 
-    cmd.add("--disable-ansi-colors");
+    if (mojo.getTweaks().disableAnsi) {
+      cmd.add("--disable-ansi-colors");
+    }
     cmd.add("--details");
     cmd.add("tree");
     cmd.add("--details-theme");
@@ -205,6 +212,9 @@ class JavaExecutor {
       } else {
         cmd.add("--scan-class-path");
       }
+    }
+    if (options.additionalLauncherOptions != null && !options.additionalLauncherOptions.isEmpty()) {
+      cmd.addAll(options.additionalLauncherOptions);
     }
   }
 
@@ -228,8 +238,20 @@ class JavaExecutor {
   }
 
   private String createPathArgument(Configuration configuration) {
+    final boolean dropMainClasses =
+        modules.getMainModuleName().isPresent()
+            && modules.getTestModuleName().isPresent()
+            && modules
+                .getTestModuleName()
+                .orElseThrow(IllegalStateException::new)
+                .equals(modules.getMainModuleName().orElseThrow(IllegalStateException::new));
     return configuration.basic().getPaths().values().stream()
         .flatMap(Collection::stream)
+        .filter(path -> !dropMainClasses || !isMain(configuration, path))
         .collect(Collectors.joining(File.pathSeparator));
+  }
+
+  private boolean isMain(final Configuration configuration, final String path) {
+    return path.equals(configuration.basic().getTargetMainPath());
   }
 }

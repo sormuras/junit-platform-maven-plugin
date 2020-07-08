@@ -10,9 +10,9 @@
 
   <properties>
     <!-- versions -->
-    <junit.platform.version>1.4.2</junit.platform.version>
-    <junit.jupiter.version>5.4.2</junit.jupiter.version>
-    <junit.vintage.version>5.4.2</junit.vintage.version>
+    <junit.platform.version>1.7.0-M1</junit.platform.version>
+    <junit.jupiter.version>5.7.0-M1</junit.jupiter.version>
+    <junit.vintage.version>5.7.0-M1</junit.vintage.version>
     <brahms.version>0.11.10</brahms.version>
     <junit.version>4.12</junit.version>
     <jqwik.version>1.1.2</jqwik.version>

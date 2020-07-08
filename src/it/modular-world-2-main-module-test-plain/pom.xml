@@ -26,7 +26,8 @@
         <groupId>@project.groupId@</groupId>
         <artifactId>@project.artifactId@</artifactId>
         <configuration>
-          <executor>DIRECT</executor>
+          <isolation>NONE</isolation>
+          <executor>JAVA</executor>
           <javaOptions>
             <inheritIO>true</inheritIO>
             <additionalOptions>
