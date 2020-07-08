@@ -18,7 +18,7 @@ Maven Plugin launching the JUnit Platform
 
 This plugin was presented by [Sander Mak](https://github.com/sandermak) at Devoxx 2018: https://youtu.be/l4Dk7EF-oYc?t=2346
 
-## Prequisites
+## Prerequisites
 
 Using this plugin requires at least:
 
@@ -39,7 +39,7 @@ For example, if you want to write tests using the JUnit Jupiter API, you only ne
   <dependency>
     <groupId>org.junit.jupiter</groupId>
     <artifactId>junit-jupiter-api</artifactId>
-    <version>5.4.0</version>
+    <version>5.6.2</version>
     <scope>test</scope>
   </dependency>
 </dependencies>
@@ -51,8 +51,11 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
 <plugin>
   <groupId>de.sormuras.junit</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>1.0.0-M5</version>  
+  <version>1.0.0</version>
   <extensions>true</extensions> <!-- Necessary to execute it in 'test' phase. -->
+  <configuration>
+    <isolation>NONE</isolation> <!-- Version 1.0.0 defaults to ABSOLUTE. -->
+  </configuration>
 </plugin>
 ```
 
@@ -74,7 +77,7 @@ Or omit the `<extensions>true</extensions>` line (or set it to `false`) and regi
 <plugin>
   <groupId>de.sormuras.junit</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>1.0.0-M5</version>  
+  <version>1.0.0</version>
   <extensions>false</extensions> <!-- Neither install this plugin into `test` phase, nor touch Surefire. -->
   <executions>
     <execution>
@@ -82,7 +85,7 @@ Or omit the `<extensions>true</extensions>` line (or set it to `false`) and regi
       <phase>test</phase>
       <goals>
         <goal>launch</goal>
-      </goals>      
+      </goals>
       <configuration>
       ...
       </configuration>
@@ -231,7 +234,7 @@ Global timeout duration defaults to 300 seconds.
 </configuration>
 ```
 
-Defaults to `ABSOLUTE`.
+Defaults to `NONE`.
 
 #### Isolation: ABSOLUTE
 
@@ -398,6 +401,15 @@ class Tweaks {
 
   /** Move any test engine implementations to the launcher classloader. */
   boolean moveTestEnginesToLauncherClassLoader = true;
+
+  /** Fail if worker is not loaded in isolation. */
+  boolean workerIsolationRequired = true;
+
+  /** A missing test output directory and no explicit selector configured: skip execution. */
+  boolean skipOnMissingTestOutputDirectory = true;
+
+  /** Force ansi to be disabled for java executions. */
+  boolean disableAnsi = false;
 
   /** List of additional raw (local) test path elements. */
   List<String> additionalTestPathElements = emptyList();
