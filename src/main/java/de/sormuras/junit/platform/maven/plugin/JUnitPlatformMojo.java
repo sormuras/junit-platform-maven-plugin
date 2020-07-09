@@ -15,12 +15,10 @@
 package de.sormuras.junit.platform.maven.plugin;
 
 import static de.sormuras.junit.platform.isolator.Version.JUNIT_PLATFORM_VERSION;
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singleton;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.toMap;
 
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.ConfigurationBuilder;
@@ -32,8 +30,6 @@ import de.sormuras.junit.platform.isolator.TestMode;
 import de.sormuras.junit.platform.isolator.Version;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,7 +56,6 @@ import org.apache.maven.plugin.Mojo;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.plugins.annotations.Component;
@@ -70,7 +65,6 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.toolchain.Toolchain;
 import org.apache.maven.toolchain.ToolchainManager;
-import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -370,8 +364,9 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    autoConfigure("javaOptions", javaOptions);
-    autoConfigure("tweaks", tweaks);
+    MojoHelper mojoHelper = new MojoHelper(this);
+    mojoHelper.autoConfigure("javaOptions", javaOptions);
+    mojoHelper.autoConfigure("tweaks", tweaks);
 
     debug("Executing JUnitPlatformMojo...");
 
@@ -503,52 +498,6 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     }
   }
 
-  // should be in maven with something like BeanConfigurator for xml conf
-  private void autoConfigure(final String markerName, final Object dto) {
-    final PluginParameterExpressionEvaluator evaluator =
-        new PluginParameterExpressionEvaluator(mavenSession, execution);
-    Stream.of(dto.getClass().getDeclaredFields()) // for now no inheritance support needed
-        .filter(it -> !Modifier.isStatic(it.getModifiers()))
-        .peek(it -> it.setAccessible(true))
-        .forEach(
-            field -> {
-              final String key = "${junit-platform." + markerName + '.' + field.getName() + "}";
-              String value = null;
-              try {
-                value = String.class.cast(evaluator.evaluate(key, String.class));
-              } catch (final ExpressionEvaluationException e) {
-                getLog().warn(e.getMessage(), e);
-              }
-              if (value != null) {
-                final Class<?> type = field.getType();
-                if (String.class == type) {
-                  set(field, dto, value);
-                } else if (boolean.class == type) {
-                  set(field, dto, Boolean.parseBoolean(value));
-                } else if (List.class == type) { // List<String>
-                  set(field, dto, asList(value.split(",")));
-                } else if (Map.class == type) { // Map<String, String>
-                  set(
-                      field,
-                      dto,
-                      Stream.of(value.split(","))
-                          .map(it -> it.split("="))
-                          .collect(toMap(it -> it[0], it -> it[1])));
-                } else {
-                  throw new IllegalArgumentException("Unsupported type: " + type);
-                }
-              }
-            });
-  }
-
-  private void set(final Field field, final Object target, final Object value) {
-    try {
-      field.set(target, value);
-    } catch (final IllegalAccessException e) {
-      throw new IllegalStateException(e);
-    }
-  }
-
   private int execute(Driver driver, Configuration configuration) throws Exception {
     if (executor == Executor.DIRECT) {
       return executeDirect(driver, configuration);
@@ -601,6 +550,14 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   MavenProject getMavenProject() {
     return mavenProject;
+  }
+
+  MavenSession getMavenSession() {
+    return mavenSession;
+  }
+
+  public MojoExecution getMojoExecution() {
+    return execution;
   }
 
   RepositorySystemSession getMavenRepositorySession() {
