@@ -22,33 +22,30 @@ import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.PluginParameterExpressionEvaluator;
 import org.codehaus.plexus.component.configurator.expression.ExpressionEvaluationException;
 
 class MojoHelper {
 
   private final JUnitPlatformMojo mojo;
+  private final PluginParameterExpressionEvaluator evaluator;
 
-  MojoHelper(JUnitPlatformMojo mojo) {
+  MojoHelper(JUnitPlatformMojo mojo, MavenSession session, MojoExecution execution) {
     this.mojo = mojo;
+    this.evaluator = new PluginParameterExpressionEvaluator(session, execution);
   }
 
   // should be in maven with something like BeanConfigurator for xml conf
   void autoConfigure(String markerName, Object dto) {
-    final PluginParameterExpressionEvaluator evaluator =
-        new PluginParameterExpressionEvaluator(mojo.getMavenSession(), mojo.getMojoExecution());
     Stream.of(dto.getClass().getDeclaredFields()) // for now no inheritance support needed
         .filter(it -> !Modifier.isStatic(it.getModifiers()))
         .peek(it -> it.setAccessible(true))
         .forEach(
             field -> {
               final String key = "${junit-platform." + markerName + '.' + field.getName() + "}";
-              String value = null;
-              try {
-                value = (String) evaluator.evaluate(key, String.class);
-              } catch (final ExpressionEvaluationException e) {
-                mojo.getLog().warn(e.getMessage(), e);
-              }
+              String value = evaluateProperty(key);
               if (value != null) {
                 final Class<?> type = field.getType();
                 if (String.class == type) {
@@ -69,6 +66,15 @@ class MojoHelper {
                 }
               }
             });
+  }
+
+  String evaluateProperty(String key) {
+    try {
+      return (String) evaluator.evaluate(key, String.class);
+    } catch (final ExpressionEvaluationException e) {
+      mojo.getLog().warn(e.getMessage(), e);
+    }
+    return null;
   }
 
   private static void set(Field field, Object target, Object value) {
