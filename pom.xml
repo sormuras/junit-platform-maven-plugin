@@ -299,11 +299,6 @@
                     <plugin>
                         <groupId>com.coveo</groupId>
                         <artifactId>fmt-maven-plugin</artifactId>
-                        <configuration>
-                            <additionalSourceDirectories>
-                                <param>src/it</param>
-                            </additionalSourceDirectories>
-                        </configuration>
                         <executions>
                             <execution>
                                 <id>format</id>
