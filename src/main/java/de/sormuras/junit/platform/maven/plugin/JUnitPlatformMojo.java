@@ -77,7 +77,7 @@ import org.eclipse.aether.RepositorySystemSession;
 public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant implements Mojo {
 
   /** Skip execution of this plugin. */
-  @Parameter(defaultValue = "false")
+  @Parameter(defaultValue = "false", property = "junit-platform.skip")
   private boolean skip = false;
 
   /** Isolate artifacts in separated class loaders. */
@@ -263,11 +263,12 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     String group = "de.sormuras.junit";
     String artifact = "junit-platform-maven-plugin";
     for (MavenProject project : session.getProjects()) {
-      findPlugin(project, group, artifact).ifPresent(plugin -> injectThisPlugin(project, plugin));
+      findPlugin(project, group, artifact)
+          .ifPresent(plugin -> injectThisPlugin(project, session, plugin));
     }
   }
 
-  private void injectThisPlugin(MavenProject project, Plugin thisPlugin) {
+  private void injectThisPlugin(MavenProject project, MavenSession session, Plugin thisPlugin) {
     PluginExecution execution = new PluginExecution();
     execution.setId("injected-launch");
     execution.getGoals().add("launch");
@@ -278,17 +279,18 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     String surefireGroup = "org.apache.maven.plugins";
     String surefireArtifact = "maven-surefire-plugin";
     findPlugin(project, surefireGroup, surefireArtifact)
-        .ifPresent(surefire -> mangleSurefirePlugin(surefire, thisPlugin));
+        .ifPresent(surefire -> mangleSurefirePlugin(surefire, thisPlugin, session));
   }
 
-  private void mangleSurefirePlugin(Plugin surefirePlugin, Plugin junitPlugin) {
+  private void mangleSurefirePlugin(
+      Plugin surefirePlugin, Plugin junitPlugin, MavenSession session) {
     // "-D...keep.executions=true" --> skip next code block: don't clear executions
     // "-D...keep.executions=false|<empty>" --> enter block:  clear executions
     if (!Boolean.getBoolean("junit-platform.surefire.keep.executions")) {
       surefirePlugin.getExecutions().clear();
     }
 
-    new SurefireMigrationSupport(this).apply(surefirePlugin, junitPlugin);
+    new SurefireMigrationSupport(this, session).apply(surefirePlugin, junitPlugin);
   }
 
   private Optional<Plugin> findPlugin(MavenProject project, String group, String artifact) {
@@ -304,16 +306,16 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
-    MojoHelper mojoHelper = new MojoHelper(this);
-    mojoHelper.autoConfigure("javaOptions", javaOptions);
-    mojoHelper.autoConfigure("tweaks", tweaks);
-
-    debug("Executing JUnitPlatformMojo...");
-
     if (skip) {
       info("JUnit Platform Plugin execution skipped.");
       return;
     }
+
+    MojoHelper mojoHelper = new MojoHelper(this, mavenSession, execution);
+    mojoHelper.autoConfigure("javaOptions", javaOptions);
+    mojoHelper.autoConfigure("tweaks", tweaks);
+
+    debug("Executing JUnitPlatformMojo...");
 
     if (mavenProject.getPackaging().equals("pom")) {
       info("JUnit Platform Plugin execution skipped: project uses 'pom' packaging");

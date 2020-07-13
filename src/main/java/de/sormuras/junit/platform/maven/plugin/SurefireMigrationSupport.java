@@ -17,15 +17,20 @@ package de.sormuras.junit.platform.maven.plugin;
 import static java.util.Optional.ofNullable;
 
 import java.util.stream.Stream;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.plugin.MojoExecution;
+import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 class SurefireMigrationSupport {
 
   private final JUnitPlatformMojo mojo;
+  private final MavenSession session;
 
-  SurefireMigrationSupport(JUnitPlatformMojo mojo) {
+  SurefireMigrationSupport(JUnitPlatformMojo mojo, MavenSession session) {
     this.mojo = mojo;
+    this.session = session;
   }
 
   // TODO Parse Surefire configuration and pick more "interesting" settings...
@@ -36,8 +41,9 @@ class SurefireMigrationSupport {
       return;
     }
     Object configuration = surefirePlugin.getConfiguration();
-    if (configuration == null) { // No Surefire configuration element found
-      return;
+    if (configuration
+        == null) { // No Surefire configuration element found, let's migrate system props anyway
+      configuration = new Xpp3Dom("configuration");
     }
     if (!(configuration instanceof Xpp3Dom)) { // Unlikely but to prevent future changes
       mojo.warn("Surefire configuration is not a Xpp3Dom, skipping migration: {0}", configuration);
@@ -52,6 +58,35 @@ class SurefireMigrationSupport {
     ofNullable(surefireConfiguration.getChild("environmentVariables"))
         .filter(it -> it.getChildCount() > 0)
         .ifPresent(it -> migrateEnvironmentVariables(it, junitPlugin));
+
+    ofNullable(surefireConfiguration.getChild("skip"))
+        .map(
+            skip -> {
+              setSkip(junitPlugin, skip.getValue());
+              return null;
+            })
+        .orElseGet(
+            () -> {
+              final MojoHelper helper =
+                  new MojoHelper(
+                      mojo,
+                      session,
+                      new MojoExecution(new MojoDescriptor(), surefireConfiguration));
+              boolean skipTests = Boolean.parseBoolean(helper.evaluateProperty("${skipTests}"));
+              if (!skipTests) {
+                skipTests = Boolean.parseBoolean(helper.evaluateProperty("${maven.test.skip}"));
+              }
+              setSkip(junitPlugin, Boolean.toString(skipTests));
+              return null;
+            });
+
+    // todo: migrate executions
+    // surefirePlugin.getExecutions().forEach(execution -> {});
+  }
+
+  private void setSkip(Plugin junitPlugin, String value) {
+    final Xpp3Dom skip = getOrCreateChild(enforceConfiguration(junitPlugin), "skip");
+    skip.setValue(value);
   }
 
   private void migrateSystemPropertyVariables(Xpp3Dom dom, Plugin junitPlugin) {
