@@ -264,11 +264,11 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     String artifact = "junit-platform-maven-plugin";
     for (MavenProject project : session.getProjects()) {
       findPlugin(project, group, artifact)
-          .ifPresent(plugin -> injectThisPlugin(project, session, plugin));
+          .ifPresent(plugin -> injectThisPlugin(session, project, plugin));
     }
   }
 
-  private void injectThisPlugin(MavenProject project, MavenSession session, Plugin thisPlugin) {
+  private void injectThisPlugin(MavenSession session, MavenProject project, Plugin thisPlugin) {
     PluginExecution execution = new PluginExecution();
     execution.setId("injected-launch");
     execution.getGoals().add("launch");
@@ -279,11 +279,11 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
     String surefireGroup = "org.apache.maven.plugins";
     String surefireArtifact = "maven-surefire-plugin";
     findPlugin(project, surefireGroup, surefireArtifact)
-        .ifPresent(surefire -> mangleSurefirePlugin(surefire, thisPlugin, session));
+        .ifPresent(surefire -> mangleSurefirePlugin(session, surefire, thisPlugin));
   }
 
   private void mangleSurefirePlugin(
-      Plugin surefirePlugin, Plugin junitPlugin, MavenSession session) {
+      MavenSession session, Plugin surefirePlugin, Plugin junitPlugin) {
     // "-D...keep.executions=true" --> skip next code block: don't clear executions
     // "-D...keep.executions=false|<empty>" --> enter block:  clear executions
     if (!Boolean.getBoolean("junit-platform.surefire.keep.executions")) {
