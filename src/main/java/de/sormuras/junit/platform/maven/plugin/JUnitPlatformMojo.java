@@ -306,21 +306,21 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+    debug("Executing JUnitPlatformMojo...");
+
     if (skip) {
       info("JUnit Platform Plugin execution skipped.");
+      return;
+    }
+
+    if (mavenProject.getPackaging().equals("pom")) {
+      info("JUnit Platform Plugin execution skipped: project uses 'pom' packaging");
       return;
     }
 
     MojoHelper mojoHelper = new MojoHelper(this, mavenSession, execution);
     mojoHelper.autoConfigure("javaOptions", javaOptions);
     mojoHelper.autoConfigure("tweaks", tweaks);
-
-    debug("Executing JUnitPlatformMojo...");
-
-    if (mavenProject.getPackaging().equals("pom")) {
-      info("JUnit Platform Plugin execution skipped: project uses 'pom' packaging");
-      return;
-    }
 
     Path mainPath = Paths.get(mavenBuild.getOutputDirectory());
     Path testPath = Paths.get(mavenBuild.getTestOutputDirectory());
