@@ -18,11 +18,11 @@ verifier.verifyNotExists(new String[] {
 
 verifier.verifyLogMatches(new String[] {
   ">> BEGIN >>",
-  "[INFO] Launching JUnit Platform 1.7.0-M1...",
+  "[INFO] Launching JUnit Platform 1.7.0...",
   ">> Plugin setup... >>",
-  "[DEBUG]   junit.platform.version = 1.7.0-M1",
-  "[DEBUG]   junit.jupiter.version = 5.7.0-M1",
-  "[DEBUG]   junit.vintage.version = 5.7.0-M1",
+  "[DEBUG]   junit.platform.version = 1.7.0",
+  "[DEBUG]   junit.jupiter.version = 5.7.0",
+  "[DEBUG]   junit.vintage.version = 5.7.0",
   ">> Platform executes tests...>>",
   "[INFO] BUILD SUCCESS",
   ">> END. >>"
