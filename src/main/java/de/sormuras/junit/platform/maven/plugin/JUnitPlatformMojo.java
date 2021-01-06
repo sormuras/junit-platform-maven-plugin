@@ -165,7 +165,8 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
    *
    * <h3>Console Launcher equivalent</h3>
    *
-   * {@code --select-class= <String>}
+   * {@code --select-class= <String>} if class can be resolved in outputTestDirectory or {@code
+   * --include-classname=.*\\.<String>} if it can't.
    */
   @Parameter(property = "test") // property must stay short
   private String test; // todo: enable to not use fqn but just simple name of classes

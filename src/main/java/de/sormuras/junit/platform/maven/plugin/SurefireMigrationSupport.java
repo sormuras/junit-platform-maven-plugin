@@ -80,6 +80,18 @@ class SurefireMigrationSupport {
               return null;
             });
 
+    final String debug = System.getProperty("maven.surefire.debug");
+    if (debug != null) {
+      Xpp3Dom targetConfig = enforceConfiguration(junitPlugin);
+      Xpp3Dom javaOptions = getOrCreateChild(targetConfig, "javaOptions");
+      Xpp3Dom debugTag = javaOptions.getChild("debug");
+      if (debugTag == null) {
+        debugTag = new Xpp3Dom("debug");
+        javaOptions.addChild(debugTag);
+      }
+      debugTag.setValue(debug);
+    }
+
     // todo: migrate executions
     // surefirePlugin.getExecutions().forEach(execution -> {});
   }
