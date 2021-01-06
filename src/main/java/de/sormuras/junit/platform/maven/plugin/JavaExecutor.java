@@ -206,8 +206,14 @@ class JavaExecutor {
     if (mojo.getTest() != null) { // interactive mode first
       if (mojo.getTest().contains("(") || mojo.getTest().contains("#")) {
         cmd.add("--select-method=" + mojo.getTest());
-      } else {
+      } else if (Files.exists(
+          Paths.get(mojo.getMavenProject().getBuild().getTestOutputDirectory())
+              .resolve(mojo.getTest().replace('.', '/') + ".class"))) {
         cmd.add("--select-class=" + mojo.getTest());
+      } else {
+        cmd.add(
+            "--scan-class-path"); // ideally we would use --select-directory but it is buggin in 1.7
+        cmd.add("--include-classname=.*\\." + mojo.getTest());
       }
     } else if (dsc.getFilterClassNamePatterns() != null) { // else explicit config
       dsc.getFilterClassNamePatterns().forEach(it -> cmd.add("--include-classname=" + it));
