@@ -31,3 +31,11 @@ jobs:
         run: mvn --batch-mode --no-transfer-progress verify
       - name: 'Run integration tests'
         run: mvn --batch-mode --no-transfer-progress -Prun-its verify
+      - name: 'Upload IT build logs as ${{ github.event.repository.name }}-build-${{ github.sha }}'
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.event.repository.name }}-build-${{ github.sha }}
+          path: |
+            LICENSE
+            target/it/*/build.log
