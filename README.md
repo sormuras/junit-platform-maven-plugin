@@ -224,6 +224,16 @@ Global timeout duration defaults to 300 seconds.
 </configuration>
 ```
 
+### Execution Progress
+
+Duration between output and error log file sizes during execution (JAVA execution mode only). Defaults to 60 seconds.
+
+```xml
+<configuration>
+  <executionProgress>60</executionProgress>
+</configuration>
+```
+
 ### Isolation Level
 
 `ClassLoader` hierarchy configuration.

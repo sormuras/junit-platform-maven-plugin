@@ -1,0 +1,30 @@
+import it.Verifier;
+
+Verifier verifier = new Verifier(basedir.toPath());
+
+// verifier.verifyBadLines(); // warning and error lines are expected
+
+verifier.verifyReadable(new String[] {
+  "pom.xml",
+  "src/test/java/ExecutionProgressTests.java",
+  "target/test-classes/ExecutionProgressTests.class"
+});
+
+verifier.verifyNotExists(new String[] {
+  "target/classes",
+  "target/surefire-reports"
+});
+
+verifier.verifyLogMatches(new String[] {
+  ">> BEGIN >>",
+  "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
+  ">> Platform executes tests...>>",
+  "\\Q[INFO]\\E Output Log: .+ bytes, Error Log: .+ bytes",
+  "\\Q[INFO]\\E Output Log: .+ bytes, Error Log: .+ bytes",
+  "[WARNING] Global timeout of 3 second(s) reached.",
+  ">> Platform executes tests...>>",
+  "[INFO] BUILD FAILURE",
+  ">> END. >>"
+});
+
+return verifier.isOk();

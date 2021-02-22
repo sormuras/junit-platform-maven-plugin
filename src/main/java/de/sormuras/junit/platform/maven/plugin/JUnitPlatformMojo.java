@@ -92,6 +92,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   @Parameter(defaultValue = "300")
   private long timeout = 300L;
 
+  /** Execution progress update duration in seconds. */
+  @Parameter(defaultValue = "60")
+  private long executionProgress = 60;
+
   /** Execution mode. */
   @Parameter(defaultValue = "DIRECT")
   private Executor executor = Executor.DIRECT;
@@ -513,6 +517,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   long getTimeout() {
     return timeout;
+  }
+
+  long getExecutionProgress() {
+    return executionProgress;
   }
 
   boolean isDryRun() {
