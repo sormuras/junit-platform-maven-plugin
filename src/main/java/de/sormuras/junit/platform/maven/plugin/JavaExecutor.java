@@ -103,8 +103,23 @@ class JavaExecutor {
       Process process = builder.start();
       // Java 11 debug("Process started: #%d %s", process.pid(), process.info());
       mojo.debug("Process started: {0}", process);
-      if (!process.waitFor(mojo.getTimeout(), TimeUnit.SECONDS)) {
-        mojo.warn("Global timeout of " + mojo.getTimeout() + " second(s) reached.");
+      long progressTimeout = mojo.getExecutionProgress();
+      long globalTimeout = mojo.getTimeout();
+      long elapsedTime = 0L;
+      boolean completed = false;
+      while (!completed && elapsedTime < globalTimeout) {
+        if (progressTimeout > globalTimeout - elapsedTime) {
+          progressTimeout = globalTimeout - elapsedTime;
+        }
+        completed = process.waitFor(progressTimeout, TimeUnit.SECONDS);
+        mojo.info(
+            "Output Log: {0,number,integer} bytes, Error Log: {1,number,integer} bytes",
+            Files.exists(outputPath) ? Files.size(outputPath) : 0L,
+            Files.exists(errorPath) ? Files.size(errorPath) : 0L);
+        elapsedTime += progressTimeout;
+      }
+      if (!completed) {
+        mojo.warn("Global timeout of {0,number,integer} second(s) reached.", globalTimeout);
         process.destroy();
         // give process a second to terminate normally
         for (int i = 10; i > 0 && process.isAlive(); i--) {

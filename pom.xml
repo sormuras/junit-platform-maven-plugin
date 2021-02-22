@@ -345,6 +345,7 @@
                                 <!--<pomInclude>modular-world-multi-modules</pomInclude>-->
                                 <!--<pomInclude>multiple-engines-*</pomInclude>-->
                                 <!--<pomInclude>timeout</pomInclude>-->
+                                <!--<pomInclude>executionProgress</pomInclude>-->
                             </pomIncludes>
                             <pomExcludes>
                                 <!-- None, B. -->
