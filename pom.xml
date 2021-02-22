@@ -24,9 +24,9 @@
         <maven.compiler.testSource>11</maven.compiler.testSource>
         <maven.compiler.testTarget>11</maven.compiler.testTarget>
         <maven.version>3.3.9</maven.version>
-        <junit.platform.version>1.7.0</junit.platform.version>
-        <junit.jupiter.version>5.7.0</junit.jupiter.version>
-        <junit.vintage.version>5.7.0</junit.vintage.version>
+        <junit.platform.version>1.7.1</junit.platform.version>
+        <junit.jupiter.version>5.7.1</junit.jupiter.version>
+        <junit.vintage.version>5.7.1</junit.vintage.version>
     </properties>
 
     <prerequisites>
@@ -284,7 +284,7 @@
             <plugin>
                 <groupId>de.sormuras.junit</groupId>
                 <artifactId>junit-platform-maven-plugin</artifactId>
-                <version>1.1.0</version>
+                <version>1.1.1</version>
                 <extensions>true</extensions>
                 <configuration>
                     <isolation>NONE</isolation>
