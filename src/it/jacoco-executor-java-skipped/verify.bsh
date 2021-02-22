@@ -21,6 +21,10 @@ verifier.verifyNotExists(new String[] {
 verifier.verifyLogMatches(new String[] {
   ">> BEGIN >>",
   "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
+  ">> Print configuration...>>",
+  "[DEBUG] Starting process...",
+  ">> 1 >>",
+  "[DEBUG] -enableassertions",
   ">> Platform executes tests...>>",
   "[INFO] BUILD SUCCESS",
   ">> END. >>"

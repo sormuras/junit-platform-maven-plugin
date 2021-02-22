@@ -148,7 +148,10 @@ class JavaExecutor {
 
     Optional<Object> mainModule = modules.getMainModuleReference();
     Optional<Object> testModule = modules.getTestModuleReference();
-    cmd.addAll(options.additionalOptions);
+    for (String option : options.additionalOptions) {
+      if (option == null || option.trim().isEmpty()) continue;
+      cmd.add(option);
+    }
     if (configuration.basic().isDefaultAssertionStatus()) {
       cmd.add("-enableassertions");
     }
