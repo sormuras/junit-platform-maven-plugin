@@ -334,6 +334,7 @@
                                 <!-- Select a few... -->
                                 <!--<pomInclude>basic</pomInclude>-->
                                 <!--<pomInclude>jacoco-executor-java</pomInclude>-->
+                                <!--<pomInclude>jacoco-executor-java-skipped</pomInclude>-->
                                 <!--<pomInclude>configured</pomInclude>-->
                                 <!--<pomInclude>failure</pomInclude>-->
                                 <!--<pomInclude>classloader-*</pomInclude>-->
