@@ -32,6 +32,8 @@
             <additionalOptions>
               <additionalOption>--show-version</additionalOption>
               <additionalOption>--show-module-resolution</additionalOption>
+              <additionalOption>--patch-module</additionalOption>
+              <additionalOption>foo=${project.basedir}/src/main/resources</additionalOption>
             </additionalOptions>
           </javaOptions>
         </configuration>

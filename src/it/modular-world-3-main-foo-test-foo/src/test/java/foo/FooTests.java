@@ -15,4 +15,14 @@ class FooTests {
   void accessModuleFoo() {
     assertEquals("foo", getClass().getModule().getName(), "Class doesn't reside in module 'foo'!");
   }
+
+  @Test
+  void getMainResourceViaClassLoader() {
+    assertNotNull(Foo.class.getClassLoader().getResource("foo/main.txt"));
+  }
+
+  @Test
+  void getTestResourceViaClassLoader() {
+    assertNotNull(Foo.class.getClassLoader().getResource("foo/test.txt"));
+  }
 }
