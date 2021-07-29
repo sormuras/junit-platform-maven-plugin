@@ -338,7 +338,7 @@
                                 <!--<pomInclude>configured</pomInclude>-->
                                 <!--<pomInclude>failure</pomInclude>-->
                                 <!--<pomInclude>classloader-*</pomInclude>-->
-                                <!--<pomInclude>configured</pomInclude>-->
+                                <!--<pomInclude>dependency-scope-runtime</pomInclude>-->
                                 <!--<pomInclude>jupiter-5*-platform-1*</pomInclude>-->
                                 <!--<pomInclude>mockito-*</pomInclude>-->
                                 <!--<pomInclude>modular-world-*</pomInclude>-->
