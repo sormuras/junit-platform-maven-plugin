@@ -1,0 +1,18 @@
+import it.Verifier;
+
+Verifier verifier = new Verifier(basedir.toPath());
+
+verifier.verifyBadLines();
+
+verifier.verifyLogMatches(new String[] {
+  ">> BEGIN >>",
+  "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
+  ">> Platform executes tests BEGIN...>>",
+  ".+ Hello from main",
+  ".+ Hello from test",
+  ">> Platform executes tests END...>>",
+  "[INFO] BUILD SUCCESS",
+  ">> END. >>"
+});
+
+return verifier.isOk();
