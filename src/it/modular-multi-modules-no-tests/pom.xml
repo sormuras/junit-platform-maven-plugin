@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it</groupId>
+    <artifactId>setup</artifactId>
+    <version>0</version>
+  </parent>
+
+  <groupId>multi-mods</groupId>
+  <artifactId>modular-multi-modules-no-tests</artifactId>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>module-with-both-sources-and-tests</module>
+    <module>module-with-only-sources</module>
+  </modules>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>@project.groupId@</groupId>
+        <artifactId>@project.artifactId@</artifactId>
+        <configuration>
+          <isolation>NONE</isolation>
+          <executor>JAVA</executor>
+          <javaOptions>
+            <additionalOptions>
+              <additionalOption>--show-version</additionalOption>
+              <additionalOption>--show-module-resolution</additionalOption>
+            </additionalOptions>
+          </javaOptions>
+          <tweaks>
+            <skipOnMissingTestOutputDirectory>true</skipOnMissingTestOutputDirectory>
+          </tweaks>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

@@ -364,6 +364,13 @@
                 <plugins>
                     <plugin>
                         <artifactId>maven-invoker-plugin</artifactId>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.codehaus.groovy</groupId>
+                                <artifactId>groovy</artifactId>
+                                <version>3.0.8</version>
+                            </dependency>
+                        </dependencies>
                         <configuration>
                             <debug>true</debug>
                             <addTestClassPath>true</addTestClassPath>
