@@ -1,0 +1,5 @@
+--add-reads
+  app1=org.junit.jupiter.api
+
+--add-opens
+  app1/multi.mods.firstapp=org.junit.platform.commons
