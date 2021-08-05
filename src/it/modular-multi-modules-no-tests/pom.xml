@@ -42,7 +42,7 @@
             </additionalOptions>
           </javaOptions>
           <tweaks>
-            <skipOnMissingTestOutputDirectory>true</skipOnMissingTestOutputDirectory>
+            <failIfNoTests>false</failIfNoTests>
           </tweaks>
         </configuration>
       </plugin>
