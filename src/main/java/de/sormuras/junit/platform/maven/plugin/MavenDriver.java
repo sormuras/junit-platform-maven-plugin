@@ -131,9 +131,16 @@ class MavenDriver implements Driver {
       File testDirectory = new File(project.getBuild().getTestOutputDirectory());
       try {
         FileUtils.copyDirectoryStructure(mainDirectory, patched.toFile());
-        FileUtils.copyDirectoryStructure(testDirectory, patched.toFile());
       } catch (IOException e) {
         throw new UncheckedIOException("Populating patched directory failed: " + patched, e);
+      }
+      try {
+        FileUtils.copyDirectoryStructure(testDirectory, patched.toFile());
+      } catch (IOException e) {
+        if (tweaks.failIfNoTests) {
+          throw new UncheckedIOException("Populating patched directory failed: " + patched, e);
+        }
+        debug("Patched directory {0} was not found and failIfNoTests is set to false", patched);
       }
     }
 
