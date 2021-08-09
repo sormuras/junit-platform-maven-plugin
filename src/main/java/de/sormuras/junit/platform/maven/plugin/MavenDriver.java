@@ -108,7 +108,7 @@ class MavenDriver implements Driver {
 
     // Acquire all main and test path elements from the project...
     try {
-      addAll(project.getRuntimeClasspathElements(), mainPaths);
+      addAll(project.getTestClasspathElements(), mainPaths);
 
       // Exclude all compile elements from test paths per default
       Set<String> excludePaths = new LinkedHashSet<>(project.getCompileClasspathElements());
