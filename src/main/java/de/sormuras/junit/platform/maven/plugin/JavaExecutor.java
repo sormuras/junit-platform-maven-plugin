@@ -270,11 +270,11 @@ class JavaExecutor {
   }
 
   private static String createConfigArgument(String key, String value) {
-    return "--config=\"" + key + "\"=\"" + value + "\"";
+    return "--config=" + key + "=" + value;
   }
 
   private static String createTagArgument(String filter, String tag) {
-    return "--" + filter + "-tag=\"" + tag + "\"";
+    return "--" + filter + "-tag=" + tag;
   }
 
   private String createPathArgument(Configuration configuration) {
