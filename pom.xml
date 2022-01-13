@@ -97,13 +97,6 @@
             <version>3.6.1</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <!-- Needed for FileUtils.copyDirectoryStructure()... -->
-            <groupId>org.codehaus.plexus</groupId>
-            <artifactId>plexus-utils</artifactId>
-            <version>3.3.0</version>
-            <scope>provided</scope>
-        </dependency>
 
         <!-- Main P R O V I D E D dependencies. -->
         <dependency>
