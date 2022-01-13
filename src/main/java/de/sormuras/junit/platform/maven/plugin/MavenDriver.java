@@ -22,6 +22,8 @@ import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_C
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_LAUNCHER;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_PLATFORM_REPORTING;
 import static de.sormuras.junit.platform.isolator.GroupArtifact.JUNIT_VINTAGE_ENGINE;
+import static java.nio.file.StandardCopyOption.COPY_ATTRIBUTES;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import de.sormuras.junit.platform.isolator.Driver;
 import de.sormuras.junit.platform.isolator.GroupArtifact;
@@ -30,6 +32,8 @@ import de.sormuras.junit.platform.isolator.Version;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -43,10 +47,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.FileUtils;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
@@ -104,8 +108,6 @@ class MavenDriver implements Driver {
     Set<String> launcherPaths = new LinkedHashSet<>();
     Set<String> isolatorPaths = new LinkedHashSet<>();
 
-    Path patched = targetPath.resolve("patched-test-runtime");
-
     // Acquire all main and test path elements from the project...
     try {
       addAll(project.getCompileClasspathElements(), mainPaths);
@@ -124,24 +126,30 @@ class MavenDriver implements Driver {
     }
 
     if (mojo.getProjectModules().getMode() == TestMode.MODULAR_PATCHED_TEST_RUNTIME) {
+      String patchedDirectory = targetPath.resolve("patched-test-runtime").toString();
+      String mainDirectory = project.getBuild().getOutputDirectory();
+      String testDirectory = project.getBuild().getTestOutputDirectory();
+
       mainPaths.remove(project.getBuild().getOutputDirectory());
       testPaths.remove(project.getBuild().getTestOutputDirectory());
-      testPaths.add(patched.toString());
+      testPaths.add(patchedDirectory);
 
-      File mainDirectory = new File(project.getBuild().getOutputDirectory());
-      File testDirectory = new File(project.getBuild().getTestOutputDirectory());
       try {
-        FileUtils.copyDirectoryStructure(mainDirectory, patched.toFile());
+        copyDirectoryStructure(mainDirectory, patchedDirectory, false);
       } catch (IOException e) {
-        throw new UncheckedIOException("Populating patched directory failed: " + patched, e);
+        throw new UncheckedIOException(
+            "Populating patched directory with main one failed: " + patchedDirectory, e);
       }
       try {
-        FileUtils.copyDirectoryStructure(testDirectory, patched.toFile());
+        copyDirectoryStructure(testDirectory, patchedDirectory, true);
       } catch (IOException e) {
         if (tweaks.failIfNoTests) {
-          throw new UncheckedIOException("Populating patched directory failed: " + patched, e);
+          throw new UncheckedIOException(
+              "Populating patched directory with test one failed: " + patchedDirectory, e);
         }
-        debug("Patched directory {0} was not found and failIfNoTests is set to false", patched);
+        debug(
+            "Patched directory {0} was not found and failIfNoTests is set to false",
+            patchedDirectory);
       }
     }
 
@@ -286,6 +294,29 @@ class MavenDriver implements Driver {
         .map(ArtifactResult::getArtifact)
         // .peek(a -> debug("Artifact {0} resolved to {1}", a, a.getFile()))
         .collect(Collectors.toList());
+  }
+
+  private void copyDirectoryStructure(String srcFldr, String dstFldr, boolean ignoreNonEmpty)
+      throws IOException {
+    Path srcPath = Paths.get(srcFldr);
+    try (Stream<Path> walk = Files.walk(srcPath)) {
+      walk.forEach(
+          currentPath -> {
+            Path destPath = Paths.get(dstFldr, currentPath.toString().substring(srcFldr.length()));
+            try {
+              Files.copy(currentPath, destPath, COPY_ATTRIBUTES, REPLACE_EXISTING);
+            } catch (IOException ioe) {
+              if (ioe instanceof DirectoryNotEmptyException && ignoreNonEmpty) {
+                debug(
+                    "ignoring non-empty folder {0} - continuing with content",
+                    currentPath.toString());
+              } else {
+                throw new UncheckedIOException(
+                    String.format("copying %s to % s failed", srcFldr, dstFldr), ioe);
+              }
+            }
+          });
+    }
   }
 
   private static void addAll(Collection<String> source, Collection<String> target) {
