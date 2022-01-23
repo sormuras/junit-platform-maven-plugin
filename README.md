@@ -39,7 +39,7 @@ For example, if you want to write tests using the JUnit Jupiter API, you only ne
   <dependency>
     <groupId>org.junit.jupiter</groupId>
     <artifactId>junit-jupiter</artifactId>
-    <version>5.7.2</version>
+    <version>5.8.2</version>
     <scope>test</scope>
   </dependency>
 </dependencies>
@@ -77,7 +77,7 @@ Or omit the `<extensions>true</extensions>` line (or set it to `false`) and regi
 <plugin>
   <groupId>de.sormuras.junit</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>1.1.5</version>
+  <version>1.1.6</version>
   <extensions>false</extensions> <!-- Neither install this plugin into `test` phase, nor touch Surefire. -->
   <executions>
     <execution>
