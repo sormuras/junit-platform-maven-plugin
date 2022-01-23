@@ -50,6 +50,10 @@
             <name>Romain Manni-Bucau</name>
             <id>rmannibucau</id>
         </developer>
+        <developer>
+            <name>Tomer Figenblat</name>
+            <id>TomerFi</id>
+        </developer>
     </developers>
 
     <licenses>
