@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /** Forks an external Java process to start the JUnit Platform Console Launcher. */
 class JavaExecutor {
@@ -137,11 +138,11 @@ class JavaExecutor {
       }
       int exitValue = process.exitValue();
       if (captureIO) {
-        try {
-          Files.readAllLines(outputPath).stream()
-              .limit(500)
-              .forEach(exitValue == 0 ? mojo::info : mojo::error);
-          Files.readAllLines(errorPath).forEach(exitValue == 0 ? mojo::warn : mojo::error);
+        try (Stream<String> stdoutput = Files.lines(outputPath);
+            Stream<String> erroutput = Files.lines(errorPath); ) {
+          stdoutput.forEach(exitValue == 0 ? mojo::info : mojo::error);
+          erroutput.forEach(exitValue == 0 ? mojo::warn : mojo::error);
+
         } catch (IOException e) {
           mojo.warn("Reading output/error logs failed: {0}", e);
         }
