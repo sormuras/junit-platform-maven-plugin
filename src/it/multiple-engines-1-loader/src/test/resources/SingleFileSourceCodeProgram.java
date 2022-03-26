@@ -1,4 +1,6 @@
-/** @see http://openjdk.java.net/jeps/330 */
+/**
+ * @see http://openjdk.java.net/jeps/330
+ */
 class SingleFileSourceCodeProgram {
 
   public static void main(String... args) {

@@ -32,12 +32,16 @@ public enum Executor {
     this.injectWorker = injectWorker;
   }
 
-  /** @return {@code true} if junit-platform-console is needed at test runtime. */
+  /**
+   * @return {@code true} if junit-platform-console is needed at test runtime.
+   */
   public boolean isInjectConsole() {
     return injectConsole;
   }
 
-  /** @return {@code true} if isolator-worker is needed at test runtime. */
+  /**
+   * @return {@code true} if isolator-worker is needed at test runtime.
+   */
   public boolean isInjectWorker() {
     return injectWorker;
   }
