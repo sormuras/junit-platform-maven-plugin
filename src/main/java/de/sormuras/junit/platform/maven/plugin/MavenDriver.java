@@ -312,7 +312,7 @@ class MavenDriver implements Driver {
                     currentPath.toString());
               } else {
                 throw new UncheckedIOException(
-                    String.format("copying %s to % s failed", srcFldr, dstFldr), ioe);
+                    String.format("copying %s to %s failed", srcFldr, dstFldr), ioe);
               }
             }
           });
