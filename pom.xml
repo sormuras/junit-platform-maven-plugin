@@ -235,9 +235,9 @@
                 <artifactId>maven-plugin-plugin</artifactId>
             </plugin>
             <plugin>
-                <groupId>com.coveo</groupId>
+                <groupId>com.spotify.fmt</groupId>
                 <artifactId>fmt-maven-plugin</artifactId>
-                <version>2.10</version>
+                <version>2.16</version>
                 <configuration>
                     <additionalSourceDirectories>
                         <param>src/it</param>
@@ -319,7 +319,7 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>com.coveo</groupId>
+                        <groupId>com.spotify.fmt</groupId>
                         <artifactId>fmt-maven-plugin</artifactId>
                         <executions>
                             <execution>
