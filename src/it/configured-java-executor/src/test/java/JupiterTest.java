@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 class JupiterTest {
 
   @Test
-  void test() throws Exception {
+  void täßt() throws Exception {
     Thread.sleep(200);
   }
 }

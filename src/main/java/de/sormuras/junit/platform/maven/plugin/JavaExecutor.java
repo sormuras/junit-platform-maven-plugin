@@ -19,6 +19,7 @@ import de.sormuras.junit.platform.isolator.Modules;
 import de.sormuras.junit.platform.isolator.TestMode;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -138,11 +139,12 @@ class JavaExecutor {
       }
       int exitValue = process.exitValue();
       if (captureIO) {
-        try (Stream<String> stdoutput = Files.lines(outputPath);
-            Stream<String> erroutput = Files.lines(errorPath); ) {
+        String encoding = System.getProperty("native.encoding"); // Populated on Java 18 and later
+        Charset charset = encoding != null ? Charset.forName(encoding) : Charset.defaultCharset();
+        try (Stream<String> stdoutput = Files.lines(outputPath, charset);
+            Stream<String> erroutput = Files.lines(errorPath, charset)) {
           stdoutput.forEach(exitValue == 0 ? mojo::info : mojo::error);
           erroutput.forEach(exitValue == 0 ? mojo::warn : mojo::error);
-
         } catch (IOException e) {
           mojo.warn("Reading output/error logs failed: {0}", e);
         }
