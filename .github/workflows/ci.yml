@@ -16,12 +16,12 @@ jobs:
 
     steps:
       - name: 'Check out sources'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: 'Set up JDK'
-        uses: actions/setup-java@v2
+        uses: oracle-actions/setup-java@v1
         with:
-          java-version: 17
-          distribution: 'zulu'
+          website: jdk.java.net
+          release: 18
           cache: 'maven'
       - name: 'Build'
         run: mvn --batch-mode --no-transfer-progress verify
