@@ -79,12 +79,6 @@ public class Verifier {
         err("Log line %d contains a warning marker: %s", i, line);
         continue;
       }
-      if (line.startsWith("[INFO] --- maven-surefire-plugin:2.12.4:test (default-test)")) {
-        ok = false;
-        err("Log line %d contains Surefire's default execution marker: %s", i, line);
-        //noinspection UnnecessaryContinue
-        continue;
-      }
     }
     if (ok) {
       out("No marker found in %d build log lines", size);
