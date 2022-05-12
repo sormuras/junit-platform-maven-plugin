@@ -409,5 +409,28 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>run-sign</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>ca.vanzyl.maven.plugins</groupId>
+                        <artifactId>sigstore-maven-plugin</artifactId>
+                        <version>0.0.9</version>
+                        <executions>
+                            <execution>
+                                <phase>verify</phase>
+                                <configuration>
+                                    <mavenPgpSignatures>true</mavenPgpSignatures>
+                                </configuration>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>
