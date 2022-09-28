@@ -243,7 +243,7 @@ class JavaExecutor {
 
     Optional<Object> mainModule = modules.getMainModuleReference();
     Optional<Object> testModule = modules.getTestModuleReference();
-    if (mojo.getTest() == null && dsc.getFilterClassNamePatterns() == null) {
+    if (mojo.getTest() == null) {
       if (testModule.isPresent()) {
         cmd.add("--select-module");
         cmd.add(modules.getTestModuleName().orElseThrow(AssertionError::new));
