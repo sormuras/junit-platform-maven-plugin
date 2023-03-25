@@ -39,6 +39,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -135,6 +136,15 @@ class MavenDriver implements Driver {
       testPaths.add(patchedDirectory);
 
       try {
+        // Copying directory structure fails if destination is non-empty
+        // so we recursively delete the previous patchedDirectory if it exists
+        Path patchedDirPath = Paths.get(patchedDirectory);
+        if (Files.exists(patchedDirPath)) {
+          try (Stream<Path> pathStream = Files.walk(patchedDirPath)) {
+            // subdirectories will sort alphabetically after parents, so reverse order
+            pathStream.sorted(Comparator.reverseOrder()).forEach(p -> p.toFile().delete());
+          }
+        }
         copyDirectoryStructure(mainDirectory, patchedDirectory, false);
       } catch (IOException e) {
         throw new UncheckedIOException(
