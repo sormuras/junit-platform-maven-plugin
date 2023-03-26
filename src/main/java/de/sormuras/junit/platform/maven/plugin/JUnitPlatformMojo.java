@@ -142,10 +142,6 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
    * <h3>Console Launcher equivalent</h3>
    *
    * {@code --config <key=value>}
-   *
-   * @see <a
-   *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-config-params">Configuration
-   *     Parameters</a>
    */
   @Parameter private Map<String, String> parameters = emptyMap();
 
@@ -183,13 +179,6 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
    * <h3>Console Launcher equivalent</h3>
    *
    * {@code --include-tag <String>}
-   *
-   * @see <a
-   *     href="https://junit.org/junit5/docs/current/user-guide/#running-tests-tag-expressions">Tag
-   *     Expressions</a>
-   * @see <a
-   *     href="https://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering">Tagging
-   *     and Filtering</a>
    */
   @Parameter(property = "tag")
   private Set<String> tags = emptySet();
