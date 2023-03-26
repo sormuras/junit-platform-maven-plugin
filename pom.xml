@@ -24,9 +24,9 @@
         <maven.compiler.testSource>18</maven.compiler.testSource>
         <maven.compiler.testTarget>18</maven.compiler.testTarget>
         <maven.version>3.3.9</maven.version>
-        <junit.platform.version>1.8.2</junit.platform.version>
-        <junit.jupiter.version>5.8.2</junit.jupiter.version>
-        <junit.vintage.version>5.8.2</junit.vintage.version>
+        <junit.platform.version>1.9.2</junit.platform.version>
+        <junit.jupiter.version>5.9.2</junit.jupiter.version>
+        <junit.vintage.version>5.9.2</junit.vintage.version>
     </properties>
 
     <prerequisites>
