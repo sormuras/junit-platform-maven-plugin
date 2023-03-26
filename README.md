@@ -1,7 +1,7 @@
 # JUnit Platform Maven Plugin
  
 [![jdk8](https://img.shields.io/badge/java-8-lightgray.svg)](http://jdk.java.net/8)
-[![jdk18](https://img.shields.io/badge/java-11-blue.svg)](http://jdk.java.net/18)
+[![jdk20](https://img.shields.io/badge/java-20-blue.svg)](http://jdk.java.net/20)
 [![CI](https://github.com/sormuras/junit-platform-maven-plugin/workflows/CI/badge.svg)](https://github.com/sormuras/junit-platform-maven-plugin/actions)
 [![stable](https://img.shields.io/badge/api-stable-green.svg)](https://javadoc.io/doc/de.sormuras.junit/junit-platform-maven-plugin)
 [![central](https://img.shields.io/maven-central/v/de.sormuras.junit/junit-platform-maven-plugin.svg)](https://search.maven.org/artifact/de.sormuras.junit/junit-platform-maven-plugin)
@@ -24,7 +24,7 @@ Using this plugin requires at least:
 
 * [Apache Maven 3.3.9](https://maven.apache.org)
 * [Java 8](http://jdk.java.net/8) to run this plugin
-* [Java 18](http://jdk.java.net/18) to build this project
+* [Java 20](http://jdk.java.net/20) to build this project
 
 ## Simple Usage
 
@@ -40,7 +40,7 @@ For example, if you want to write tests using the JUnit Jupiter API, you only ne
   <dependency>
     <groupId>org.junit.jupiter</groupId>
     <artifactId>junit-jupiter</artifactId>
-    <version>5.8.2</version>
+    <version>5.9.2</version>
     <scope>test</scope>
   </dependency>
 </dependencies>

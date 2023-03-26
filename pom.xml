@@ -20,9 +20,9 @@
         <maven.compiler.release>8</maven.compiler.release>
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
-        <maven.compiler.testRelease>18</maven.compiler.testRelease>
-        <maven.compiler.testSource>18</maven.compiler.testSource>
-        <maven.compiler.testTarget>18</maven.compiler.testTarget>
+        <maven.compiler.testRelease>20</maven.compiler.testRelease>
+        <maven.compiler.testSource>20</maven.compiler.testSource>
+        <maven.compiler.testTarget>20</maven.compiler.testTarget>
         <maven.version>3.3.9</maven.version>
         <junit.platform.version>1.9.2</junit.platform.version>
         <junit.jupiter.version>5.9.2</junit.jupiter.version>
@@ -102,7 +102,7 @@
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>3.6.1</version>
+            <version>3.8.1</version>
             <scope>provided</scope>
         </dependency>
 
@@ -354,9 +354,9 @@
                         <artifactId>maven-invoker-plugin</artifactId>
                         <dependencies>
                             <dependency>
-                                <groupId>org.codehaus.groovy</groupId>
+                                <groupId>org.apache.groovy</groupId>
                                 <artifactId>groovy</artifactId>
-                                <version>3.0.10</version>
+                                <version>4.0.10</version>
                             </dependency>
                         </dependencies>
                         <configuration>
