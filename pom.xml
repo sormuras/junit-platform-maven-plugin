@@ -54,6 +54,10 @@
             <name>Tomer Figenblat</name>
             <id>TomerFi</id>
         </developer>
+        <developer>
+            <name>Daniel Widdis</name>
+            <id>dbwiddis</id>
+        </developer>
     </developers>
 
     <licenses>
