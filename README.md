@@ -52,7 +52,7 @@ Configure the `junit-platform-maven-plugin` like this in the `<build><plugins>`-
 <plugin>
   <groupId>de.sormuras.junit</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>1.1.6</version>
+  <version>1.1.7</version>
   <extensions>true</extensions> <!-- Necessary to execute it in 'test' phase. -->
   <configuration>
     <isolation>NONE</isolation> <!-- Version 1.0.0 defaults to ABSOLUTE. -->
@@ -78,7 +78,7 @@ Or omit the `<extensions>true</extensions>` line (or set it to `false`) and regi
 <plugin>
   <groupId>de.sormuras.junit</groupId>
   <artifactId>junit-platform-maven-plugin</artifactId>
-  <version>1.1.6</version>
+  <version>1.1.7</version>
   <extensions>false</extensions> <!-- Neither install this plugin into `test` phase, nor touch Surefire. -->
   <executions>
     <execution>
