@@ -9,7 +9,7 @@
     <version>0</version>
   </parent>
 
-  <artifactId>mockito-basic</artifactId>
+  <artifactId>mockito-force-byte-buddy-version</artifactId>
 
   <dependencies>
     <dependency>
