@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>it</groupId>
+    <artifactId>setup</artifactId>
+    <version>0</version>
+  </parent>
+
+  <groupId>mockito-modular</groupId>
+  <artifactId>mockito-modular-parent</artifactId>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>mockito-modular-v4-subclass</module> <!-- using mockito.core, v4 defaults to subclassing -->
+    <module>mockito-modular-v4-attach</module> <!-- using mockito.inline for using attaching in v4 -->
+    <module>mockito-modular-v5-attach</module> <!-- using mockito.core, v5 defaults to attaching -->
+  </modules>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>${junit.jupiter.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>@project.groupId@</groupId>
+        <artifactId>@project.artifactId@</artifactId>
+        <extensions>true</extensions>
+        <configuration>
+          <executor>JAVA</executor>
+          <javaOptions>
+            <additionalOptions>
+              <additionalOption>--show-version</additionalOption>
+              <additionalOption>--show-module-resolution</additionalOption>
+            </additionalOptions>
+          </javaOptions>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

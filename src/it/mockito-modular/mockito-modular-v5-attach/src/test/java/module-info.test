@@ -1,0 +1,7 @@
+--add-modules
+  jdk.unsupported,org.mockito,net.bytebuddy,net.bytebuddy.agent
+
+--add-opens
+  mockito.modular.v5.attach/mockitov5attach=org.junit.platform.commons
+--add-opens
+  mockito.modular.v5.attach/mockitov5attach=org.mockito
