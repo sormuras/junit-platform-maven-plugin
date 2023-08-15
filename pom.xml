@@ -23,7 +23,7 @@
         <maven.compiler.testRelease>20</maven.compiler.testRelease>
         <maven.compiler.testSource>20</maven.compiler.testSource>
         <maven.compiler.testTarget>20</maven.compiler.testTarget>
-        <maven.version>3.3.9</maven.version>
+        <maven.version>3.8.1</maven.version>
         <junit.platform.version>1.9.2</junit.platform.version>
         <junit.jupiter.version>5.9.2</junit.jupiter.version>
         <junit.vintage.version>5.9.2</junit.vintage.version>
