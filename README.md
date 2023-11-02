@@ -1,7 +1,7 @@
 # JUnit Platform Maven Plugin
  
 [![jdk8](https://img.shields.io/badge/java-8-lightgray.svg)](http://jdk.java.net/8)
-[![jdk20](https://img.shields.io/badge/java-20-blue.svg)](http://jdk.java.net/20)
+[![jdk21](https://img.shields.io/badge/java-21-blue.svg)](http://jdk.java.net/21)
 [![CI](https://github.com/sormuras/junit-platform-maven-plugin/workflows/CI/badge.svg)](https://github.com/sormuras/junit-platform-maven-plugin/actions)
 [![stable](https://img.shields.io/badge/api-stable-green.svg)](https://javadoc.io/doc/de.sormuras.junit/junit-platform-maven-plugin)
 [![central](https://img.shields.io/maven-central/v/de.sormuras.junit/junit-platform-maven-plugin.svg)](https://search.maven.org/artifact/de.sormuras.junit/junit-platform-maven-plugin)
@@ -11,7 +11,7 @@ Maven Plugin launching the JUnit Platform
 ## Features
 
 * Utilize JUnit Platform's ability to execute multiple `TestEngine`s natively.
-* Auto-load well-known engine implementations at test runtime: users only have to depend on `junit-jupiter-api`, the Jupiter TestEngine is provided.
+* Autoload well-known engine implementations at test runtime: users only have to depend on `junit-jupiter-api`, the Jupiter TestEngine is provided.
 * Support in-module and extra-modular testing when writing modularized projects.
 * Most [selectors](https://junit.org/junit5/docs/current/api/org/junit/platform/engine/discovery/package-summary.html) the JUnit Platform offers are supported.
 * Load test, main, and framework/plugin classes in separation via dedicated `ClassLoader` instances using the [JUnit Platform Isolator](https://github.com/sormuras/junit-platform-isolator) library.
@@ -24,7 +24,7 @@ Using this plugin requires at least:
 
 * [Apache Maven 3.3.9](https://maven.apache.org)
 * [Java 8](http://jdk.java.net/8) to run this plugin
-* [Java 20](http://jdk.java.net/20) to build this project
+* [Java 21](http://jdk.java.net/21) to build this project
 
 ## Simple Usage
 
@@ -40,7 +40,7 @@ For example, if you want to write tests using the JUnit Jupiter API, you only ne
   <dependency>
     <groupId>org.junit.jupiter</groupId>
     <artifactId>junit-jupiter</artifactId>
-    <version>5.9.2</version>
+    <version>5.10.0</version>
     <scope>test</scope>
   </dependency>
 </dependencies>

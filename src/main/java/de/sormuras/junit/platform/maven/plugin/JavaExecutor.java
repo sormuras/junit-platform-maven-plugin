@@ -207,6 +207,8 @@ class JavaExecutor {
       return;
     }
 
+    cmd.add("execute");
+
     Configuration.Basic basic = configuration.basic();
     Configuration.Discovery dsc = configuration.discovery();
 

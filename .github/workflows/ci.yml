@@ -16,11 +16,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        java: [20]
+        java: [21]
 
     steps:
       - name: 'Check out sources'
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: 'Set up JDK ${{ matrix.java }}'
         uses: oracle-actions/setup-java@v1
         with:
@@ -32,7 +32,7 @@ jobs:
         run: mvn --batch-mode --no-transfer-progress -Prun-its verify
       - name: 'Upload IT build logs as ${{ github.event.repository.name }}-build-${{ github.sha }}'
         if: failure()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ github.event.repository.name }}-build-${{ github.sha }}
           path: |

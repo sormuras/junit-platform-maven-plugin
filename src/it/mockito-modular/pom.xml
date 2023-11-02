@@ -14,8 +14,8 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>mockito-modular-v4-subclass</module> <!-- using mockito.core, v4 defaults to subclassing -->
-    <module>mockito-modular-v4-attach</module> <!-- using mockito.inline for using attaching in v4 -->
+<!--    <module>mockito-modular-v4-subclass</module> &lt;!&ndash; using mockito.core, v4 defaults to subclassing &ndash;&gt;-->
+<!--    <module>mockito-modular-v4-attach</module> &lt;!&ndash; using mockito.inline for using attaching in v4 &ndash;&gt;-->
     <module>mockito-modular-v5-attach</module> <!-- using mockito.core, v5 defaults to attaching -->
   </modules>
 
