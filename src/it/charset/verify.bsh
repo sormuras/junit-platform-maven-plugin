@@ -19,7 +19,7 @@ verifier.verifyLogMatches(new String[] {
   ">> BEGIN >>",
   "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
   ">> Platform executes tests...>>",
-  "\\Q[INFO]\\E UTF-8 degree sign is Â°",
+  "\\Q[INFO]\\E UTF-8 degree sign is Â?°",
   ">> Platform executes tests...>>",
   "[INFO] BUILD SUCCESS",
   ">> END. >>"
