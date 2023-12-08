@@ -388,6 +388,7 @@
                                 <!--<pomInclude>multiple-engines-*</pomInclude>-->
                                 <!--<pomInclude>timeout</pomInclude>-->
                                 <!--<pomInclude>executionProgress</pomInclude>-->
+                                <!--<pomInclude>charset</pomInclude>-->
                             </pomIncludes>
                             <pomExcludes>
                                 <!-- None, B. -->

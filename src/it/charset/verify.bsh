@@ -1,0 +1,28 @@
+import it.Verifier;
+
+Verifier verifier = new Verifier(basedir.toPath());
+
+// verifier.verifyBadLines(); // warning and error lines are expected
+
+verifier.verifyReadable(new String[] {
+  "pom.xml",
+  "src/test/java/CharsetTests.java",
+  "target/test-classes/CharsetTests.class"
+});
+
+verifier.verifyNotExists(new String[] {
+  "target/classes",
+  "target/surefire-reports"
+});
+
+verifier.verifyLogMatches(new String[] {
+  ">> BEGIN >>",
+  "[INFO] Launching JUnit Platform " + junitPlatformVersion + "...",
+  ">> Platform executes tests...>>",
+  "\\Q[INFO]\\E UTF-8 degree sign is Â°",
+  ">> Platform executes tests...>>",
+  "[INFO] BUILD SUCCESS",
+  ">> END. >>"
+});
+
+return verifier.isOk();
