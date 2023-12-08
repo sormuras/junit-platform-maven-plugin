@@ -92,6 +92,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   @Parameter(defaultValue = "300")
   private long timeout = 300L;
 
+  /** Charset for log files. */
+  @Parameter(defaultValue = "")
+  private String charset = null;
+
   /** Execution progress update duration in seconds. */
   @Parameter(defaultValue = "60")
   private long executionProgress = 60;
@@ -506,6 +510,10 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
 
   long getTimeout() {
     return timeout;
+  }
+
+  String getCharset() {
+    return charset;
   }
 
   long getExecutionProgress() {

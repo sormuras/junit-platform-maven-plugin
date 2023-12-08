@@ -235,6 +235,16 @@ Duration between output and error log file sizes during execution (JAVA executio
 </configuration>
 ```
 
+### Log Charset
+
+Charset format for the output and error log files. Defaults to `Charset.defaultCharset()` for JDK 17 and lower, `System.getProperty("native.encoding")` for JDK 18 and higher.
+
+```xml
+<configuration>
+  <charset>UTF-8</charset>
+</configuration>
+```
+
 ### Isolation Level
 
 `ClassLoader` hierarchy configuration.

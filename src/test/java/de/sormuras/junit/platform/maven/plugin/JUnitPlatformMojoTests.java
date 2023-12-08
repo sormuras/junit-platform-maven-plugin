@@ -34,6 +34,7 @@ class JUnitPlatformMojoTests {
     assertEquals(Isolation.NONE, mojo.getIsolation());
     assertEquals(300L, mojo.getTimeout());
     assertEquals(60L, mojo.getExecutionProgress());
+    assertNull(mojo.getCharset());
 
     assertNotNull(mojo.getLog());
     assertNull(mojo.getMavenProject());

@@ -139,7 +139,10 @@ class JavaExecutor {
       }
       int exitValue = process.exitValue();
       if (captureIO) {
-        String encoding = System.getProperty("native.encoding"); // Populated on Java 18 and later
+        String encoding = mojo.getCharset();
+        if (encoding == null) {
+          encoding = System.getProperty("native.encoding"); // Populated on Java 18 and later
+        }
         Charset charset = encoding != null ? Charset.forName(encoding) : Charset.defaultCharset();
         try (Stream<String> stdoutput = Files.lines(outputPath, charset);
             Stream<String> erroutput = Files.lines(errorPath, charset)) {
