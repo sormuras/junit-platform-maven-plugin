@@ -19,6 +19,7 @@ import de.sormuras.junit.platform.isolator.Modules;
 import de.sormuras.junit.platform.isolator.TestMode;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -152,11 +153,14 @@ class JavaExecutor {
           mojo.warn("Reading output/error logs failed: {0}", e);
         }
       }
-      return exitValue;
+    } catch (CharacterCodingException cce) {
+      // Possibly thrown from Files.lines and not caught above
+      mojo.warn("Charset error reading output/error logs: {0}", cce);
     } catch (IOException | InterruptedException e) {
       mojo.error("Executing process failed: {0}", e);
       return -1;
     }
+    return exitValue;
   }
 
   // Supply standard options for Java foundation tool
