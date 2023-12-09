@@ -19,7 +19,6 @@ import de.sormuras.junit.platform.isolator.Modules;
 import de.sormuras.junit.platform.isolator.TestMode;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -102,7 +101,6 @@ class JavaExecutor {
     mojo.debug("");
     mojo.debug("Starting process...");
     cmd.forEach(mojo::debug);
-    int exitValue = -1;
     try {
       Process process = builder.start();
       // Java 11 debug("Process started: #%d %s", process.pid(), process.info());
@@ -139,29 +137,28 @@ class JavaExecutor {
         }
         return -2;
       }
-      exitValue = process.exitValue();
+      int exitValue = process.exitValue();
       if (captureIO) {
         String encoding = mojo.getCharset();
         if (encoding == null) {
           encoding = System.getProperty("native.encoding"); // Populated on Java 18 and later
         }
         Charset charset = encoding != null ? Charset.forName(encoding) : Charset.defaultCharset();
-        try (Stream<String> stdoutput = Files.lines(outputPath, charset);
-            Stream<String> erroutput = Files.lines(errorPath, charset)) {
-          stdoutput.forEach(exitValue == 0 ? mojo::info : mojo::error);
-          erroutput.forEach(exitValue == 0 ? mojo::warn : mojo::error);
+        try {
+          try (Stream<String> stdoutput = Files.lines(outputPath, charset);
+              Stream<String> erroutput = Files.lines(errorPath, charset)) {
+            stdoutput.forEach(exitValue == 0 ? mojo::info : mojo::error);
+            erroutput.forEach(exitValue == 0 ? mojo::warn : mojo::error);
+          }
         } catch (IOException e) {
           mojo.warn("Reading output/error logs failed: {0}", e);
         }
       }
-    } catch (CharacterCodingException cce) {
-      // Possibly thrown from Files.lines and not caught above
-      mojo.warn("Charset error reading output/error logs: {0}", cce);
+      return exitValue;
     } catch (IOException | InterruptedException e) {
       mojo.error("Executing process failed: {0}", e);
       return -1;
     }
-    return exitValue;
   }
 
   // Supply standard options for Java foundation tool
