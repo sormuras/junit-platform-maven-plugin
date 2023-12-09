@@ -102,6 +102,7 @@ class JavaExecutor {
     mojo.debug("");
     mojo.debug("Starting process...");
     cmd.forEach(mojo::debug);
+    int exitValue = -1;
     try {
       Process process = builder.start();
       // Java 11 debug("Process started: #%d %s", process.pid(), process.info());
@@ -138,7 +139,7 @@ class JavaExecutor {
         }
         return -2;
       }
-      int exitValue = process.exitValue();
+      exitValue = process.exitValue();
       if (captureIO) {
         String encoding = mojo.getCharset();
         if (encoding == null) {
