@@ -17,6 +17,7 @@ package de.sormuras.junit.platform.maven.plugin;
 import de.sormuras.junit.platform.isolator.Configuration;
 import de.sormuras.junit.platform.isolator.Modules;
 import de.sormuras.junit.platform.isolator.TestMode;
+import de.sormuras.junit.platform.isolator.Version;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -212,7 +213,9 @@ class JavaExecutor {
       return;
     }
 
-    cmd.add("execute");
+    if (mojo.versionIsEqualOrHigher(Version.JUNIT_PLATFORM_VERSION, "1.10.0")) {
+      cmd.add("execute");
+    }
 
     Configuration.Basic basic = configuration.basic();
     Configuration.Discovery dsc = configuration.discovery();

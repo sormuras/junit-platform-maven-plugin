@@ -50,7 +50,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositoryException;
 import org.eclipse.aether.RepositorySystem;
@@ -182,10 +181,7 @@ class MavenDriver implements Driver {
         launcherPaths.addAll(resolve(JUNIT_PLATFORM_LAUNCHER));
       }
       if (missing(JUNIT_PLATFORM_REPORTING)) {
-        ComparableVersion ver14m1 = new ComparableVersion("1.4.0-m1");
-        ComparableVersion current =
-            new ComparableVersion(mojo.version(Version.JUNIT_PLATFORM_VERSION).toLowerCase());
-        if (current.compareTo(ver14m1) >= 0) {
+        if (mojo.versionIsEqualOrHigher(Version.JUNIT_PLATFORM_VERSION, "1.4.0-m1")) {
           launcherPaths.addAll(resolve(JUNIT_PLATFORM_REPORTING));
         }
       }

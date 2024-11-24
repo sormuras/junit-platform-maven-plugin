@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.apache.maven.AbstractMavenLifecycleParticipant;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Build;
 import org.apache.maven.model.Plugin;
@@ -539,6 +540,12 @@ public class JUnitPlatformMojo extends AbstractMavenLifecycleParticipant impleme
   String version(Version version) {
     String detectedVersion = projectVersions.get(version.getKey());
     return versions.getOrDefault(version.getKey(), detectedVersion);
+  }
+
+  boolean versionIsEqualOrHigher(Version version, String comparableVersion) {
+    ComparableVersion probe = new ComparableVersion(comparableVersion);
+    ComparableVersion current = new ComparableVersion(version(version).toLowerCase());
+    return current.compareTo(probe) >= 0;
   }
 
   @SafeVarargs
