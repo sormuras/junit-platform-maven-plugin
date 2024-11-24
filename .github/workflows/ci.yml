@@ -24,7 +24,6 @@ jobs:
       - name: 'Set up JDK ${{ matrix.java }}'
         uses: oracle-actions/setup-java@v1
         with:
-          website: jdk.java.net
           release: ${{ matrix.java }}
       - name: 'Build'
         run: mvn --batch-mode --no-transfer-progress verify
@@ -32,7 +31,7 @@ jobs:
         run: mvn --batch-mode --no-transfer-progress -Prun-its verify
       - name: 'Upload IT build logs as ${{ github.event.repository.name }}-build-${{ github.sha }}'
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.repository.name }}-build-${{ github.sha }}
           path: |
