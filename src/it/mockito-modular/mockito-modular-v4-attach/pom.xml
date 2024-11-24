@@ -13,7 +13,7 @@
   <artifactId>mockito-modular-v4-attach</artifactId>
 
   <properties>
-    <mockito.version>4.11.0</mockito.version>
+    <mockito.version>5.14.2</mockito.version>
   </properties>
 
   <dependencies>
