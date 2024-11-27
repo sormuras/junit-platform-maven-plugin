@@ -10,10 +10,10 @@
 
   <properties>
     <!-- versions -->
-    <junit.platform.version>1.10.0</junit.platform.version>
-    <junit.jupiter.version>5.10.0</junit.jupiter.version>
-    <junit.vintage.version>5.10.0</junit.vintage.version>
-    <brahms.version>0.11.10</brahms.version>
+    <junit.platform.version>1.11.3</junit.platform.version>
+    <junit.jupiter.version>5.11.3</junit.jupiter.version>
+    <junit.vintage.version>5.11.3</junit.vintage.version>
+    <mainrunner.version>2.1.5</mainrunner.version>
     <junit.version>4.13.2</junit.version>
     <jqwik.version>1.5.0</jqwik.version>
     <!-- shared build and compiler settings -->
